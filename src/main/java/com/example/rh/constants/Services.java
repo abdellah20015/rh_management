@@ -12,5 +12,6 @@ public class Services {
   public static final String DB_REMOVE_DOCUMENT = "removeDocument";
   public static final String DB_REMOVE_DOCUMENTS = "removeDocuments";
   public static final String DB_COUNT = "count";
+  public static final String DB_AGGREGATE = "aggregate";
 
 }
