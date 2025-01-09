@@ -4,6 +4,7 @@ package com.example.rh;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -19,7 +20,7 @@ public class MainVerticle extends AbstractVerticle {
   private static final Integer PORT = 8888;
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
-    String path = "src/main/resources/openapi.json";
+    String path = "src/main/api/openapi.json";
     OpenAPIContract.from(vertx, path)
     .onSuccess(contract ->{
       // Create a router builder
@@ -68,5 +69,9 @@ public class MainVerticle extends AbstractVerticle {
       startPromise.fail(err);
       System.err.println("Failed to load OpenAPI contract: " + err.getMessage());
     });
+  }
+  public static void main(String[] args) {
+    Vertx vertx = Vertx.vertx();
+    vertx.deployVerticle(new MainVerticle());
   }
 }
