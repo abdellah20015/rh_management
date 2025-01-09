@@ -1,818 +1,827 @@
 {
-    "openapi": "3.0.0",
-    "info": {
+  "openapi": "3.0.0",
+  "info": {
       "title": "API Gestion des Utilisateurs et Contrats",
       "description": "API pour gérer les utilisateurs, les contrats, les demandes, les notifications, et les fichiers.",
       "version": "1.0.0"
-    },
-    "servers": [
+  },
+  "servers": [
       {
-        "url": "http://localhost:8888",
-        "description": "Serveur local de l'API"
+          "url": "http://localhost:8888",
+          "description": "Serveur local de l'API"
       }
-    ],
-    "paths": {
+  ],
+  "paths": {
       "/login": {
-        "post": {
-          "summary": "Connexion d'un utilisateur",
-          "operationId": "login",
-          "tags": [
-            "Authentication"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "username": {
-                      "type": "string"
-                    },
-                    "password": {
-                      "type": "string"
-                    }
+          "post": {
+              "summary": "Connexion d'un utilisateur",
+              "operationId": "login",
+              "tags": [
+                  "Authentication"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "username": {
+                                      "type": "string"
+                                  },
+                                  "password": {
+                                      "type": "string"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Connexion réussie"
+                  },
+                  "401": {
+                      "description": "Identifiants invalides"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Connexion réussie"
-            },
-            "401": {
-              "description": "Identifiants invalides"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/logout": {
-        "post": {
-          "summary": "Déconnexion de l'utilisateur",
-          "operationId": "logout",
-          "tags": [
-            "Authentication"
-          ],
-          "responses": {
-            "200": {
-              "description": "Déconnexion réussie"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
+          "post": {
+              "summary": "Déconnexion de l'utilisateur",
+              "operationId": "logout",
+              "tags": [
+                  "Authentication"
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Déconnexion réussie"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
+              }
           }
-        }
-      },
-      "/private/{path}": {
-        "post": {
-          "summary": "all requests",
-          "operationId": "privatePOST",
-          "responses": {
-            "201": {
-              "description": "Ok"
-            }
-          }
-        }
       },
       "/private/reset_password": {
-        "post": {
-          "summary": "Réinitialisation du mot de passe",
-          "operationId": "resetPassword",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "old_password": {
-                      "type": "string"
-                    },
-                    "new_password": {
-                      "type": "string"
-                    },
-                    "username": {
-                      "type": "string"
-                    }
+          "post": {
+              "summary": "Réinitialisation du mot de passe",
+              "operationId": "resetPassword",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "old_password": {
+                                      "type": "string"
+                                  },
+                                  "new_password": {
+                                      "type": "string"
+                                  },
+                                  "username": {
+                                      "type": "string"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Mot de passe réinitialisé avec succès"
+                  },
+                  "400": {
+                      "description": "Mauvais mot de passe"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Mot de passe réinitialisé avec succès"
-            },
-            "400": {
-              "description": "Mauvais mot de passe"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/list": {
-        "post": {
-          "summary": "Liste des utilisateurs",
-          "operationId": "listUsers",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "content": {
-              "application/json": { 
-                "schema": {
-                  "type": "object",
-                  "properties" : {
-                    "query" : {
-                      "type" : "object"
-                    },
-                    "options" : {
-                      "$ref": "#/components/schemas/Pagination"
-                    }
+          "post": {
+              "summary": "Liste des utilisateurs",
+              "operationId": "listUsers",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "query": {
+                                      "type": "object"
+                                  },
+                                  "options": {
+                                      "$ref": "#/components/schemas/Pagination"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Liste des utilisateurs"
+                  },
+                  "403": {
+                      "description": "Accès non autorisé"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Liste des utilisateurs"
-            },
-            "403": {
-              "description": "Accès non autorisé"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/create": {
-        "post": {
-          "summary": "Création d'un utilisateur",
-          "operationId": "createUser",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "username": {
-                      "type": "string"
-                    },
-                    "password": {
-                      "type": "string"
-                    },
-                    "role": {
-                      "type": "string",
-                      "enum": [
-                        "admin",
-                        "manager",
-                        "employee"
-                      ]
-                    },
-                    "manager_id": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "boolean"
-                    },
-                    "first_login": {
-                      "type": "boolean"
-                    },
-                    "created_date": {
-                      "type": "string",
-                      "format": "date"
-                    }
+          "post": {
+              "summary": "Création d'un utilisateur",
+              "operationId": "createUser",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "username": {
+                                      "type": "string"
+                                  },
+                                  "password": {
+                                      "type": "string"
+                                  },
+                                  "role": {
+                                      "type": "string",
+                                      "enum": [
+                                          "admin",
+                                          "manager",
+                                          "employee"
+                                      ]
+                                  },
+                                  "manager_id": {
+                                      "type": "string"
+                                  },
+                                  "status": {
+                                      "type": "boolean"
+                                  },
+                                  "first_login": {
+                                      "type": "boolean"
+                                  },
+                                  "created_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  }
+                              },
+                              "required": [
+                                  "username",
+                                  "password"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "201": {
+                      "description": "Utilisateur créé avec succès"
                   },
-                  "required": [
-                    "username",
-                    "password"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Utilisateur créé avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/update": {
-        "post": {
-          "summary": "Mise à jour d'un utilisateur",
-          "operationId": "updateUser",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "username": {
-                      "type": "string"
-                    },
-                    "password": {
-                      "type": "string"
-                    },
-                    "role": {
-                      "type": "string",
-                      "enum": [
-                        "admin",
-                        "manager",
-                        "employee"
-                      ]
-                    },
-                    "permission": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
+          "post": {
+              "summary": "Mise à jour d'un utilisateur",
+              "operationId": "updateUser",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "user_id": {
+                                      "type": "string"
+                                  },
+                                  "username": {
+                                      "type": "string"
+                                  },
+                                  "password": {
+                                      "type": "string"
+                                  },
+                                  "role": {
+                                      "type": "string",
+                                      "enum": [
+                                          "admin",
+                                          "manager",
+                                          "employee"
+                                      ]
+                                  },
+                                  "permission": {
+                                      "type": "array",
+                                      "items": {
+                                          "type": "string"
+                                      }
+                                  },
+                                  "manager_id": {
+                                      "type": "string"
+                                  },
+                                  "status": {
+                                      "type": "boolean"
+                                  },
+                                  "first_login": {
+                                      "type": "boolean"
+                                  },
+                                  "created_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  }
+                              },
+                              "required": [
+                                  "user_id"
+                              ]
+                          }
                       }
-                    },
-                    "manager_id": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "boolean"
-                    },
-                    "first_login": {
-                      "type": "boolean"
-                    },
-                    "created_date": {
-                      "type": "string",
-                      "format": "date"
-                    }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Utilisateur mis à jour avec succès"
                   },
-                  "required": [
-                    "user_id"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Utilisateur mis à jour avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/delete": {
-        "post": {
-          "summary": "Suppression d'un utilisateur",
-          "operationId": "deleteUser",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    }
+          "post": {
+              "summary": "Suppression d'un utilisateur",
+              "operationId": "deleteUser",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "user_id": {
+                                      "type": "string"
+                                  }
+                              },
+                              "required": [
+                                  "user_id"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Utilisateur supprimé avec succès"
                   },
-                  "required": [
-                    "user_id"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Utilisateur supprimé avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/import": {
-        "post": {
-          "summary": "Importation d'un fichier Excel pour créer des comptes d'employés",
-          "operationId": "importUsers",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "multipart/form-data": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "file": {
-                      "type": "string",
-                      "format": "binary"
-                    }
+          "post": {
+              "summary": "Importation d'un fichier Excel pour créer des comptes d'employés",
+              "operationId": "importUsers",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "multipart/form-data": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "file": {
+                                      "type": "string",
+                                      "format": "binary"
+                                  }
+                              },
+                              "required": [
+                                  "file"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Fichier importé avec succès"
                   },
-                  "required": [
-                    "file"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de format de fichier"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Fichier importé avec succès"
-            },
-            "400": {
-              "description": "Erreur de format de fichier"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/user/profile": {
-        "post": {
-          "summary": "Récupérer les informations du profil d'un utilisateur (admin/manager/salarier)",
-          "operationId": "getUserProfile",
-          "tags": [
-            "User"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    }
+          "post": {
+              "summary": "Récupérer les informations du profil d'un utilisateur (admin/manager/salarier)",
+              "operationId": "getUserProfile",
+              "tags": [
+                  "User"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "user_id": {
+                                      "type": "string"
+                                  }
+                              },
+                              "required": [
+                                  "user_id"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Profil de l'utilisateur récupéré avec succès"
                   },
-                  "required": [
-                    "user_id"
-                  ]
-                }
+                  "403": {
+                      "description": "Accès non autorisé"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Profil de l'utilisateur récupéré avec succès"
-            },
-            "403": {
-              "description": "Accès non autorisé"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/contract/create": {
-        "post": {
-          "summary": "Création d'un contrat",
-          "operationId": "createContract",
-          "tags": [
-            "Contract"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "cdi",
-                        "cdd"
-                      ]
-                    },
-                    "start_date": {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    "end_date": {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    "status": {
-                      "type": "boolean"
-                    },
-                    "salary": {
-                      "type": "number",
-                      "format": "double"
-                    },
-                    "leave_balance": {
-                      "type": "integer"
-                    },
-                    "created_date": {
-                      "type": "string",
-                      "format": "date"
-                    }
+          "post": {
+              "summary": "Création d'un contrat",
+              "operationId": "createContract",
+              "tags": [
+                  "Contract"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "user_id": {
+                                      "type": "string"
+                                  },
+                                  "type": {
+                                      "type": "string",
+                                      "enum": [
+                                          "cdi",
+                                          "cdd"
+                                      ]
+                                  },
+                                  "start_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  },
+                                  "end_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  },
+                                  "status": {
+                                      "type": "boolean"
+                                  },
+                                  "salary": {
+                                      "type": "number",
+                                      "format": "double"
+                                  },
+                                  "leave_balance": {
+                                      "type": "integer"
+                                  },
+                                  "created_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  }
+                              },
+                              "required": [
+                                  "user_id",
+                                  "type",
+                                  "start_date",
+                                  "status",
+                                  "salary",
+                                  "leave_balance"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "201": {
+                      "description": "Contrat créé avec succès"
                   },
-                  "required": [
-                    "user_id",
-                    "type",
-                    "start_date",
-                    "status",
-                    "salary",
-                    "leave_balance"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Contrat créé avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/contract/update": {
-        "post": {
-          "summary": "Mise à jour d'un contrat",
-          "operationId": "updateContract",
-          "tags": [
-            "Contract"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contract_id": {
-                      "type": "string"
-                    },
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string",
-                      "enum": [
-                        "cdi",
-                        "cdd"
-                      ]
-                    },
-                    "start_date": {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    "end_date": {
-                      "type": "string",
-                      "format": "date"
-                    },
-                    "status": {
-                      "type": "boolean"
-                    },
-                    "salary": {
-                      "type": "number",
-                      "format": "double"
-                    },
-                    "leave_balance": {
-                      "type": "integer"
-                    },
-                    "created_date": {
-                      "type": "string",
-                      "format": "date"
-                    }
+          "post": {
+              "summary": "Mise à jour d'un contrat",
+              "operationId": "updateContract",
+              "tags": [
+                  "Contract"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "contract_id": {
+                                      "type": "string"
+                                  },
+                                  "user_id": {
+                                      "type": "string"
+                                  },
+                                  "type": {
+                                      "type": "string",
+                                      "enum": [
+                                          "cdi",
+                                          "cdd"
+                                      ]
+                                  },
+                                  "start_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  },
+                                  "end_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  },
+                                  "status": {
+                                      "type": "boolean"
+                                  },
+                                  "salary": {
+                                      "type": "number",
+                                      "format": "double"
+                                  },
+                                  "leave_balance": {
+                                      "type": "integer"
+                                  },
+                                  "created_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  }
+                              },
+                              "required": [
+                                  "contract_id"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Contrat mis à jour avec succès"
                   },
-                  "required": [
-                    "contract_id"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Contrat mis à jour avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/contract/get": {
-        "post": {
-          "summary": "Récupérer les informations d'un contrat (admin)",
-          "operationId": "getContract",
-          "tags": [
-            "Contract"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "contract_id": {
-                      "type": "string"
-                    }
+          "post": {
+              "summary": "Récupérer les informations d'un contrat (admin)",
+              "operationId": "getContract",
+              "tags": [
+                  "Contract"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "contract_id": {
+                                      "type": "string"
+                                  }
+                              },
+                              "required": [
+                                  "contract_id"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Contrat récupéré avec succès"
                   },
-                  "required": [
-                    "contract_id"
-                  ]
-                }
+                  "404": {
+                      "description": "Contrat non trouvé"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Contrat récupéré avec succès"
-            },
-            "404": {
-              "description": "Contrat non trouvé"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/demand/list": {
-        "post": {
-          "summary": "Liste des demandes",
-          "operationId": "listDemands",
-          "requestBody": {
-            "content": {
-              "application/json": { 
-                "schema": {
-                  "type": "object",
-                  "properties" : {
-                    "query" : {
-                      "type" : "object"
-                    },
-                    "options" : {
-                      "$ref": "#/components/schemas/Pagination"
-                    }
+          "post": {
+              "summary": "Liste des demandes",
+              "operationId": "listDemands",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "query": {
+                                      "type": "object"
+                                  },
+                                  "options": {
+                                      "$ref": "#/components/schemas/Pagination"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "tags": [
+                  "Demand"
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Liste des demandes récupérée avec succès"
+                  },
+                  "403": {
+                      "description": "Accès non autorisé"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "tags": [
-            "Demand"
-          ],
-          "responses": {
-            "200": {
-              "description": "Liste des demandes récupérée avec succès"
-            },
-            "403": {
-              "description": "Accès non autorisé"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/demand/update": {
-        "post": {
-          "summary": "Mise à jour de l'état d'une demande",
-          "operationId": "updateDemand",
-          "tags": [
-            "Demand"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "demand_id": {
-                      "type": "string"
-                    },
-                    "status": {
-                      "type": "string",
-                      "enum": [
-                        "pending",
-                        "approved",
-                        "rejected"
-                      ]
-                    }
+          "post": {
+              "summary": "Mise à jour de l'état d'une demande",
+              "operationId": "updateDemand",
+              "tags": [
+                  "Demand"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "demand_id": {
+                                      "type": "string"
+                                  },
+                                  "status": {
+                                      "type": "string",
+                                      "enum": [
+                                          "pending",
+                                          "approved",
+                                          "rejected"
+                                      ]
+                                  }
+                              },
+                              "required": [
+                                  "demand_id",
+                                  "status"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Demande mise à jour avec succès"
                   },
-                  "required": [
-                    "demand_id",
-                    "status"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Demande mise à jour avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/demand/create": {
-        "post": {
-          "summary": "Création d'une demande",
-          "operationId": "createDemand",
-          "tags": [
-            "Demand"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "user_id": {
-                      "type": "string"
-                    },
-                    "type": {
-                      "type": "string"
-                    },
-                    "details": {
-                      "type": "object"
-                    },
-                    "file_path": {
-                      "type": "string"
-                    },
-                    "created_date": {
-                      "type": "string",
-                      "format": "date"
-                    }
+          "post": {
+              "summary": "Création d'une demande",
+              "operationId": "createDemand",
+              "tags": [
+                  "Demand"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "user_id": {
+                                      "type": "string"
+                                  },
+                                  "type": {
+                                      "type": "string"
+                                  },
+                                  "details": {
+                                      "type": "object"
+                                  },
+                                  "file_path": {
+                                      "type": "string"
+                                  },
+                                  "created_date": {
+                                      "type": "string",
+                                      "format": "date"
+                                  }
+                              },
+                              "required": [
+                                  "user_id",
+                                  "type",
+                                  "details",
+                                  "file_path"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "responses": {
+                  "201": {
+                      "description": "Demande créée avec succès"
                   },
-                  "required": [
-                    "user_id",
-                    "type",
-                    "details",
-                    "file_path"
-                  ]
-                }
+                  "400": {
+                      "description": "Erreur de validation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "201": {
-              "description": "Demande créée avec succès"
-            },
-            "400": {
-              "description": "Erreur de validation"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
       "/private/notification": {
-        "post": {
-          "summary": "Récupérer les notifications",
-          "operationId": "getNotifications",
-          "requestBody": {
-            "content": {
-              "application/json": { 
-                "schema": {
-                  "type": "object",
-                  "properties" : {
-                    "query" : {
-                      "type" : "object"
-                    },
-                    "options" : {
-                      "$ref": "#/components/schemas/Pagination"
-                    }
+          "post": {
+              "summary": "Récupérer les notifications",
+              "operationId": "getNotifications",
+              "requestBody": {
+                  "content": {
+                      "application/json": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "query": {
+                                      "type": "object"
+                                  },
+                                  "options": {
+                                      "$ref": "#/components/schemas/Pagination"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "tags": [
+                  "Notification"
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Notifications récupérées avec succès"
+                  },
+                  "403": {
+                      "description": "Accès non autorisé"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "tags": [
-            "Notification"
-          ],
-          "responses": {
-            "200": {
-              "description": "Notifications récupérées avec succès"
-            },
-            "403": {
-              "description": "Accès non autorisé"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
       },
-      "/private/file/upload": {
-        "post": {
-          "summary": "Upload de fichiers",
-          "operationId": "uploadFile",
-          "tags": [
-            "File"
-          ],
-          "requestBody": {
-            "required": true,
-            "content": {
-              "multipart/form-data": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "file": {
-                      "type": "string",
-                      "format": "binary"
-                    }
+      "/private/file/download": {
+          "post": {
+              "summary": "Upload de fichiers",
+              "operationId": "uploadFile",
+              "tags": [
+                  "File"
+              ],
+              "requestBody": {
+                  "required": true,
+                  "content": {
+                      "multipart/form-data": {
+                          "schema": {
+                              "type": "object",
+                              "properties": {
+                                  "file": {
+                                      "type": "string",
+                                      "format": "binary"
+                                  }
+                              }
+                          }
+                      }
                   }
-                }
+              },
+              "responses": {
+                  "200": {
+                      "description": "Fichier téléchargé avec succès"
+                  },
+                  "400": {
+                      "description": "Erreur de téléchargement"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
               }
-            }
-          },
-          "responses": {
-            "200": {
-              "description": "Fichier téléchargé avec succès"
-            },
-            "400": {
-              "description": "Erreur de téléchargement"
-            },
-            "500": {
-              "description": "Erreur serveur"
-            }
           }
-        }
+      },
+      "/private/file/get": {
+          "post": {
+              "summary": "Upload de fichiers",
+              "operationId": "getfiles",
+              "tags": [
+                  "File"
+              ],
+              "responses": {
+                  "200": {
+                      "description": "Fichier importer avec succès"
+                  },
+                  "400": {
+                      "description": "Erreur d importation"
+                  },
+                  "500": {
+                      "description": "Erreur serveur"
+                  }
+              }
+          }
       }
-    },
-    "components": {
+  },
+  "components": {
       "schemas": {
-        "Pagination": {
-          "type": "object",
-          "properties": {
-            "page": {
-              "type": "number"
-            },
-            "limit": {
-              "type": "number"
-            }
-          },
-          "required": [
-            "page"
-          ]
-        }
+          "Pagination": {
+              "type": "object",
+              "properties": {
+                  "page": {
+                      "type": "number"
+                  },
+                  "limit": {
+                      "type": "number"
+                  }
+              },
+              "required": [
+                  "page"
+              ]
+          }
       }
-    }
   }
+}
