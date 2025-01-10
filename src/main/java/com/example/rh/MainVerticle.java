@@ -54,10 +54,9 @@ public class MainVerticle extends AbstractVerticle {
       // Mount the body handler
       routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(50 * 1024 * 1024));
 
-
-
       //demands
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
+      routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
 
       // Create a router
       Router router = routerBuilder.createRouter();
@@ -94,7 +93,6 @@ public class MainVerticle extends AbstractVerticle {
   private void getListDemands(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
-      System.out.println(body);
       vertx.eventBus().request(Services.DEMAND_LIST ,body , res-> {
         if(res.succeeded()){
           ctx.response()
@@ -112,6 +110,35 @@ public class MainVerticle extends AbstractVerticle {
       System.out.println("error " + e);
     }
   }
+
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route createDemand
+   * request body <JsonObject>
+   * </p>
+   */
+  public void createDemand(RoutingContext ctx) {
+    try {
+      JsonObject body = ctx.getBodyAsJson();
+
+      vertx.eventBus().request(Services.DEMAND_CREATE, body, res -> {
+        if(res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        }else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+    }catch(Exception e) {
+      System.out.println("error " + e);
+    }
+  }
+
 
   public static void main(String[] args) {
     Vertx vertx = Vertx.vertx();

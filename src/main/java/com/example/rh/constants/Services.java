@@ -16,5 +16,5 @@ public class Services {
 
   //Demands
   public static final String DEMAND_LIST = "getListDemands";
-
+  public static final String DEMAND_CREATE = "createDemand";
 }
