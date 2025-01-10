@@ -57,6 +57,7 @@ public class MainVerticle extends AbstractVerticle {
       //demands
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
+      routerBuilder.getRoute("updateDemand").addHandler(this::updateDemand);
 
       // Create a router
       Router router = routerBuilder.createRouter();
@@ -135,6 +136,34 @@ public class MainVerticle extends AbstractVerticle {
         }
       });
     }catch(Exception e) {
+      System.out.println("error " + e);
+    }
+  }
+
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route updateDomand
+   * request body <JsonObject>
+   * </p>
+   */
+  public void updateDemand(RoutingContext ctx) {
+    try{
+      JsonObject body = ctx.getBodyAsJson();
+
+      vertx.eventBus().request(Services.DEMAND_UPDATE, body, res -> {
+        if(res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type" , "application/json")
+            .end(res.result().body().toString());
+        }else {
+          ctx.response()
+            .putHeader("content-type" , "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+    }catch (Exception e){
       System.out.println("error " + e);
     }
   }
