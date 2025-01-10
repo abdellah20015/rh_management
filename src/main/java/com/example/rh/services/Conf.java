@@ -16,9 +16,4 @@ public class Conf {
         return MongoClient.createShared(vertx, config);
     }
 
-    public static JsonObject getConfig() {
-        return new JsonObject()
-            .put("connection_string", CONNECTION_STRING)
-            .put("db_name", DB_NAME);
-    }
 }

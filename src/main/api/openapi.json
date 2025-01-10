@@ -67,17 +67,6 @@
           }
         }
       },
-      "/private/{path}": {
-        "post": {
-          "summary": "all requests",
-          "operationId": "privatePOST",
-          "responses": {
-            "201": {
-              "description": "Ok"
-            }
-          }
-        }
-      },
       "/private/reset_password": {
         "post": {
           "summary": "Réinitialisation du mot de passe",
