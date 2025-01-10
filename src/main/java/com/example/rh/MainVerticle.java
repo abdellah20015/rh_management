@@ -6,6 +6,7 @@ import com.example.rh.constants.Services;
 import com.example.rh.services.Conf;
 import com.example.rh.services.Db;
 import com.example.rh.services.Demand;
+import com.example.rh.services.PdfGenerator;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -174,5 +175,6 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle(new MainVerticle());
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
+    vertx.deployVerticle(new PdfGenerator());
   }
 }
