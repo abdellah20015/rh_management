@@ -29,12 +29,13 @@ application {
 
 dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
-  implementation("io.vertx:vertx-core")
+  implementation("io.vertx:vertx-core:4.5.11")
   implementation("io.vertx:vertx-web-client:4.5.11")
   implementation("io.vertx:vertx-mongo-client:4.5.11")
   implementation("io.vertx:vertx-auth-mongo:4.5.11")
   implementation("io.vertx:vertx-openapi:4.5.11")
   implementation("io.vertx:vertx-web-openapi-router:4.5.11")
+  implementation("com.itextpdf:itextpdf:5.0.6")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }

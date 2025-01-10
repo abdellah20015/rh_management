@@ -5,6 +5,7 @@ import com.example.rh.constants.Fields;
 import com.example.rh.constants.Services;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 public class Demand extends AbstractVerticle {
@@ -16,8 +17,8 @@ public class Demand extends AbstractVerticle {
       vertx.eventBus().consumer(Services.DEMAND_LIST, this::getListDemandHandler);
       vertx.eventBus().consumer(Services.DEMAND_CREATE, this::createDemandHandler);
       vertx.eventBus().consumer(Services.DEMAND_UPDATE, this::updateDemandHandler);
-    }catch(Exception e) {
-     System.out.println(e);
+    } catch (Exception e) {
+      System.out.println(e);
     }
   }
 
@@ -48,7 +49,7 @@ public class Demand extends AbstractVerticle {
           message.reply(res.result().body());
         }
       });
-    }catch(Exception e) {
+    } catch (Exception e) {
       System.out.println(e);
     }
   }
@@ -83,19 +84,57 @@ public class Demand extends AbstractVerticle {
 
       JsonObject msg = new JsonObject()
         .put("collection", Collections.DEMANDS)
-        .put("query" , query);
+        .put("query", query);
 
       vertx.eventBus().request(Services.DB_INSERT, msg, res -> {
-        if(res.succeeded()) {
-          System.out.println("demand has been created : " + res.result().body());
-          message.reply(res.result().body());
-        }else {
+        if (res.succeeded()) {
+
+          JsonObject data = (JsonObject) res.result().body();
+          JsonObject demand = data.getJsonObject("data");
+
+          JsonArray aggregation = new JsonArray()
+            .add(new JsonObject().put("$lookup", new JsonObject()
+              .put("from", "user")
+              .put("localField", "user_id")
+              .put("foreignField", "_id")
+              .put("as", "user")))
+            .add(new JsonObject().put("$match", new JsonObject().put("_id", demand.getString("_id"))))
+            .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
+            .add(new JsonObject().put("$project", new JsonObject()
+              .put("type", 1)
+              .put("details", 1)
+              .put("created_date", 1)
+              .put("username", "$user.username")));
+
+          JsonObject aggregationMsg = new JsonObject()
+            .put("collection", Collections.DEMANDS)
+            .put("pipeline", aggregation)
+            .put("options", new JsonObject());
+
+          vertx.eventBus().request(Services.DB_AGGREGATE, aggregationMsg, aggregationRes -> {
+            if (res.succeeded()) {
+              JsonObject aggregationData = (JsonObject) aggregationRes.result().body();
+              JsonArray dataArray = aggregationData.getJsonArray("data");
+              JsonObject result = dataArray.getJsonObject(0);
+
+
+              vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
+                if (generatePdfRes.succeeded()) {
+                  System.out.println("demand has been created : " + res.result().body());
+                  message.reply(generatePdfRes.result().body());
+                } else {
+                  message.reply(generatePdfRes.cause().getMessage());
+                }
+              });
+            }
+          });
+        } else {
           message.reply(res.cause().getMessage());
         }
       });
 
-    }catch(Exception e) {
-      message.fail(500, "error" +  e);
+    } catch (Exception e) {
+      message.fail(500, "error" + e);
     }
   }
 
@@ -123,14 +162,14 @@ public class Demand extends AbstractVerticle {
         .put("update", update);
 
       vertx.eventBus().request(Services.DB_UPDATE, msg, res -> {
-        if(res.succeeded()){
+        if (res.succeeded()) {
           message.reply(res.result().body());
-        }else {
+        } else {
           message.fail(500, res.cause().getMessage());
         }
       });
-    }catch(Exception e) {
-      message.fail(500, "error" +  e);
+    } catch (Exception e) {
+      message.fail(500, "error" + e);
     }
   }
 }
