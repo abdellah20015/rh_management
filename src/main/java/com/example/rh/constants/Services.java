@@ -14,4 +14,7 @@ public class Services {
   public static final String DB_COUNT = "count";
   public static final String DB_AGGREGATE = "aggregate";
 
+  //Demands
+  public static final String DEMAND_LIST = "getListDemands";
+
 }
