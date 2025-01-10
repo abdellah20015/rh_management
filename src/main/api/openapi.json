@@ -181,10 +181,6 @@
                                   },
                                   "first_login": {
                                       "type": "boolean"
-                                  },
-                                  "created_date": {
-                                      "type": "string",
-                                      "format": "date"
                                   }
                               },
                               "required": [
@@ -253,10 +249,6 @@
                                   },
                                   "first_login": {
                                       "type": "boolean"
-                                  },
-                                  "created_date": {
-                                      "type": "string",
-                                      "format": "date"
                                   }
                               },
                               "required": [
@@ -435,10 +427,6 @@
                                   },
                                   "leave_balance": {
                                       "type": "integer"
-                                  },
-                                  "created_date": {
-                                      "type": "string",
-                                      "format": "date"
                                   }
                               },
                               "required": [
@@ -510,10 +498,6 @@
                                   },
                                   "leave_balance": {
                                       "type": "integer"
-                                  },
-                                  "created_date": {
-                                      "type": "string",
-                                      "format": "date"
                                   }
                               },
                               "required": [
@@ -683,10 +667,6 @@
                                   },
                                   "file_path": {
                                       "type": "string"
-                                  },
-                                  "created_date": {
-                                      "type": "string",
-                                      "format": "date"
                                   }
                               },
                               "required": [
