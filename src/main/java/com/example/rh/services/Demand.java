@@ -98,13 +98,23 @@ public class Demand extends AbstractVerticle {
               .put("localField", "user_id")
               .put("foreignField", "_id")
               .put("as", "user")))
-            .add(new JsonObject().put("$match", new JsonObject().put("_id", demand.getString("_id"))))
-            .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
+            .add(new JsonObject().put("$unwind", new JsonObject()
+              .put("path", "$user")))
+            .add(new JsonObject().put("$lookup", new JsonObject()
+              .put("from", "user")
+              .put("localField", "user.manager_id")
+              .put("foreignField", "_id")
+              .put("as", "manager")))
+            .add(new JsonObject().put("$unwind", new JsonObject()
+              .put("path", "$manager")))
+            .add(new JsonObject().put("$match", new JsonObject()
+              .put("_id", demand.getString("_id"))))
             .add(new JsonObject().put("$project", new JsonObject()
               .put("type", 1)
               .put("details", 1)
               .put("created_date", 1)
-              .put("username", "$user.username")));
+              .put("username", "$user.username")
+              .put("manager_username", "$manager.username")));
 
           JsonObject aggregationMsg = new JsonObject()
             .put("collection", Collections.DEMANDS)
@@ -117,11 +127,30 @@ public class Demand extends AbstractVerticle {
               JsonArray dataArray = aggregationData.getJsonArray("data");
               JsonObject result = dataArray.getJsonObject(0);
 
+              System.out.println(dataArray);
 
               vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
                 if (generatePdfRes.succeeded()) {
-                  System.out.println("demand has been created : " + res.result().body());
-                  message.reply(generatePdfRes.result().body());
+
+                  JsonObject demandBody = (JsonObject) res.result().body();
+                  JsonObject demandData = demandBody.getJsonObject("data");
+
+                  System.out.println("$$$$$$$$$$$$44" + demandData.getString("_id"));
+
+                  JsonObject update = new JsonObject()
+                    .put("file_path", generatePdfRes.result().body());
+
+                  JsonObject updateDemandMsg = new JsonObject()
+                    .put("collection", Collections.DEMANDS)
+                    .put("id", demandData.getString("_id"))
+                    .put("update", update);
+
+                  vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
+                    if(updateDemandRes.succeeded()) {
+                      System.out.println("demand has been created : " + updateDemandRes.result().body());
+                      message.reply(updateDemandRes.result().body());
+                    }
+                  });
                 } else {
                   message.reply(generatePdfRes.cause().getMessage());
                 }
