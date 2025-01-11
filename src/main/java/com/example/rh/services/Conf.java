@@ -15,5 +15,4 @@ public class Conf {
 
         return MongoClient.createShared(vertx, config);
     }
-
 }

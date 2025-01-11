@@ -14,6 +14,7 @@ public class Services {
   public static final String DB_COUNT = "count";
   public static final String DB_AGGREGATE = "aggregate";
 
+
   // Auth
   public static final String AUTH_LOGIN = "login";
   public static final String AUTH_LOGOUT = "logout";
@@ -25,4 +26,9 @@ public class Services {
   public static final String USER_LIST = "listUsers";
   public static final String USER_IMPORT = "importUsers";
   public static final String USER_PROFILE = "getUserProfile";
+
+  //Demands
+  public static final String DEMAND_LIST = "getListDemands";
+  public static final String DEMAND_CREATE = "createDemand";
+
 }
