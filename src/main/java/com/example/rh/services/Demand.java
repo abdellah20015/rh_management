@@ -192,7 +192,27 @@ public class Demand extends AbstractVerticle {
 
       vertx.eventBus().request(Services.DB_UPDATE, msg, res -> {
         if (res.succeeded()) {
-          message.reply(res.result().body());
+
+          JsonObject resBody = (JsonObject) res.result().body();
+          JsonObject resBodyData = resBody.getJsonObject("data");
+
+          String demand_id = resBodyData.getString("_id");
+          String demand_status = resBodyData.getString(Fields.DEMAND_STATUS);
+          String user_id = resBodyData.getString(Fields.DEMAND_USER_ID);
+
+          JsonObject notification_data = new JsonObject()
+            .put(Fields.NOTIFICATION_DEMAND_ID , demand_id)
+            .put(Fields.NOTIFICATION_USER_ID, user_id)
+            .put(Fields.DEMAND_STATUS, demand_status);
+
+          vertx.eventBus().request(Services.NOTIFICATION_CREATE, notification_data, createNotificationData -> {
+            if(createNotificationData.succeeded()) {
+              message.reply(res.result().body());
+            }else {
+              message.reply(createNotificationData.cause());
+            }
+          });
+
         } else {
           message.fail(500, res.cause().getMessage());
         }
