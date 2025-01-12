@@ -3,10 +3,7 @@ package com.example.rh;
 
 
 import com.example.rh.constants.Services;
-import com.example.rh.services.Conf;
-import com.example.rh.services.Db;
-import com.example.rh.services.Demand;
-import com.example.rh.services.PdfGenerator;
+import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -59,6 +56,7 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       routerBuilder.getRoute("updateDemand").addHandler(this::updateDemand);
+      routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
 
       // Create a router
       Router router = routerBuilder.createRouter();
@@ -169,6 +167,30 @@ public class MainVerticle extends AbstractVerticle {
     }
   }
 
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route getNotifications
+   * request body <JsonObject>
+   * </p>
+   */
+  public void getNotification(RoutingContext ctx) {
+    JsonObject body = ctx.getBodyAsJson();
+
+    vertx.eventBus().request(Services.NOTIFICATION_LIST, body, res -> {
+      if(res.succeeded()) {
+        ctx.response()
+          .putHeader("content-type" , "application/json")
+          .end(res.result().body().toString());
+      }else {
+        ctx.response()
+          .putHeader("content-type" , "application/json")
+          .end(res.cause().getMessage());
+      }
+    });
+  }
+
 
   public static void main(String[] args) {
     Vertx vertx = Vertx.vertx();
@@ -176,5 +198,6 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
     vertx.deployVerticle(new PdfGenerator());
+    vertx.deployVerticle(new Notifications());
   }
 }

@@ -19,4 +19,8 @@ public class Services {
   public static final String DEMAND_CREATE = "createDemand";
   public static final String DEMAND_UPDATE = "updateDemand";
   public static final String DEMAND_PDF_GENERATE = "generateDemandPdf";
+
+  //notification
+  public static final String NOTIFICATION_CREATE = "createNotification";
+  public static final String NOTIFICATION_LIST = "getListNotification";
 }
