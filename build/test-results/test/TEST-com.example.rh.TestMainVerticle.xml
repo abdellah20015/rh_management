@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.rh.TestMainVerticle" tests="1" skipped="0" failures="0" errors="0" timestamp="2025-01-11T18:18:48" hostname="DESKTOP-2ABGLIJ" time="4.925">
+  <properties/>
+  <testcase name="verticle_deployed(Vertx, VertxTestContext)" classname="com.example.rh.TestMainVerticle" time="4.925"/>
+  <system-out><![CDATA[HTTP server started on port 8888
+]]></system-out>
+  <system-err><![CDATA[janv. 11, 2025 7:18:49 PM com.mongodb.internal.diagnostics.logging.Loggers shouldUseSLF4J
+WARNING: SLF4J not found on the classpath.  Logging is disabled for the 'org.mongodb.driver' component
+]]></system-err>
+</testsuite>

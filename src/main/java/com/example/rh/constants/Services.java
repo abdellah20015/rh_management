@@ -15,6 +15,7 @@ public class Services {
   public static final String DB_AGGREGATE = "aggregate";
 
 
+
   // Auth
   public static final String AUTH_LOGIN = "login";
   public static final String AUTH_LOGOUT = "logout";
@@ -27,9 +28,20 @@ public class Services {
   public static final String USER_IMPORT = "importUsers";
   public static final String USER_PROFILE = "getUserProfile";
 
+
   //Demands
   public static final String DEMAND_LIST = "getListDemands";
   public static final String DEMAND_CREATE = "createDemand";
+
+
+  //Contracts
+  public static final String CONTRACT_CREATE = "contract.create";
+  public static final String CONTRACT_UPDATE = "contract.update";
+  public static final String CONTRACT_GET = "contract.get";
+
+  //Files
+  public static final String FILE_DOWNLOAD = "file.download";
+  public static final String FILE_GET = "file.get";
 
   public static final String DEMAND_UPDATE = "updateDemand";
   public static final String DEMAND_PDF_GENERATE = "generateDemandPdf";
@@ -37,4 +49,5 @@ public class Services {
   //notification
   public static final String NOTIFICATION_CREATE = "createNotification";
   public static final String NOTIFICATION_LIST = "getListNotification";
+
 }
