@@ -185,7 +185,9 @@
                               },
                               "required": [
                                   "username",
-                                  "password"
+                                  "password",
+                                  "role",
+                                  "manager_id"
                               ]
                           }
                       }
@@ -356,7 +358,7 @@
                   "User"
               ],
               "requestBody": {
-                  "required": true,
+                  "required": false,
                   "content": {
                       "application/json": {
                           "schema": {
