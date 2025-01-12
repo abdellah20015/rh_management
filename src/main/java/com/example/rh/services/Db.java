@@ -171,21 +171,14 @@ private void deleteDocument(Message<JsonObject> message) {
     String collection = payload.getString("collection");
     JsonObject query = payload.getJsonObject("query");
 
-    mongoClient.findOne(collection, query, null, res -> {
-        JsonObject response = new JsonObject();
-
-        if (res.succeeded() && res.result() != null) {
-            response.put("status", "success")
-                   .put("data", res.result());
-        } else {
-            response.put("status", "error")
-                   .put("message", "Document non trouvé")
-                   .put("code", 404);
-        }
-
-        message.reply(response);
-    });
-}
+        mongoClient.findOne(collection, query, null, res -> {
+            if (res.succeeded() && res.result() != null) {
+                message.reply(res.result());
+            } else {
+                message.fail(404, "Document not found");
+            }
+        });
+    }
 
 private void findWithOptions(Message<JsonObject> message) {
     JsonObject payload = message.body();
