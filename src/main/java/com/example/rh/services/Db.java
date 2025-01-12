@@ -38,156 +38,270 @@ public class Db extends AbstractVerticle {
     }
 
     private void insertDocument(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject document = payload.getJsonObject("document");
+      JsonObject payload = message.body();
+      String collection = payload.getString("collection");
+      JsonObject document = payload.getJsonObject("query");
 
-        mongoClient.insert(collection, document, res -> {
-            if (res.succeeded()) {
-                message.reply(new JsonObject().put("id", res.result()));
-            } else {
-                message.fail(-1, "Insert failed: " + res.cause().getMessage());
-            }
-        });
-    }
+      mongoClient.insert(collection, document, res -> {
+          if (res.succeeded()) {
+              JsonObject query = new JsonObject().put("_id", res.result());
+              mongoClient.findOne(collection, query, null, findRes -> {
+                  JsonObject response = new JsonObject();
 
-    private void findDocuments(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query", new JsonObject());
+                  if (findRes.succeeded() && findRes.result() != null) {
+                      response.put("status", "success")
+                             .put("message", "Document inséré avec succès")
+                             .put("data", findRes.result());
+                  } else {
+                      response.put("status", "error")
+                             .put("message", "Document inséré mais impossible de le récupérer")
+                             .put("code", -1);
+                  }
 
-        mongoClient.find(collection, query, res -> {
-            if (res.succeeded()) {
-                message.reply(new JsonArray(res.result()));
-            } else {
-                message.fail(-1, "Find failed: " + res.cause().getMessage());
-            }
-        });
-    }
+                  message.reply(response);
+              });
+          } else {
+              JsonObject response = new JsonObject()
+                  .put("status", "error")
+                  .put("message", "Échec de l'insertion: " + res.cause().getMessage())
+                  .put("code", -1);
+              message.reply(response);
+          }
+      });
+  }
 
-    private void updateDocument(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        String id = payload.getString("id");
-        JsonObject update = payload.getJsonObject("update");
+  private void findDocuments(Message<JsonObject> message) {
+      JsonObject payload = message.body();
+      String collection = payload.getString("collection");
+      JsonObject query = payload.getJsonObject("query", new JsonObject());
 
-        JsonObject query = new JsonObject().put("_id", id);
-        JsonObject updateDoc = new JsonObject().put("$set", update);
+      mongoClient.find(collection, query, res -> {
+          JsonObject response = new JsonObject();
 
-        mongoClient.updateCollection(collection, query, updateDoc, res -> {
-            if (res.succeeded() && res.result().getDocModified() > 0) {
-                message.reply(new JsonObject().put("status", "success"));
-            } else {
-                message.fail(404, "Update failed: Document not found");
-            }
-        });
-    }
+          if (res.succeeded()) {
+              response.put("status", "success")
+                     .put("data", new JsonArray(res.result()));
+          } else {
+              response.put("status", "error")
+                     .put("message", "Échec de la recherche: " + res.cause().getMessage())
+                     .put("code", -1);
+          }
 
-    private void deleteDocument(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        String id = payload.getString("id");
+          message.reply(response);
+      });
+  }
 
-        JsonObject query = new JsonObject().put("_id", id);
+  private void updateDocument(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    String id = payload.getString("id");
+    JsonObject update = payload.getJsonObject("update");
 
-        mongoClient.removeDocument(collection, query, res -> {
-            if (res.succeeded() && res.result().getRemovedCount() > 0) {
-                message.reply(new JsonObject().put("status", "success"));
-            } else {
-                message.fail(404, "Delete failed: Document not found");
-            }
-        });
-    }
+    JsonObject query = new JsonObject().put("_id", id);
+    JsonObject updateDoc = new JsonObject().put("$set", update);
 
-    private void findOneDocument(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query");
+    mongoClient.updateCollection(collection, query, updateDoc, res -> {
+        if (res.succeeded() && res.result().getDocModified() > 0) {
+
+            mongoClient.findOne(collection, query, null, findRes -> {
+                JsonObject response = new JsonObject();
+
+                if (findRes.succeeded() && findRes.result() != null) {
+                    response.put("status", "success")
+                           .put("message", "Document mis à jour avec succès")
+                           .put("data", findRes.result());
+                } else {
+                    response.put("status", "error")
+                           .put("message", "Document mis à jour mais impossible de le récupérer")
+                           .put("code", -1);
+                }
+
+                message.reply(response);
+            });
+        } else {
+            JsonObject response = new JsonObject()
+                .put("status", "error")
+                .put("message", "Document non trouvé")
+                .put("code", 404);
+            message.reply(response);
+        }
+    });
+}
+
+private void deleteDocument(Message<JsonObject> message) {
+  JsonObject payload = message.body();
+  String collection = payload.getString("collection");
+  String id = payload.getString("id");
+
+  JsonObject query = new JsonObject().put("_id", id);
+
+
+  mongoClient.findOne(collection, query, null, findRes -> {
+      if (findRes.succeeded() && findRes.result() != null) {
+          JsonObject documentToDelete = findRes.result();
+
+
+          mongoClient.removeDocument(collection, query, deleteRes -> {
+              JsonObject response = new JsonObject();
+
+              if (deleteRes.succeeded() && deleteRes.result().getRemovedCount() > 0) {
+                  response.put("status", "success")
+                         .put("message", "Document supprimé avec succès")
+                         .put("data", documentToDelete);
+              } else {
+                  response.put("status", "error")
+                         .put("message", "Échec de la suppression")
+                         .put("code", -1);
+              }
+
+              message.reply(response);
+          });
+      } else {
+          JsonObject response = new JsonObject()
+              .put("status", "error")
+              .put("message", "Document non trouvé")
+              .put("code", 404);
+          message.reply(response);
+      }
+  });
+}
+
+  private void findOneDocument(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    JsonObject query = payload.getJsonObject("query");
 
         mongoClient.findOne(collection, query, null, res -> {
             if (res.succeeded() && res.result() != null) {
                 message.reply(res.result());
             } else {
-                // message.fail(404, "Document not found");
-                message.reply(res.result());
+                message.fail(404, "Document not found");
             }
         });
     }
 
-    private void findWithOptions(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query");
-        FindOptions options = new FindOptions(payload.getJsonObject("options"));
+private void findWithOptions(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    JsonObject query = payload.getJsonObject("query");
+    FindOptions options = new FindOptions(payload.getJsonObject("options"));
 
-        mongoClient.findWithOptions(collection, query, options, res -> {
+    mongoClient.findWithOptions(collection, query, options, res -> {
+        JsonObject response = new JsonObject();
+
+        if (res.succeeded()) {
+            response.put("status", "success")
+                   .put("data", new JsonArray(res.result()));
+        } else {
+            response.put("status", "error")
+                   .put("message", res.cause().getMessage())
+                   .put("code", 500);
+        }
+
+        message.reply(response);
+    });
+}
+
+private void count(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    JsonObject query = payload.getJsonObject("query");
+
+    mongoClient.count(collection, query, res -> {
+        JsonObject response = new JsonObject();
+
+        if (res.succeeded()) {
+            response.put("status", "success")
+                   .put("count", res.result());
+        } else {
+            response.put("status", "error")
+                   .put("message", res.cause().getMessage())
+                   .put("code", 500);
+        }
+
+        message.reply(response);
+    });
+}
+
+private void aggregate(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    JsonArray pipeline = payload.getJsonArray("pipeline");
+    AggregateOptions options = new AggregateOptions(payload.getJsonObject("options"));
+
+    mongoClient
+        .aggregateWithOptions(collection, pipeline, options)
+        .collect(Collectors.toList())
+        .onComplete(res -> {
+            JsonObject response = new JsonObject();
+
             if (res.succeeded()) {
-                message.reply(new JsonArray(res.result()));
+                response.put("status", "success")
+                       .put("data", new JsonArray(res.result()));
             } else {
-                message.fail(500, res.cause().getMessage());
+                response.put("status", "error")
+                       .put("message", res.cause().getMessage())
+                       .put("code", 500);
             }
+
+            message.reply(response);
         });
-    }
+}
 
-    private void count(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query");
+private void removeDocuments(Message<JsonObject> message) {
+  JsonObject payload = message.body();
+  String collection = payload.getString("collection");
+  JsonObject query = payload.getJsonObject("query");
 
-        mongoClient.count(collection, query, res -> {
-            if (res.succeeded()) {
-                message.reply(new JsonObject().put("count", res.result()));
-            } else {
-                message.fail(500, res.cause().getMessage());
-            }
-        });
-    }
+  mongoClient.find(collection, query, findRes -> {
+      if (findRes.succeeded() && !findRes.result().isEmpty()) {
+          JsonArray documentsToDelete = new JsonArray(findRes.result());
 
-    private void aggregate(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonArray pipeline = payload.getJsonArray("pipeline");
-        AggregateOptions options = new AggregateOptions(payload.getJsonObject("options"));
+          mongoClient.removeDocuments(collection, query, deleteRes -> {
+              JsonObject response = new JsonObject();
 
-        mongoClient
-            .aggregateWithOptions(collection, pipeline, options)
-            .collect(Collectors.toList())
-            .onComplete(res -> {
-                if (res.succeeded()) {
-                    message.reply(new JsonArray(res.result()));
-                } else {
-                    message.fail(500, res.cause().getMessage());
-                }
-            });
-    }
+              if (deleteRes.succeeded()) {
+                  response.put("status", "success")
+                         .put("message", "Documents supprimés avec succès")
+                         .put("data", documentsToDelete);
+              } else {
+                  response.put("status", "error")
+                         .put("message", "Échec de la suppression: " + deleteRes.cause().getMessage())
+                         .put("code", -1);
+              }
 
-    private void removeDocuments(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query");
+              message.reply(response);
+          });
+      } else {
+          JsonObject response = new JsonObject()
+              .put("status", "error")
+              .put("message", "Aucun document trouvé")
+              .put("code", 404);
+          message.reply(response);
+      }
+  });
+}
 
-        mongoClient.removeDocuments(collection, query, res -> {
-            if (res.succeeded()) {
-                message.reply(new JsonObject().put("status", "success"));
-            } else {
-                message.fail(500, res.cause().getMessage());
-            }
-        });
-    }
+private void updateCollectionWithOptions(Message<JsonObject> message) {
+    JsonObject payload = message.body();
+    String collection = payload.getString("collection");
+    JsonObject query = payload.getJsonObject("query");
+    JsonObject update = payload.getJsonObject("update");
+    UpdateOptions options = new UpdateOptions(payload.getJsonObject("options"));
 
-    private void updateCollectionWithOptions(Message<JsonObject> message) {
-        JsonObject payload = message.body();
-        String collection = payload.getString("collection");
-        JsonObject query = payload.getJsonObject("query");
-        JsonObject update = payload.getJsonObject("update");
-        UpdateOptions options = new UpdateOptions(payload.getJsonObject("options"));
+    mongoClient.updateCollectionWithOptions(collection, query, update, options, res -> {
+        JsonObject response = new JsonObject();
 
-        mongoClient.updateCollectionWithOptions(collection, query, update, options, res -> {
-            if (res.succeeded()) {
-                message.reply(new JsonObject().put("status", "success"));
-            } else {
-                message.fail(500, res.cause().getMessage());
-            }
-        });
-    }
+        if (res.succeeded()) {
+            response.put("status", "success")
+                   .put("message", "Mise à jour effectuée avec succès");
+        } else {
+            response.put("status", "error")
+                   .put("message", res.cause().getMessage())
+                   .put("code", 500);
+        }
+
+        message.reply(response);
+    });
+}
 }

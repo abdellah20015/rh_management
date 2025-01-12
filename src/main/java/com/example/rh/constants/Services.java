@@ -31,4 +31,6 @@ public class Services {
   public static final String DEMAND_LIST = "getListDemands";
   public static final String DEMAND_CREATE = "createDemand";
 
+  public static final String DEMAND_UPDATE = "updateDemand";
+  public static final String DEMAND_PDF_GENERATE = "generateDemandPdf";
 }
