@@ -39,7 +39,6 @@ import io.vertx.openapi.contract.OpenAPIContract;
 
 public class MainVerticle extends AbstractVerticle {
   private static final Integer PORT = 8888;
-  private MongoClient mongoClient;
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -47,8 +46,6 @@ public class MainVerticle extends AbstractVerticle {
     Conf.createMongoClient(vertx);
     OpenAPIContract.from(vertx, path)
     .onSuccess(contract -> {
-      mongoClient = Conf.createMongoClient(vertx);
-
       // Create a router builder
       RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract, RequestExtractor.withBodyHandler());
       // Create a session store
@@ -83,8 +80,11 @@ public class MainVerticle extends AbstractVerticle {
         }
       });
       //demands
+      // path: /private/demand/list
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
+      // path: /private/demand/create
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
+      // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(this::updateDemand);
 
       // Add handlers
@@ -151,6 +151,7 @@ public class MainVerticle extends AbstractVerticle {
       vertx.eventBus().request(Services.DEMAND_LIST ,body , res-> {
         if(res.succeeded()){
           ctx.response()
+            .setStatusCode(200)
             .putHeader("content-type", "application/json")
             .end(res.result().body().toString());
         }else {
@@ -181,10 +182,12 @@ public class MainVerticle extends AbstractVerticle {
       vertx.eventBus().request(Services.DEMAND_CREATE, body, res -> {
         if(res.succeeded()) {
           ctx.response()
+            .setStatusCode(201)
             .putHeader("content-type", "application/json")
             .end(res.result().body().toString());
         }else {
           ctx.response()
+            .setStatusCode(500)
             .putHeader("content-type", "application/json")
             .end(res.cause().getMessage());
         }
@@ -209,11 +212,13 @@ public class MainVerticle extends AbstractVerticle {
 
       vertx.eventBus().request(Services.DEMAND_UPDATE, body, res -> {
         if(res.succeeded()) {
-          ctx.response()
+            ctx.response()
+            .setStatusCode(200)
             .putHeader("content-type" , "application/json")
             .end(res.result().body().toString());
         }else {
           ctx.response()
+            .setStatusCode(500)
             .putHeader("content-type" , "application/json")
             .end(res.cause().getMessage());
         }
@@ -296,7 +301,6 @@ public class MainVerticle extends AbstractVerticle {
           User user = User.create(response.getJsonObject("user"));
           ctx.setUser(user);
           ctx.session().regenerateId();
-          System.out.println(ctx.user().principal());
           ctx.response()
           .setStatusCode(200)
           .putHeader("content-type", "application/json")
@@ -387,18 +391,13 @@ public class MainVerticle extends AbstractVerticle {
           .put("foreignField", "user_id")
           .put("as", "contracts");
 
-      JsonObject lookupDemands = new JsonObject()
-          .put("from", Collections.DEMANDS)
-          .put("localField", "_id")
-          .put("foreignField", "user_id")
-          .put("as", "demands");
+
 
       JsonObject aggregate = new JsonObject()
           .put("collection", Collections.USER)
           .put("pipeline", new JsonArray()
               .add(new JsonObject().put("$match", match))
               .add(new JsonObject().put("$lookup", lookupContracts))
-              .add(new JsonObject().put("$lookup", lookupDemands))
               .add(new JsonObject().put("$skip", skip))
               .add(new JsonObject().put("$limit", limit))
           )
@@ -593,5 +592,6 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle(new MainVerticle());
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
+    vertx.deployVerticle(new AuthVerticle());
   }
 }
