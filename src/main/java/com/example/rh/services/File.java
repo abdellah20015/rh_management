@@ -58,47 +58,58 @@ public class File extends AbstractVerticle {
       String originalFilename = body.getString("fileName");
       String uploadedFilePath = body.getString("uploadedPath");
 
-
       if (!originalFilename.toLowerCase().endsWith(".xlsx") && !originalFilename.toLowerCase().endsWith(".xls")) {
         message.fail(400, "Format de fichier non supporté. Seuls les fichiers Excel (.xlsx, .xls) sont acceptés");
         return;
       }
 
-
       String fileExtension = originalFilename.substring(originalFilename.lastIndexOf("."));
-
-
       Path uploadedPath = Paths.get(uploadedFilePath);
       String tempFileName = uploadedPath.getFileName().toString();
-
-
       String newFilePath = Paths.get(UPLOAD_DIR, tempFileName + fileExtension).toString();
-
 
       vertx.fileSystem().move(uploadedFilePath, newFilePath, moveResult -> {
         if (moveResult.succeeded()) {
-          JsonObject fileDocument = new JsonObject()
-            .put(Fields.FILE_NAME, originalFilename)
-            .put(Fields.FILE_PATH, newFilePath)
-            .put(Fields.FILE_TOTAL_LINES, 0)
-            .put(Fields.FILE_SUCCESSFUL_LINES, 0)
-            .put(Fields.FILE_ERROR_LINES, 0)
-            .put(Fields.FILE_DATE_CREATION, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(System.currentTimeMillis())));
+          JsonObject importMessage = new JsonObject()
+            .put("path", newFilePath);
 
-          JsonObject dbMessage = new JsonObject()
-            .put("collection", Collections.FILES)
-            .put("query", fileDocument);
+          vertx.eventBus().request(Services.USER_IMPORT, importMessage, importRes -> {
+            if (importRes.succeeded()) {
+              JsonObject result = (JsonObject) importRes.result().body();
 
-          vertx.eventBus().request(Services.DB_INSERT, dbMessage, res -> {
-            if (res.succeeded()) {
-              message.reply(res.result().body());
+
+              JsonObject fileDocument = new JsonObject()
+                .put(Fields.FILE_NAME, originalFilename)
+                .put(Fields.FILE_PATH, newFilePath)
+                .put(Fields.FILE_TOTAL_LINES, result.getInteger("totalLines"))
+                .put(Fields.FILE_SUCCESSFUL_LINES, result.getInteger("successLines"))
+                .put(Fields.FILE_ERROR_LINES, result.getInteger("errorLines"))
+                .put(Fields.FILE_DATE_CREATION, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date(System.currentTimeMillis())));
+
+
+              JsonObject dbMessage = new JsonObject()
+                .put("collection", Collections.FILES)
+                .put("query", fileDocument);
+
+              vertx.eventBus().request(Services.DB_INSERT, dbMessage, res -> {
+                if (res.succeeded()) {
+                  message.reply(res.result().body());
+                } else {
+                  vertx.fileSystem().delete(newFilePath, deleteRes -> {
+                    if (deleteRes.failed()) {
+                      System.err.println("Failed to delete file: " + deleteRes.cause());
+                    }
+                  });
+                  message.fail(500, res.cause().getMessage());
+                }
+              });
             } else {
               vertx.fileSystem().delete(newFilePath, deleteRes -> {
                 if (deleteRes.failed()) {
                   System.err.println("Failed to delete file: " + deleteRes.cause());
                 }
               });
-              message.fail(500, res.cause().getMessage());
+              message.fail(500, "Erreur lors du traitement du fichier: " + importRes.cause().getMessage());
             }
           });
         } else {
