@@ -65,7 +65,7 @@ public class AuthVerticle extends AbstractVerticle {
             UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
             mongoAuth.authenticate(credentials, res -> {
                 if (res.succeeded()) {
-                    JsonObject user = new JsonObject().put("user", 
+                    JsonObject user = new JsonObject().put("user",
                     new JsonObject()
                     .put("username", username)
                     .put("id", res.result().principal().getString("_id"))
@@ -104,14 +104,17 @@ public class AuthVerticle extends AbstractVerticle {
                         permissions.add("create_user")
                                  .add("update_user")
                                  .add("delete_user")
-                                 .add("view_users");
+                                 .add("view_users")
+                                 .add("import_user")
+                                 .add("update_demand")
+                                 .add("create_contract");
                         break;
                     case "manager":
                         permissions.add("view_users")
-                                 .add("update_user");
+                                 .add("update_demand");
                         break;
                     default:
-                        permissions.add("view_profile");
+                        permissions.add("");
                 }
             }
     
@@ -163,7 +166,7 @@ public class AuthVerticle extends AbstractVerticle {
     /**
      * @author ilyass
      * @param message
-     *  methode to resete password 
+     *  methode to resete password
      */
     private void resetPasswordHandler(Message<JsonObject> message) {
         try {
@@ -181,7 +184,7 @@ public class AuthVerticle extends AbstractVerticle {
                     UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, oldPassword);
                     mongoAuth.authenticate(credentials, res -> {
                         if (res.succeeded()) {
-                            String hashedPassword = mongoAuth.hash("pbkdf2", "salt", newPassword);
+                            String hashedPassword = mongoAuth.hash("pbkdf2", username, newPassword);
                             JsonObject update = new JsonObject().put(Fields.USER_PASSWORD, hashedPassword);
                             JsonObject updatePayload = new JsonObject()
                                 .put("collection", Collections.USER)
@@ -209,7 +212,7 @@ public class AuthVerticle extends AbstractVerticle {
     }
 
 
-    
+
     public static class SimpleUser {
         @ExcelProperty("username")
         private String username;
@@ -217,7 +220,7 @@ public class AuthVerticle extends AbstractVerticle {
         @ExcelProperty("password")
         private String password;
 
-        
+
         public String getUsername() {
             return username;
         }
@@ -265,8 +268,6 @@ public class AuthVerticle extends AbstractVerticle {
      * Processes the list of users recursively
      */
     private void processUsersRecursively(List<SimpleUser> users, Message<JsonObject> message) {
-        System.out.println("Processing user at index: " + index);
-
         if (index < users.size()) {
             SimpleUser user = users.get(index);
             String username = user.getUsername();
@@ -284,8 +285,6 @@ public class AuthVerticle extends AbstractVerticle {
                                 .put("password", password);
 
             vertx.eventBus().request(Services.USER_CREATE, body, reply -> {
-                System.out.println("Request sent for user at index: " + index);
-
                 if (reply.succeeded()) {
                     index++;
                     successLine++;
@@ -297,7 +296,6 @@ public class AuthVerticle extends AbstractVerticle {
                 processUsersRecursively(users, message);
             });
         } else {
-            System.out.println("All users processed, sending success reply. " + successLine + "/" + errLine);
             message.reply(new JsonObject()
                 .put("statusCode", 200)
                 .put("status", "success")
@@ -308,5 +306,5 @@ public class AuthVerticle extends AbstractVerticle {
             );
         }
     }
-    
+
 }
