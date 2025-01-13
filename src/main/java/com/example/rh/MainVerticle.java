@@ -7,19 +7,8 @@ package com.example.rh;
 
 import java.util.List;
 
-
-import com.example.rh.services.Conf;
-import com.example.rh.services.Contract;
-import com.example.rh.services.Db;
-import com.example.rh.services.Demand;
-import com.example.rh.services.File;
-
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
-import com.example.rh.services.AuthVerticle;
-
-
-
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -80,7 +69,7 @@ public class MainVerticle extends AbstractVerticle {
 
       routerBuilder.rootHandler(ctx ->{
         if (ctx.normalizedPath().startsWith("/private")) {
-          
+          handleAuth(ctx);
         }else{
           ctx.next();
           return;
@@ -110,7 +99,7 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("listUsers").addHandler(this::ListUsersHandler);
 
       // path : /private/user/create
-      routerBuilder.getRoute("createUser").addHandler(this::createUserHandler);
+      routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
 
       // path : /private/user/update
       routerBuilder.getRoute("updateUser").addHandler(this::updateUserHandler);
@@ -508,6 +497,67 @@ public void getFiles(RoutingContext ctx) {
   }
 
 
+    /**
+   * @author ilyass
+   * @param ctx
+   *handleAuth Checks user authentication for the current request
+   */
+
+   public static void  handleAuth(RoutingContext ctx){
+    try {
+      if (ctx.user() == null) {
+          ctx.response()
+              .setStatusCode(401)
+              .putHeader("content-type", "application/json")
+              .end(new JsonObject().put("error", "Unauthorized").encode());      
+      }
+      else{
+          ctx.next();
+      }
+    } catch (Exception e) {
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("error", "Internal Server Error").encode());
+    }
+  }
+
+
+    /**
+ * @author ilyass
+ * @param ctx
+ * @param permission string 
+ * handlePermission checks user permission for the current request
+ */
+public void handlePermission(RoutingContext ctx, String permission) {
+  try {
+    if (ctx.user() != null) { 
+      JsonArray permissions = ctx.user().principal().getJsonArray("permissions");
+      if (permissions != null && permissions.contains(permission)) {
+        ctx.next();
+      } else {
+        ctx.response()
+          .setStatusCode(403)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject()
+            .put("error", "Forbidden: Insufficient permission")
+            .put("required", permission)
+            .put("user_permissions", permissions)
+            .encode());
+      }
+    } else {
+      ctx.response()
+        .setStatusCode(401)
+        .putHeader("content-type", "application/json")
+        .end(new JsonObject().put("error", "Unauthorized").encode());
+    }
+  } catch (Exception e) {
+    ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("error", "Internal Server Error").encode());
+  }
+}
 
  /**
   * Login handler
