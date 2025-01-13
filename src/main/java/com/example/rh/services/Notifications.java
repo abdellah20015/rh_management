@@ -24,34 +24,40 @@ public class Notifications extends AbstractVerticle {
    * </p>
    */
   private void createNotificationHandler(Message message) {
-    JsonObject body = (JsonObject) message.body();
 
-    String user_id = body.getString(Fields.DEMAND_USER_ID);
-    String demand_id = body.getString(Fields.NOTIFICATION_DEMAND_ID);
-    String demand_status = body.getString(Fields.DEMAND_STATUS);
+    try {
+      JsonObject body = (JsonObject) message.body();
 
-    String notification_message;
+      String user_id = body.getString(Fields.DEMAND_USER_ID);
+      String demand_id = body.getString(Fields.NOTIFICATION_DEMAND_ID);
+      String demand_status = body.getString(Fields.DEMAND_STATUS);
 
-    if(demand_status.equals("approved")) {
-      notification_message = "votre demande a été acceptée";
-    }else {
-      notification_message = "votre demande a été rejetée";
+      String notification_message;
+
+      if (demand_status.equals("approved")) {
+        notification_message = "votre demande a été acceptée";
+      } else {
+        notification_message = "votre demande a été rejetée";
+      }
+
+      JsonObject query = new JsonObject()
+        .put(Fields.NOTIFICATION_USER_ID, user_id)
+        .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
+        .put(Fields.NOTIFICATION_MESSAGE, notification_message)
+        .put(Fields.NOTIFICATION_IS_READ, false)
+        .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
+
+      JsonObject msg = new JsonObject()
+        .put("collection", Collections.NOTIFICATIONS)
+        .put("query", query);
+
+      vertx.eventBus().request(Services.DB_INSERT, msg, insertRes -> {
+        message.reply(insertRes.result().body());
+      });
+
+    }catch(Exception e) {
+      System.out.println("error " + e);
     }
-
-    JsonObject query = new JsonObject()
-      .put(Fields.NOTIFICATION_USER_ID, user_id)
-      .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
-      .put(Fields.NOTIFICATION_MESSAGE, notification_message)
-      .put(Fields.NOTIFICATION_IS_READ, false)
-      .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
-
-    JsonObject msg = new JsonObject()
-      .put("collection" , Collections.NOTIFICATIONS)
-      .put("query", query);
-
-    vertx.eventBus().request(Services.DB_INSERT, msg, insertRes -> {
-      message.reply(insertRes.result().body());
-    });
 
   }
 
@@ -66,18 +72,22 @@ public class Notifications extends AbstractVerticle {
   private void getListNotificationHandler(Message message) {
     JsonObject body = (JsonObject) message.body();
 
-    JsonObject query = body.getJsonObject("query");
+    try {
+      JsonObject query = body.getJsonObject("query");
 
-    JsonObject msg = new JsonObject().
-      put("collection" , Collections.NOTIFICATIONS)
-      .put("query" , query);
+      JsonObject msg = new JsonObject().
+        put("collection", Collections.NOTIFICATIONS)
+        .put("query", query);
 
-    vertx.eventBus().request(Services.DB_FIND, msg, res -> {
-      if(res.succeeded()) {
-        message.reply(res.result().body());
-      }else {
-        message.reply(res.cause().getMessage());
-      }
-    });
+      vertx.eventBus().request(Services.DB_FIND, msg, res -> {
+        if (res.succeeded()) {
+          message.reply(res.result().body());
+        } else {
+          message.reply(res.cause().getMessage());
+        }
+      });
+    }catch (Exception e){
+      System.out.println("error" + e);
+    }
   }
 }

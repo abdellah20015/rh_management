@@ -83,13 +83,13 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createUser").addHandler(this::createUserHandler);
 
       // path : /private/user/update
-      routerBuilder.getRoute("updateUser").addHandler(this::updateUserHandler); 
+      routerBuilder.getRoute("updateUser").addHandler(this::updateUserHandler);
 
-      // path : /private/user/delete   
-      routerBuilder.getRoute("deleteUser").addHandler(this::DeleteUserHandler);  
-       
+      // path : /private/user/delete
+      routerBuilder.getRoute("deleteUser").addHandler(this::DeleteUserHandler);
+
       // path : /private/user/profile
-      routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);     
+      routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
 
       // Create a router
       Router router = routerBuilder.createRouter();
@@ -126,6 +126,9 @@ public class MainVerticle extends AbstractVerticle {
   private void getListDemands(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
+//      body.put("user_role", ctx.user().get("role"));
+//      body.put("user_id", ctx.user().get("_id"));
+
       vertx.eventBus().request(Services.DEMAND_LIST ,body , res-> {
         if(res.succeeded()){
           ctx.response()
@@ -211,25 +214,29 @@ public class MainVerticle extends AbstractVerticle {
   public void getNotification(RoutingContext ctx) {
     JsonObject body = ctx.getBodyAsJson();
 
-    vertx.eventBus().request(Services.NOTIFICATION_LIST, body, res -> {
-      if(res.succeeded()) {
-        ctx.response()
-          .putHeader("content-type" , "application/json")
-          .end(res.result().body().toString());
-      }else {
-        ctx.response()
-          .putHeader("content-type" , "application/json")
-          .end(res.cause().getMessage());
-      }
-    });
+    try {
+      vertx.eventBus().request(Services.NOTIFICATION_LIST, body, res -> {
+        if (res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        } else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+    } catch (Exception e) {
+      System.out.println("error " + e);
+    }
   }
 
 
 
  /**
   * Login handler
-  * @author Ilyass 
-    login method to authenticate the user and create a session for him 
+  * @author Ilyass
+    login method to authenticate the user and create a session for him
   */
   public void LoginHandler(RoutingContext ctx) {
     JsonObject body = ctx.body().asJsonObject();
@@ -243,7 +250,7 @@ public class MainVerticle extends AbstractVerticle {
         ctx.response()
         .setStatusCode(200)
         .putHeader("content-type", "application/json")
-        .end(response.encode());   
+        .end(response.encode());
       }else{
         ctx.response().setStatusCode(401).end(reply.cause().getMessage());
       }
@@ -489,7 +496,7 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle(new MainVerticle());
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
-    vertx.deployVerticle(new AuthVerticle());   
+    vertx.deployVerticle(new AuthVerticle());
     vertx.deployVerticle(new PdfGenerator());
     vertx.deployVerticle(new Notifications());
   }
