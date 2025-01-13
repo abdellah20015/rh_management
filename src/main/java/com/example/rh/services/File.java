@@ -57,6 +57,7 @@ public class File extends AbstractVerticle {
 
       String originalFilename = body.getString("fileName");
       String uploadedFilePath = body.getString("uploadedPath");
+      
 
       if (!originalFilename.toLowerCase().endsWith(".xlsx") && !originalFilename.toLowerCase().endsWith(".xls")) {
         message.fail(400, "Format de fichier non supporté. Seuls les fichiers Excel (.xlsx, .xls) sont acceptés");
