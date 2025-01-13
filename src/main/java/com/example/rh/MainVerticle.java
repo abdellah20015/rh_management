@@ -8,17 +8,21 @@ import com.example.rh.constants.Services;
 import com.example.rh.services.AuthVerticle;
 import com.example.rh.services.Db;
 
+
+import java.util.List;
+
+import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
 import com.example.rh.services.Conf;
 import com.example.rh.services.Db;
 import com.example.rh.services.Demand;
-import com.example.rh.services.PdfGenerator;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
 import io.vertx.ext.auth.User;
 import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
@@ -40,6 +44,7 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     String path = "src/main/api/openapi.json";
+    Conf.createMongoClient(vertx);
     OpenAPIContract.from(vertx, path)
     .onSuccess(contract -> {
       mongoClient = Conf.createMongoClient(vertx);
@@ -66,7 +71,7 @@ public class MainVerticle extends AbstractVerticle {
       );
 
       // Mount the body handler
-      routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(50 * 1024 * 1024));
+      routerBuilder.rootHandler(BodyHandler.create().setUploadsDirectory("uploads").setBodyLimit(50 * 1024 * 1024));
 
 
       routerBuilder.rootHandler(ctx ->{
@@ -107,6 +112,7 @@ public class MainVerticle extends AbstractVerticle {
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
+
 
       // Create a router
       Router router = routerBuilder.createRouter();
@@ -187,6 +193,7 @@ public class MainVerticle extends AbstractVerticle {
       System.out.println("error " + e);
     }
   }
+
 
   /**
    * @param ctx RoutingContext
@@ -581,15 +588,10 @@ public class MainVerticle extends AbstractVerticle {
 
 
 
-
-
-
   public static void main(String[] args) {
     Vertx vertx = Vertx.vertx();
     vertx.deployVerticle(new MainVerticle());
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
-    vertx.deployVerticle(new AuthVerticle());   
-    vertx.deployVerticle(new PdfGenerator());
   }
 }
