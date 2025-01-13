@@ -24,9 +24,7 @@ public class File extends AbstractVerticle {
     try {
       FileSystem fs = vertx.fileSystem();
       fs.mkdirs(UPLOAD_DIR, res -> {
-        if (res.succeeded()) {
-          System.out.println("Upload directory created successfully");
-        } else {
+        if (!res.succeeded()) {
           System.err.println("Failed to create upload directory: " + res.cause());
         }
       });
@@ -57,7 +55,7 @@ public class File extends AbstractVerticle {
 
       String originalFilename = body.getString("fileName");
       String uploadedFilePath = body.getString("uploadedPath");
-      
+
 
       if (!originalFilename.toLowerCase().endsWith(".xlsx") && !originalFilename.toLowerCase().endsWith(".xls")) {
         message.fail(400, "Format de fichier non supporté. Seuls les fichiers Excel (.xlsx, .xls) sont acceptés");
