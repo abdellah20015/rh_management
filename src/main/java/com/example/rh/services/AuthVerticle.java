@@ -64,7 +64,7 @@ public class AuthVerticle extends AbstractVerticle {
             UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
             mongoAuth.authenticate(credentials, res -> {
                 if (res.succeeded()) {
-                    JsonObject user = new JsonObject().put("user", 
+                    JsonObject user = new JsonObject().put("user",
                     new JsonObject()
                     .put("username", username)
                     .put("id", res.result().principal().getString("_id"))
@@ -138,7 +138,7 @@ public class AuthVerticle extends AbstractVerticle {
     /**
      * @author ilyass
      * @param message
-     *  methode to resete password 
+     *  methode to resete password
      */
     private void resetPasswordHandler(Message<JsonObject> message) {
         try {
@@ -184,7 +184,7 @@ public class AuthVerticle extends AbstractVerticle {
     }
 
 
-    
+
     public static class SimpleUser {
         @ExcelProperty("username")
         private String username;
@@ -192,7 +192,7 @@ public class AuthVerticle extends AbstractVerticle {
         @ExcelProperty("password")
         private String password;
 
-        
+
         public String getUsername() {
             return username;
         }
@@ -283,5 +283,5 @@ public class AuthVerticle extends AbstractVerticle {
             );
         }
     }
-    
+
 }

@@ -36,7 +36,7 @@ dependencies {
   implementation("io.vertx:vertx-openapi:4.5.11")
   implementation("io.vertx:vertx-web-openapi-router:4.5.11")
   implementation("com.alibaba:easyexcel:3.2.0")
-  implementation("org.apache.poi:poi-ooxml:4.1.2") 
+  implementation("org.apache.poi:poi-ooxml:4.1.2")
   implementation("com.itextpdf:itextpdf:5.0.6")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
