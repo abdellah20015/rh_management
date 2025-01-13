@@ -642,7 +642,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
       JsonObject match = new JsonObject();
       if (!ctx.user().principal().getString("role").equals("admin")) {
-        match.put("_id", ctx.user().principal().getString("id"));
+        match.put("manager_id", ctx.user().principal().getString("id"));
       }
 
       JsonObject lookupContracts = new JsonObject()
