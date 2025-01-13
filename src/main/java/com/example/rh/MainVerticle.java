@@ -31,7 +31,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 
 import io.vertx.ext.auth.User;
-
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -46,12 +46,16 @@ import io.vertx.openapi.contract.OpenAPIContract;
 
 public class MainVerticle extends AbstractVerticle {
   private static final Integer PORT = 8888;
+  private MongoClient mongoClient;
+
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     String path = "src/main/api/openapi.json";
     Conf.createMongoClient(vertx);
     OpenAPIContract.from(vertx, path)
-    .onSuccess(contract ->{
+    .onSuccess(contract -> {
+      mongoClient = Conf.createMongoClient(vertx);
+
       // Create a router builder
       RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract, RequestExtractor.withBodyHandler());
       // Create a session store
@@ -76,6 +80,15 @@ public class MainVerticle extends AbstractVerticle {
       // Mount the body handler
       routerBuilder.rootHandler(BodyHandler.create().setUploadsDirectory("uploads").setBodyLimit(50 * 1024 * 1024));
 
+
+      routerBuilder.rootHandler(ctx ->{
+        if (ctx.normalizedPath().startsWith("/private")) {
+          handleAuth(ctx);
+        }else{
+          ctx.next();
+          return;
+        }
+      });
       //demands
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
@@ -128,21 +141,20 @@ public class MainVerticle extends AbstractVerticle {
 
       //  create http server and listen on port 8888
       vertx.createHttpServer().requestHandler(router).listen(PORT)
-      .onComplete(http ->{
-        if(http.succeeded()){
+      .onComplete(http -> {
+        if (http.succeeded()) {
           startPromise.complete();
           System.out.println("HTTP server started on port " + PORT);
-        }else{
+        } else {
           startPromise.fail(http.cause());
         }
       });
     })
-    .onFailure(err ->{
+    .onFailure(err -> {
       startPromise.fail(err);
       System.err.println("Failed to load OpenAPI contract: " + err.getMessage());
     });
   }
-
 
   /**
    * @param ctx RoutingContext

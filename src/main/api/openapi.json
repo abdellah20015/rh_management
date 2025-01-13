@@ -186,8 +186,7 @@
                               "required": [
                                   "username",
                                   "password",
-                                  "role",
-                                  "manager_id"
+                                  "role"
                               ]
                           }
                       }
