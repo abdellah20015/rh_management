@@ -175,7 +175,8 @@ private void deleteDocument(Message<JsonObject> message) {
             if (res.succeeded() && res.result() != null) {
                 message.reply(res.result());
             } else {
-                message.fail(404, "Document not found");
+                // message.fail(404, "Document not found");
+                message.reply(res.result());
             }
         });
     }
