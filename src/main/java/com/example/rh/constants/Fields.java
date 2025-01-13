@@ -20,7 +20,7 @@ public class Fields {
   public static final String CONTRACT_STATUS = "status";
   public static final String CONTRACT_SALARY = "salary";
   public static final String CONTRACT_LEAVE_BALANCE = "leave_balance";
-  public static final String CONTRACT_DATE_CREATION = "created_date";
+  public static final String CONTRACT_DATE_CREATION = "start_date";
 
   // DEMANDS
   public static final String DEMAND_USER_ID = "user_id";
