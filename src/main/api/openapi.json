@@ -661,7 +661,12 @@
                                       "type": "string"
                                   },
                                   "type": {
-                                      "type": "string"
+                                      "type": "string",
+                                      "enum": [
+                                        "demande_conge",
+                                        "ordre_de_mission",
+                                        "attestation_de_travail"
+                                      ]
                                   },
                                   "details": {
                                       "type": "object"
@@ -673,8 +678,7 @@
                               "required": [
                                   "user_id",
                                   "type",
-                                  "details",
-                                  "file_path"
+                                  "details"
                               ]
                           }
                       }

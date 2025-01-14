@@ -35,13 +35,28 @@ public class Demand extends AbstractVerticle {
     try {
       JsonObject body = (JsonObject) message.body();
       System.out.println("message " + body);
+      String manager_id = body.getJsonObject("query").getString("manager_id");
 
-      JsonObject query = body.getJsonObject("query", new JsonObject());
+      JsonArray pipeline = new JsonArray()
+        .add(new JsonObject().put("$lookup", new JsonObject()
+          .put("from", "user")
+          .put("localField", "user_id")
+          .put("foreignField", "_id")
+          .put("as", "user")))
+        .add(new JsonObject().put("$unwind", "$user"))
+        .add(new JsonObject().put("$match", new JsonObject()
+          .put("user.manager_id", manager_id)))
+        .add(new JsonObject().put("$project", new JsonObject()
+          .put("user", 0)));
+
+      System.out.println("message " + pipeline);
+
       JsonObject msg = new JsonObject()
-        .put("query", query)
-        .put("collection", Collections.DEMANDS);
+        .put("collection" , Collections.DEMANDS)
+        .put("pipeline", pipeline)
+        .put("options" , new JsonObject());
 
-      vertx.eventBus().request(Services.DB_FIND, msg, res -> {
+      vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
         if (res.failed()) {
           message.fail(500, res.cause().getMessage());
           System.out.println(res.cause().getMessage());
@@ -94,27 +109,35 @@ public class Demand extends AbstractVerticle {
 
           JsonArray aggregation = new JsonArray()
             .add(new JsonObject().put("$lookup", new JsonObject()
-              .put("from", "user")
+              .put("from", Collections.USER)
               .put("localField", "user_id")
               .put("foreignField", "_id")
               .put("as", "user")))
             .add(new JsonObject().put("$unwind", new JsonObject()
               .put("path", "$user")))
             .add(new JsonObject().put("$lookup", new JsonObject()
-              .put("from", "user")
+              .put("from", Collections.USER)
               .put("localField", "user.manager_id")
               .put("foreignField", "_id")
               .put("as", "manager")))
             .add(new JsonObject().put("$unwind", new JsonObject()
               .put("path", "$manager")))
+            .add(new JsonObject().put("$lookup", new JsonObject()
+              .put("from" , Collections.CONTRACTS)
+              .put("localField", "user._id")
+              .put("foreignField" , "user_id")
+              .put("as" , "contract")))
+            .add(new JsonObject().put("$unwind" , new JsonObject()
+              .put("path" , "$contract")))
             .add(new JsonObject().put("$match", new JsonObject()
               .put("_id", demand.getString("_id"))))
             .add(new JsonObject().put("$project", new JsonObject()
               .put("type", 1)
               .put("details", 1)
               .put("created_date", 1)
-              .put("username", "$user.username")
-              .put("manager_username", "$manager.username")));
+              .put("user", "$user")
+              .put("contract" , "$contract")
+              .put("manager", "$manager")));
 
           JsonObject aggregationMsg = new JsonObject()
             .put("collection", Collections.DEMANDS)
@@ -122,39 +145,41 @@ public class Demand extends AbstractVerticle {
             .put("options", new JsonObject());
 
           vertx.eventBus().request(Services.DB_AGGREGATE, aggregationMsg, aggregationRes -> {
-            if (res.succeeded()) {
-              JsonObject aggregationData = (JsonObject) aggregationRes.result().body();
-              JsonArray dataArray = aggregationData.getJsonArray("data");
-              JsonObject result = dataArray.getJsonObject(0);
+            try {
+              if (res.succeeded()) {
+                JsonObject aggregationData = (JsonObject) aggregationRes.result().body();
+                JsonArray dataArray = aggregationData.getJsonArray("data");
+                JsonObject result = dataArray.getJsonObject(0);
 
-              System.out.println(dataArray);
+                System.out.println(dataArray);
 
-              vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
-                if (generatePdfRes.succeeded()) {
+                vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
+                  if (generatePdfRes.succeeded()) {
 
-                  JsonObject demandBody = (JsonObject) res.result().body();
-                  JsonObject demandData = demandBody.getJsonObject("data");
+                    JsonObject demandBody = (JsonObject) res.result().body();
+                    JsonObject demandData = demandBody.getJsonObject("data");
 
-                  System.out.println("$$$$$$$$$$$$44" + demandData.getString("_id"));
+                    JsonObject update = new JsonObject()
+                      .put("file_path", generatePdfRes.result().body());
 
-                  JsonObject update = new JsonObject()
-                    .put("file_path", generatePdfRes.result().body());
+                    JsonObject updateDemandMsg = new JsonObject()
+                      .put("collection", Collections.DEMANDS)
+                      .put("id", demandData.getString("_id"))
+                      .put("update", update);
 
-                  JsonObject updateDemandMsg = new JsonObject()
-                    .put("collection", Collections.DEMANDS)
-                    .put("id", demandData.getString("_id"))
-                    .put("update", update);
-
-                  vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
-                    if(updateDemandRes.succeeded()) {
-                      System.out.println("demand has been created : " + updateDemandRes.result().body());
-                      message.reply(updateDemandRes.result().body());
-                    }
-                  });
-                } else {
-                  message.reply(generatePdfRes.cause().getMessage());
-                }
-              });
+                    vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
+                      if (updateDemandRes.succeeded()) {
+                        System.out.println("demand has been created : " + updateDemandRes.result().body());
+                        message.reply(updateDemandRes.result().body());
+                      }
+                    });
+                  } else {
+                    message.reply(generatePdfRes.cause().getMessage());
+                  }
+                });
+              }
+            }catch (Exception e){
+              System.out.println("error" + e);
             }
           });
         } else {

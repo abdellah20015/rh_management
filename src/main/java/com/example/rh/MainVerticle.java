@@ -9,6 +9,10 @@ import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
+import com.example.rh.services.AuthVerticle;
+import com.example.rh.services.Db;
+
+import com.example.rh.constants.Services;
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -144,6 +148,7 @@ public class MainVerticle extends AbstractVerticle {
       System.err.println("Failed to load OpenAPI contract: " + err.getMessage());
     });
   }
+
 
   /**
    * @param ctx RoutingContext
@@ -456,13 +461,11 @@ public void getFiles(RoutingContext ctx) {
 
       vertx.eventBus().request(Services.DEMAND_UPDATE, body, res -> {
         if(res.succeeded()) {
-            ctx.response()
-            .setStatusCode(200)
+          ctx.response()
             .putHeader("content-type" , "application/json")
             .end(res.result().body().toString());
         }else {
           ctx.response()
-            .setStatusCode(500)
             .putHeader("content-type" , "application/json")
             .end(res.cause().getMessage());
         }
@@ -483,17 +486,21 @@ public void getFiles(RoutingContext ctx) {
   public void getNotification(RoutingContext ctx) {
     JsonObject body = ctx.getBodyAsJson();
 
-    vertx.eventBus().request(Services.NOTIFICATION_LIST, body, res -> {
-      if(res.succeeded()) {
-        ctx.response()
-          .putHeader("content-type" , "application/json")
-          .end(res.result().body().toString());
-      }else {
-        ctx.response()
-          .putHeader("content-type" , "application/json")
-          .end(res.cause().getMessage());
-      }
-    });
+    try {
+      vertx.eventBus().request(Services.NOTIFICATION_LIST, body, res -> {
+        if (res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        } else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+    } catch (Exception e) {
+      System.out.println("error " + e);
+    }
   }
 
 
@@ -509,7 +516,7 @@ public void getFiles(RoutingContext ctx) {
           ctx.response()
               .setStatusCode(401)
               .putHeader("content-type", "application/json")
-              .end(new JsonObject().put("error", "Unauthorized").encode());      
+              .end(new JsonObject().put("error", "Unauthorized").encode());
       }
       else{
           ctx.next();
@@ -526,12 +533,12 @@ public void getFiles(RoutingContext ctx) {
     /**
  * @author ilyass
  * @param ctx
- * @param permission string 
+ * @param permission string
  * handlePermission checks user permission for the current request
  */
 public void handlePermission(RoutingContext ctx, String permission) {
   try {
-    if (ctx.user() != null) { 
+    if (ctx.user() != null) {
       JsonArray permissions = ctx.user().principal().getJsonArray("permissions");
       if (permissions != null && permissions.contains(permission)) {
         ctx.next();
@@ -576,7 +583,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
           ctx.response()
           .setStatusCode(200)
           .putHeader("content-type", "application/json")
-          .end(response.encode());   
+          .end(response.encode());
         }else{
           ctx.response().setStatusCode(401).end(reply.cause().getMessage());
         }
@@ -651,13 +658,18 @@ public void handlePermission(RoutingContext ctx, String permission) {
           .put("foreignField", "user_id")
           .put("as", "contracts");
 
-
+      JsonObject lookupDemands = new JsonObject()
+          .put("from", Collections.DEMANDS)
+          .put("localField", "_id")
+          .put("foreignField", "user_id")
+          .put("as", "demands");
 
       JsonObject aggregate = new JsonObject()
           .put("collection", Collections.USER)
           .put("pipeline", new JsonArray()
               .add(new JsonObject().put("$match", match))
               .add(new JsonObject().put("$lookup", lookupContracts))
+              .add(new JsonObject().put("$lookup", lookupDemands))
               .add(new JsonObject().put("$skip", skip))
               .add(new JsonObject().put("$limit", limit))
           )
