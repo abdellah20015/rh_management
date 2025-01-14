@@ -22,7 +22,7 @@ public class Contract extends AbstractVerticle {
       vertx.eventBus().consumer(Services.CONTRACT_UPDATE, this::updateContractHandler);
       vertx.eventBus().consumer(Services.CONTRACT_GET, this::getContractHandler);
 
-      vertx.setPeriodic(10 * 1000, id -> checkAndExpireContracts());
+      vertx.setPeriodic(6 * 60 * 60 * 1000, id -> checkAndExpireContracts());
     } catch(Exception e) {
       System.out.println(e);
     }
