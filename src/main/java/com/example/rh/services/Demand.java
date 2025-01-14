@@ -34,8 +34,9 @@ public class Demand extends AbstractVerticle {
   private void getListDemandHandler(Message message) {
     try {
       JsonObject body = (JsonObject) message.body();
-      System.out.println("message " + body);
-      String manager_id = body.getJsonObject("query").getString("manager_id");
+      JsonObject query = body.getJsonObject("query");
+      String manager_id = query.getString("manager_id");
+      String user_id = query.getString("user_id");
 
       JsonArray pipeline = new JsonArray()
         .add(new JsonObject().put("$lookup", new JsonObject()
@@ -43,11 +44,17 @@ public class Demand extends AbstractVerticle {
           .put("localField", "user_id")
           .put("foreignField", "_id")
           .put("as", "user")))
-        .add(new JsonObject().put("$unwind", "$user"))
-        .add(new JsonObject().put("$match", new JsonObject()
-          .put("user.manager_id", manager_id)))
-        .add(new JsonObject().put("$project", new JsonObject()
-          .put("user", 0)));
+        .add(new JsonObject().put("$unwind", "$user"));
+
+        if(query.containsKey("manager_id")){
+          pipeline.add(new JsonObject().put("$match", new JsonObject()
+            .put("user.manager_id", manager_id)));
+        }else if(query.containsKey("user_id")){
+          pipeline.add(new JsonObject().put("$match", new JsonObject()
+              .put("user._id", user_id)));
+        }
+        pipeline.add(new JsonObject().put("$project", new JsonObject()
+        .put("user", 0)));
 
       System.out.println("message " + pipeline);
 
@@ -65,7 +72,7 @@ public class Demand extends AbstractVerticle {
         }
       });
     } catch (Exception e) {
-      System.out.println(e);
+      message.fail(500, "Internal server error: " + e.getMessage());
     }
   }
 
@@ -217,27 +224,29 @@ public class Demand extends AbstractVerticle {
 
       vertx.eventBus().request(Services.DB_UPDATE, msg, res -> {
         if (res.succeeded()) {
+          try {
+            JsonObject resBody = (JsonObject) res.result().body();
+            JsonObject resBodyData = resBody.getJsonObject("data");
 
-          JsonObject resBody = (JsonObject) res.result().body();
-          JsonObject resBodyData = resBody.getJsonObject("data");
+            String demand_id = resBodyData.getString("_id");
+            String demand_status = resBodyData.getString(Fields.DEMAND_STATUS);
+            String user_id = resBodyData.getString(Fields.DEMAND_USER_ID);
 
-          String demand_id = resBodyData.getString("_id");
-          String demand_status = resBodyData.getString(Fields.DEMAND_STATUS);
-          String user_id = resBodyData.getString(Fields.DEMAND_USER_ID);
+            JsonObject notification_data = new JsonObject()
+              .put(Fields.NOTIFICATION_DEMAND_ID , demand_id)
+              .put(Fields.NOTIFICATION_USER_ID, user_id)
+              .put(Fields.DEMAND_STATUS, demand_status);
 
-          JsonObject notification_data = new JsonObject()
-            .put(Fields.NOTIFICATION_DEMAND_ID , demand_id)
-            .put(Fields.NOTIFICATION_USER_ID, user_id)
-            .put(Fields.DEMAND_STATUS, demand_status);
-
-          vertx.eventBus().request(Services.NOTIFICATION_CREATE, notification_data, createNotificationData -> {
-            if(createNotificationData.succeeded()) {
-              message.reply(res.result().body());
-            }else {
-              message.reply(createNotificationData.cause());
-            }
-          });
-
+            vertx.eventBus().request(Services.NOTIFICATION_CREATE, notification_data, createNotificationData -> {
+              if(createNotificationData.succeeded()) {
+                message.reply(res.result().body());
+              }else {
+                message.reply(createNotificationData.cause());
+              }
+            });
+          }catch (Exception e) {
+            System.out.println(e.getMessage());
+          }
         } else {
           message.fail(500, res.cause().getMessage());
         }
