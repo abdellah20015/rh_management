@@ -678,8 +678,7 @@
                               "required": [
                                   "user_id",
                                   "type",
-                                  "details",
-                                  "file_path"
+                                  "details"
                               ]
                           }
                       }
