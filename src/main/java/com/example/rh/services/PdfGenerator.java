@@ -52,6 +52,12 @@ public class PdfGenerator extends AbstractVerticle {
     }
   }
 
+  /**
+   * @author : youssef
+   * <p>
+   * This function for add content to the Pdf
+   * </p>
+   */
   private void addContent(Document document, JsonObject data) {
     try {
       String demandType = data.getString("type");
@@ -117,6 +123,12 @@ public class PdfGenerator extends AbstractVerticle {
     }
   }
 
+  /**
+   * @author : youssef
+   * <p>
+   * This function is responsible for creatin demande de conge
+   * </p>
+   */
   private void DemandeDeConge(Document document, JsonObject congeDetails) throws DocumentException {
     Paragraph preface = new Paragraph();
 
@@ -145,6 +157,12 @@ public class PdfGenerator extends AbstractVerticle {
   }
 
 
+  /**
+   * @author : youssef
+   * <p>
+   * This function is responsible for creatin attedtation de travail
+   * </p>
+   */
   private void AttestationDeTravail(Document document, JsonObject demandDetails) throws DocumentException {
     Paragraph preface = new Paragraph();
 
@@ -166,6 +184,12 @@ public class PdfGenerator extends AbstractVerticle {
     document.add(preface);
   }
 
+  /**
+   * @author : youssef
+   * <p>
+   * This function is responsible for creatin order de mission
+   * </p>
+   */
   private void OrderDeMission(Document document, JsonObject orderDetails) throws DocumentException {
     Paragraph preface = new Paragraph();
 
@@ -203,13 +227,16 @@ public class PdfGenerator extends AbstractVerticle {
     document.add(preface);
   }
 
-
-
   Paragraph createParagraph(String text) {
     Paragraph p = new Paragraph(text, new Font(Font.FontFamily.TIMES_ROMAN, 14, Font.NORMAL, BaseColor.BLACK));
     return p;
   }
 
+  /**
+   * @author Youssef
+   *
+   * This function is responsible for creating epmty spaces.
+   */
   private static void addEmptyLine(Paragraph paragraph, int number) {
     for (int i = 0; i < number; i++) {
       paragraph.add(new Paragraph(" "));

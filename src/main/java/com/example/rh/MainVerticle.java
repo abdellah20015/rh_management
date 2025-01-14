@@ -2,6 +2,11 @@ package com.example.rh;
 
 
 
+
+
+
+import java.util.List;
+
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
 import com.example.rh.services.AuthVerticle;
@@ -15,7 +20,11 @@ import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+
+import io.vertx.ext.web.FileUpload;
+
 import io.vertx.ext.auth.User;
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -30,11 +39,13 @@ import io.vertx.openapi.contract.OpenAPIContract;
 
 public class MainVerticle extends AbstractVerticle {
   private static final Integer PORT = 8888;
+
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
     String path = "src/main/api/openapi.json";
+    Conf.createMongoClient(vertx);
     OpenAPIContract.from(vertx, path)
-    .onSuccess(contract ->{
+    .onSuccess(contract -> {
       // Create a router builder
       RouterBuilder routerBuilder = RouterBuilder.create(vertx, contract, RequestExtractor.withBodyHandler());
       // Create a session store
@@ -57,11 +68,23 @@ public class MainVerticle extends AbstractVerticle {
       );
 
       // Mount the body handler
-      routerBuilder.rootHandler(BodyHandler.create().setBodyLimit(50 * 1024 * 1024));
+      routerBuilder.rootHandler(BodyHandler.create().setUploadsDirectory("uploads").setBodyLimit(50 * 1024 * 1024));
 
+
+      routerBuilder.rootHandler(ctx ->{
+        if (ctx.normalizedPath().startsWith("/private")) {
+          handleAuth(ctx);
+        }else{
+          ctx.next();
+          return;
+        }
+      });
       //demands
+      // path: /private/demand/list
       routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
+      // path: /private/demand/create
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
+      // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(this::updateDemand);
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
 
@@ -80,7 +103,7 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("listUsers").addHandler(this::ListUsersHandler);
 
       // path : /private/user/create
-      routerBuilder.getRoute("createUser").addHandler(this::createUserHandler);
+      routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
 
       // path : /private/user/update
       routerBuilder.getRoute("updateUser").addHandler(this::updateUserHandler);
@@ -91,6 +114,18 @@ public class MainVerticle extends AbstractVerticle {
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
 
+      // Contracts
+      routerBuilder.getRoute("createContract").addHandler(this::createContract);
+      routerBuilder.getRoute("updateContract").addHandler(this::updateContract);
+      routerBuilder.getRoute("getContract").addHandler(this::getContract);
+
+      // Files
+      routerBuilder.getRoute("uploadFile").addHandler(this::uploadFile);
+      routerBuilder.getRoute("getfiles").addHandler(this::getFiles);
+
+
+
+
       // Create a router
       Router router = routerBuilder.createRouter();
 
@@ -99,16 +134,16 @@ public class MainVerticle extends AbstractVerticle {
 
       //  create http server and listen on port 8888
       vertx.createHttpServer().requestHandler(router).listen(PORT)
-      .onComplete(http ->{
-        if(http.succeeded()){
+      .onComplete(http -> {
+        if (http.succeeded()) {
           startPromise.complete();
           System.out.println("HTTP server started on port " + PORT);
-        }else{
+        } else {
           startPromise.fail(http.cause());
         }
       });
     })
-    .onFailure(err ->{
+    .onFailure(err -> {
       startPromise.fail(err);
       System.err.println("Failed to load OpenAPI contract: " + err.getMessage());
     });
@@ -126,12 +161,10 @@ public class MainVerticle extends AbstractVerticle {
   private void getListDemands(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
-//      body.put("user_role", ctx.user().get("role"));
-//      body.put("user_id", ctx.user().get("_id"));
-
       vertx.eventBus().request(Services.DEMAND_LIST ,body , res-> {
         if(res.succeeded()){
           ctx.response()
+            .setStatusCode(200)
             .putHeader("content-type", "application/json")
             .end(res.result().body().toString());
         }else {
@@ -162,16 +195,255 @@ public class MainVerticle extends AbstractVerticle {
       vertx.eventBus().request(Services.DEMAND_CREATE, body, res -> {
         if(res.succeeded()) {
           ctx.response()
+            .setStatusCode(201)
             .putHeader("content-type", "application/json")
             .end(res.result().body().toString());
         }else {
           ctx.response()
+            .setStatusCode(500)
             .putHeader("content-type", "application/json")
             .end(res.cause().getMessage());
         }
       });
     }catch(Exception e) {
       System.out.println("error " + e);
+    }
+  }
+
+
+ /**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route createContract
+ * request body <JsonObject>
+ * </p>
+ */
+public void createContract(RoutingContext ctx) {
+  try {
+    JsonObject body = ctx.getBodyAsJson();
+
+    vertx.eventBus().request(Services.CONTRACT_CREATE, body, res -> {
+      if (res.succeeded()) {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .end(res.result().body().toString());
+      } else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(res.cause().getMessage().contains("Champs requis manquants") ? 400 : 500)
+          .end(new JsonObject()
+            .put("error", res.cause().getMessage())
+            .toString());
+      }
+    });
+  } catch (Exception e) {
+    System.out.println("error " + e);
+    ctx.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(500)
+      .end(new JsonObject()
+        .put("error", "Erreur inattendue")
+        .toString());
+  }
+}
+
+/**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route updateContract
+ * request body <JsonObject>
+ * </p>
+ */
+public void updateContract(RoutingContext ctx) {
+  try {
+    JsonObject body = ctx.getBodyAsJson();
+
+    vertx.eventBus().request(Services.CONTRACT_UPDATE, body, res -> {
+      if (res.succeeded()) {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .end(res.result().body().toString());
+      } else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(res.cause().getMessage().contains("ID du contrat requis") ? 400 : 500)
+          .end(new JsonObject()
+            .put("error", res.cause().getMessage())
+            .toString());
+      }
+    });
+  } catch (Exception e) {
+    System.out.println("error " + e);
+    ctx.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(500)
+      .end(new JsonObject()
+        .put("error", "Erreur inattendue")
+        .toString());
+  }
+}
+
+/**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route getContract
+ * request body <JsonObject>
+ * </p>
+ */
+public void getContract(RoutingContext ctx) {
+  try {
+    JsonObject body = ctx.getBodyAsJson();
+
+    vertx.eventBus().request(Services.CONTRACT_GET, body, res -> {
+      if (res.succeeded()) {
+        JsonObject response = (JsonObject) res.result().body();
+        if (response.isEmpty()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .setStatusCode(404)
+            .end(new JsonObject()
+              .put("error", "Contract not found")
+              .toString());
+        } else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(response.toString());
+        }
+      } else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(res.cause().getMessage().contains("ID du contrat requis") ? 400 : 500)
+          .end(new JsonObject()
+            .put("error", res.cause().getMessage())
+            .toString());
+      }
+    });
+  } catch (Exception e) {
+    System.out.println("error " + e);
+    ctx.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(500)
+      .end(new JsonObject()
+        .put("error", "Erreur inattendue")
+        .toString());
+  }
+}
+
+/**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route uploadFile
+ * request body <multipart/form-data>
+ * </p>
+ */
+public void uploadFile(RoutingContext ctx) {
+  try {
+    List<FileUpload> uploads = ctx.fileUploads();
+    if (uploads.isEmpty()) {
+      ctx.response()
+        .putHeader("content-type", "application/json")
+        .setStatusCode(400)
+        .end(new JsonObject()
+          .put("error", "Aucun fichier n'a été fourni")
+          .toString());
+      return;
+    }
+
+    FileUpload upload = uploads.iterator().next();
+    String fileName = upload.fileName();
+    String uploadedFilePath = upload.uploadedFileName();
+
+
+    JsonObject fileInfo = new JsonObject()
+      .put("fileName", fileName)
+      .put("uploadedPath", uploadedFilePath);
+
+
+    vertx.eventBus().request(Services.FILE_DOWNLOAD, fileInfo, res -> {
+      if (res.succeeded()) {
+        JsonObject response = new JsonObject()
+          .put("message", "Fichier téléchargé avec succès")
+          .put("file", res.result().body());
+
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .end(response.toString());
+      } else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(500)
+          .end(new JsonObject()
+            .put("error", res.cause().getMessage())
+            .toString());
+      }
+    });
+
+  } catch (Exception e) {
+    System.out.println("error " + e);
+    ctx.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(500)
+      .end(new JsonObject()
+        .put("error", "Erreur lors du téléchargement du fichier")
+        .toString());
+  }
+}
+
+/**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route getFiles
+ * request body <JsonObject>
+ * </p>
+ */
+public void getFiles(RoutingContext ctx) {
+  try {
+      JsonObject body = ctx.getBodyAsJson();
+      if (body == null) {
+          body = new JsonObject();
+      }
+
+
+      JsonObject options = new JsonObject();
+      String pageStr = ctx.request().getParam("page");
+      String limitStr = ctx.request().getParam("limit");
+
+
+      int page = pageStr != null ? Integer.parseInt(pageStr) : 1;
+      int limit = limitStr != null ? Integer.parseInt(limitStr) : 10;
+
+      options.put("page", page)
+             .put("limit", limit);
+
+      body.put("options", options);
+
+
+      vertx.eventBus().request(Services.FILE_GET, body, res -> {
+          if (res.succeeded()) {
+              ctx.response()
+                  .putHeader("content-type", "application/json")
+                  .end(res.result().body().toString());
+          } else {
+              ctx.response()
+                  .putHeader("content-type", "application/json")
+                  .setStatusCode(500)
+                  .end(new JsonObject()
+                      .put("error", res.cause().getMessage())
+                      .toString());
+          }
+      });
+  } catch (Exception e) {
+      ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(500)
+          .end(new JsonObject()
+              .put("error", "Erreur lors de la récupération des fichiers: " + e.getMessage())
+              .toString());
     }
   }
 
@@ -232,6 +504,67 @@ public class MainVerticle extends AbstractVerticle {
   }
 
 
+    /**
+   * @author ilyass
+   * @param ctx
+   *handleAuth Checks user authentication for the current request
+   */
+
+   public static void  handleAuth(RoutingContext ctx){
+    try {
+      if (ctx.user() == null) {
+          ctx.response()
+              .setStatusCode(401)
+              .putHeader("content-type", "application/json")
+              .end(new JsonObject().put("error", "Unauthorized").encode());
+      }
+      else{
+          ctx.next();
+      }
+    } catch (Exception e) {
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("error", "Internal Server Error").encode());
+    }
+  }
+
+
+    /**
+ * @author ilyass
+ * @param ctx
+ * @param permission string
+ * handlePermission checks user permission for the current request
+ */
+public void handlePermission(RoutingContext ctx, String permission) {
+  try {
+    if (ctx.user() != null) {
+      JsonArray permissions = ctx.user().principal().getJsonArray("permissions");
+      if (permissions != null && permissions.contains(permission)) {
+        ctx.next();
+      } else {
+        ctx.response()
+          .setStatusCode(403)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject()
+            .put("error", "Forbidden: Insufficient permission")
+            .put("required", permission)
+            .put("user_permissions", permissions)
+            .encode());
+      }
+    } else {
+      ctx.response()
+        .setStatusCode(401)
+        .putHeader("content-type", "application/json")
+        .end(new JsonObject().put("error", "Unauthorized").encode());
+    }
+  } catch (Exception e) {
+    ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("error", "Internal Server Error").encode());
+  }
+}
 
  /**
   * Login handler
@@ -239,22 +572,30 @@ public class MainVerticle extends AbstractVerticle {
     login method to authenticate the user and create a session for him
   */
   public void LoginHandler(RoutingContext ctx) {
-    JsonObject body = ctx.body().asJsonObject();
-    vertx.eventBus().request(Services.AUTH_LOGIN, body , reply ->{
-      if(reply.succeeded() && reply.cause() == null){
-        JsonObject response = (JsonObject) reply.result().body();
-        User user = User.create(response.getJsonObject("user"));
-        ctx.setUser(user);
-        ctx.session().regenerateId();
-        System.out.println(ctx.user().principal());
-        ctx.response()
-        .setStatusCode(200)
-        .putHeader("content-type", "application/json")
-        .end(response.encode());
-      }else{
-        ctx.response().setStatusCode(401).end(reply.cause().getMessage());
-      }
-    });
+    try {
+      JsonObject body = ctx.body().asJsonObject();
+      vertx.eventBus().request(Services.AUTH_LOGIN, body , reply ->{
+        if(reply.succeeded() && reply.cause() == null){
+          JsonObject response = (JsonObject) reply.result().body();
+          User user = User.create(response.getJsonObject("user"));
+          ctx.setUser(user);
+          ctx.session().regenerateId();
+          ctx.response()
+          .setStatusCode(200)
+          .putHeader("content-type", "application/json")
+          .end(response.encode());
+        }else{
+          ctx.response().setStatusCode(401).end(reply.cause().getMessage());
+        }
+      });
+    } catch (Exception e) {
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("error", "Internal Server Error").encode());
+    }
+
+
   }
   /**
    * Logout handler
@@ -479,12 +820,8 @@ public class MainVerticle extends AbstractVerticle {
                 .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
         }
     });
+
 }
-
-
-
-
-
 
 
 
@@ -497,7 +834,12 @@ public class MainVerticle extends AbstractVerticle {
     vertx.deployVerticle(new Db());
     vertx.deployVerticle(new Demand());
     vertx.deployVerticle(new AuthVerticle());
+    vertx.deployVerticle(new Contract());
+    vertx.deployVerticle(new File());
     vertx.deployVerticle(new PdfGenerator());
     vertx.deployVerticle(new Notifications());
+
   }
 }
+
+

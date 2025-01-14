@@ -186,8 +186,7 @@
                               "required": [
                                   "username",
                                   "password",
-                                  "role",
-                                  "manager_id"
+                                  "role"
                               ]
                           }
                       }
@@ -744,7 +743,6 @@
                   "File"
               ],
               "requestBody": {
-                  "required": true,
                   "content": {
                       "multipart/form-data": {
                           "schema": {
