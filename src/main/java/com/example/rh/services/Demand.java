@@ -177,7 +177,46 @@ public class Demand extends AbstractVerticle {
                     vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
                       if (updateDemandRes.succeeded()) {
                         System.out.println("demand has been created : " + updateDemandRes.result().body());
-                        message.reply(updateDemandRes.result().body());
+
+                        //create notification for manager
+                        JsonArray pipeline = new JsonArray()
+                          .add(new JsonObject().put("$lookup", new JsonObject()
+                            .put("from" , Collections.USER)
+                            .put("localField", "user_id")
+                            .put("foreignField" , "_id")
+                            .put("as" , "user")))
+                          .add(new JsonObject().put("$unwind" , new JsonObject()
+                            .put("path" , "$user")))
+                          .add(new JsonObject().put("$match" , new JsonObject()
+                            .put("_id" , demand.getString("_id"))))
+                          .add(new JsonObject().put("$project" , new JsonObject()
+                            .put(Fields.NOTIFICATION_USER_USERNAME , "$user.username")
+                            .put(Fields.NOTIFICATION_EMPLOYEE_ID , "$user._id")
+                            .put(Fields.NOTIFICATION_USER_ID , "$user.manager_id")));
+
+                        JsonObject NotificationAggregation = new JsonObject()
+                          .put("collection", Collections.DEMANDS)
+                          .put("pipeline", pipeline)
+                          .put("options", new JsonObject());
+
+                        vertx.eventBus().request(Services.DB_AGGREGATE,NotificationAggregation, aggRes -> {
+                          if(aggRes.succeeded()) {
+                            System.out.println("\n +++ notification agg" + aggRes.result().body());
+                            JsonObject notificationAggRes = (JsonObject) aggRes.result().body();
+                            JsonArray notificationArrayData = notificationAggRes.getJsonArray("data");
+                            JsonObject notificationJsonData = notificationArrayData.getJsonObject(0);
+
+                            JsonObject notificationData = new JsonObject()
+                              .put(Fields.NOTIFICATION_DEMAND_ID , notificationJsonData.getString("_id"))
+                              .put(Fields.NOTIFICATION_USER_ID, notificationJsonData.getString(Fields.NOTIFICATION_USER_ID))
+                              .put(Fields.NOTIFICATION_USER_USERNAME, notificationJsonData.getString(Fields.NOTIFICATION_USER_USERNAME))
+                              .put(Fields.NOTIFICATION_EMPLOYEE_ID, notificationJsonData.getString(Fields.NOTIFICATION_EMPLOYEE_ID));
+
+                            vertx.eventBus().request(Services.NOTIFICATION_CREATE, notificationData, notificationRes -> {
+                              message.reply(updateDemandRes.result().body());
+                            });
+                          }
+                        });
                       }
                     });
                   } else {

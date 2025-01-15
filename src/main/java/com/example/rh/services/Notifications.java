@@ -8,6 +8,8 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
+import java.security.SecureRandom;
+
 public class Notifications extends AbstractVerticle {
 
   @Override
@@ -27,25 +29,45 @@ public class Notifications extends AbstractVerticle {
 
     try {
       JsonObject body = (JsonObject) message.body();
+      System.out.println(body);
 
-      String user_id = body.getString(Fields.DEMAND_USER_ID);
       String demand_id = body.getString(Fields.NOTIFICATION_DEMAND_ID);
-      String demand_status = body.getString(Fields.DEMAND_STATUS);
-
+      String user_id;
       String notification_message;
+      JsonObject query;
 
-      if (demand_status.equals("approved")) {
-        notification_message = "votre demande a été acceptée";
-      } else {
-        notification_message = "votre demande a été rejetée";
+      if(!body.containsKey(Fields.NOTIFICATION_EMPLOYEE_ID)){
+        user_id = body.getString(Fields.DEMAND_USER_ID);
+        String demand_status = body.getString(Fields.DEMAND_STATUS);
+        if (demand_status.equals("approved")) {
+          notification_message = "votre demande a été acceptée";
+        } else {
+          notification_message = "votre demande a été rejetée";
+        }
+
+        query = new JsonObject()
+          .put(Fields.NOTIFICATION_USER_ID, user_id)
+          .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
+          .put(Fields.NOTIFICATION_MESSAGE, notification_message)
+          .put(Fields.NOTIFICATION_IS_READ, false)
+          .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
+
+      }else {
+        user_id = body.getString("user_id");
+        String user_username = body.getString(Fields.NOTIFICATION_USER_USERNAME);
+        String employee = body.getString(Fields.NOTIFICATION_EMPLOYEE_ID);
+
+        notification_message = "Une nouvelle demande a été créée par " + user_username;
+
+        query = new JsonObject()
+          .put(Fields.NOTIFICATION_USER_ID, user_id)
+          .put(Fields.NOTIFICATION_USER_USERNAME, user_username)
+          .put(Fields.NOTIFICATION_EMPLOYEE_ID, employee)
+          .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
+          .put(Fields.NOTIFICATION_MESSAGE, notification_message)
+          .put(Fields.NOTIFICATION_IS_READ, false)
+          .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
       }
-
-      JsonObject query = new JsonObject()
-        .put(Fields.NOTIFICATION_USER_ID, user_id)
-        .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
-        .put(Fields.NOTIFICATION_MESSAGE, notification_message)
-        .put(Fields.NOTIFICATION_IS_READ, false)
-        .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
 
       JsonObject msg = new JsonObject()
         .put("collection", Collections.NOTIFICATIONS)
@@ -58,7 +80,6 @@ public class Notifications extends AbstractVerticle {
     }catch(Exception e) {
       System.out.println("error " + e);
     }
-
   }
 
   /**
