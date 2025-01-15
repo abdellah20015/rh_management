@@ -5,26 +5,29 @@ package com.example.rh;
 
 
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
 import com.example.rh.services.AuthVerticle;
+import com.example.rh.services.Conf;
+import com.example.rh.services.Contract;
 import com.example.rh.services.Db;
+import com.example.rh.services.Demand;
+import com.example.rh.services.File;
+import com.example.rh.services.Notifications;
+import com.example.rh.services.PdfGenerator;
 
-import com.example.rh.constants.Services;
-import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
-
-import io.vertx.ext.web.FileUpload;
-
 import io.vertx.ext.auth.User;
-import io.vertx.ext.mongo.MongoClient;
+import io.vertx.ext.web.FileUpload;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -122,6 +125,7 @@ public class MainVerticle extends AbstractVerticle {
       // Files
       routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
       routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
+      routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
 
 
 
@@ -446,6 +450,53 @@ public void getFiles(RoutingContext ctx) {
               .toString());
     }
   }
+
+   /**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route DownloadFile
+ * request body <JsonObject>
+ * </p>
+ */
+public void downloadFile(RoutingContext ctx) {
+    try {
+        String filepath = ctx.pathParam("filepath");
+
+        JsonObject fileInfo = new JsonObject()
+            .put("filepath", "uploads/" + filepath);
+
+        vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
+            if (res.succeeded()) {
+                JsonObject response = (JsonObject) res.result().body();
+                byte[] content = response.getBinary("content");
+                String filename = Paths.get(response.getString("filepath")).getFileName().toString();
+
+                ctx.response()
+                    .putHeader("Content-Type", "application/pdf")
+                    .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                    .end(Buffer.buffer(content));
+            } else {
+                String error = res.cause().getMessage();
+                int statusCode = error.contains("non trouvé") ? 404 : 500;
+
+                ctx.response()
+                    .setStatusCode(statusCode)
+                    .putHeader("content-type", "application/json")
+                    .end(new JsonObject()
+                        .put("error", error)
+                        .toString());
+            }
+        });
+    } catch (Exception e) {
+        ctx.response()
+            .setStatusCode(500)
+            .putHeader("content-type", "application/json")
+            .end(new JsonObject()
+                .put("error", "Erreur lors du téléchargement du fichier: " + e.getMessage())
+                .toString());
+    }
+}
 
   /**
    * @param ctx RoutingContext
