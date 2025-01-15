@@ -348,6 +348,34 @@
                   }
               }
           }
+      },    
+      "/private/user/checkauth": {
+        "post": {
+          "operationId": "checkAuth",
+          "tags": ["User"],
+          "requestBody": {
+            "required": false,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "success"
+            },
+            "403": {
+              "description": "Accès non autorisé"
+            },
+            "500": {
+              "description": "Erreur serveur"
+            }
+          }
+        }
       },
       "/private/user/profile": {
           "post": {
@@ -734,7 +762,7 @@
               }
           }
       },
-      "/private/file/download": {
+      "/private/file/upload": {
           "post": {
               "summary": "Upload de fichiers",
               "operationId": "uploadFile",
@@ -769,54 +797,61 @@
               }
           }
       },
-      "/private/file/download/{filepath}": {
-      "post": {
-        "summary": "Télécharger un fichier",
-        "operationId": "downloadFile",
-        "tags": [
-          "File"
-        ],
-        "parameters": [
-          {
-            "name": "filepath",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Chemin du fichier dans le dossier uploads"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Fichier trouvé avec succès",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "filepath": {
-                      "type": "string",
-                      "description": "Chemin du fichier"
+
+        "/private/file/download": {
+          "post": {
+            "summary": "Télécharger un fichier",
+            "operationId": "downloadFile",
+            "tags": ["File"],
+            "requestBody": {
+              "required": true,
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "filepath": {
+                        "type": "string",
+                        "description": "Chemin du fichier dans le dossier uploads"
+                      }
                     },
-                    "content": {
-                      "type": "object",
-                      "description": "Contenu du fichier"
-                    }
+                    "required": ["filepath"]
                   }
                 }
               }
+            },
+            "responses": {
+              "200": {
+                "description": "Fichier trouvé avec succès",
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "filepath": {
+                          "type": "string",
+                          "description": "Chemin du fichier"
+                        },
+                        "content": {
+                          "type": "object",
+                          "description": "Contenu du fichier"
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "404": {
+                "description": "Fichier non trouvé"
+              },
+              "500": {
+                "description": "Erreur serveur"
+              }
             }
-          },
-          "404": {
-            "description": "Fichier non trouvé"
-          },
-          "500": {
-            "description": "Erreur serveur"
           }
         }
-      }
-    },
+      
+      ,
       "/private/file/get": {
           "post": {
               "summary": "Upload de fichiers",

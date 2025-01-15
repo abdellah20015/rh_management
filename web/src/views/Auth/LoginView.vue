@@ -6,16 +6,20 @@
           <FormComponent
             :fields="formFields"
             @formSubmitted="login"
-            :btn_text
-            :title
+            :btn_text="btn_text"
+            :title="title"
           />
         </div>
       </div>
     </div>
   </div>
 </template>
+
 <script>
 import FormComponent from "@/components/FormComponent.vue";
+import { useAuthStore } from "@/stores/store";
+import services from "@/shared/services";
+import fetch_methode from "@/shared/utils";
 
 export default {
   components: {
@@ -37,9 +41,30 @@ export default {
           placeholder: "Entrez votre mot de passe",
         },
       ],
-      btn_text: "login",
+      btn_text: "Login",
       title: "Login Form",
     };
+  },
+  methods: {
+    async login(formdata) {
+      const authStore = useAuthStore();
+      const { username, password } = formdata;
+
+      try {
+        await fetch_methode(services.login, { username, password })
+          .then((data) => {
+            console.log(data);
+            authStore.auth(data);
+            this.$router.push("/");
+          })
+          .catch((err) => {
+            alert(err);
+          });
+      } catch (error) {
+        console.error("Erreur lors de la connexion:", error);
+        alert("Une erreur est survenue lors de la connexion.");
+      }
+    },
   },
 };
 </script>

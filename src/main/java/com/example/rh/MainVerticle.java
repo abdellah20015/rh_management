@@ -1,22 +1,21 @@
 package com.example.rh;
 
-<<<<<<< HEAD
-=======
+
 
 
 
 
 
 import java.nio.file.Paths;
->>>>>>> a0a6f592da6121f7ef46dd7230b4541516ebd947
+
 import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
-<<<<<<< HEAD
+
 import com.example.rh.constants.Services;
 import com.example.rh.services.*;
-=======
+
 import com.example.rh.services.AuthVerticle;
 import com.example.rh.services.Conf;
 import com.example.rh.services.Contract;
@@ -26,7 +25,6 @@ import com.example.rh.services.File;
 import com.example.rh.services.Notifications;
 import com.example.rh.services.PdfGenerator;
 
->>>>>>> a0a6f592da6121f7ef46dd7230b4541516ebd947
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
@@ -105,7 +103,7 @@ public class MainVerticle extends AbstractVerticle {
           routerBuilder.getRoute("login").addHandler(this::LoginHandler);
 
           // path  /check
-          // routerBuilder.getRoute("checkAuth").addHandler(this::handleCheck);
+          routerBuilder.getRoute("checkAuth").addHandler(this::handleCheck);
           // path: /private/logout
           routerBuilder.getRoute("logout").addHandler(this::LogoutHandler);
 
@@ -152,15 +150,15 @@ public class MainVerticle extends AbstractVerticle {
             handlePermission(ctx, "import_user");
           }).addHandler(this::getFiles);
 
-<<<<<<< HEAD
+          // Files
+          routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
+          routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
+          routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
+
           // Create a router
           Router router = routerBuilder.createRouter();
-=======
-      // Files
-      routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
-      routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
-      routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
->>>>>>> a0a6f592da6121f7ef46dd7230b4541516ebd947
+
+
 
           // create a static handler for the uploads directory
           router.route("/uploads/*").handler(StaticHandler.create("uploads"));
@@ -483,7 +481,7 @@ public class MainVerticle extends AbstractVerticle {
  */
 public void downloadFile(RoutingContext ctx) {
     try {
-        String filepath = ctx.pathParam("filepath");
+        String filepath = ctx.body().asJsonObject().getString("filepath");
 
         JsonObject fileInfo = new JsonObject()
             .put("filepath", "uploads/" + filepath);
@@ -609,7 +607,7 @@ public void downloadFile(RoutingContext ctx) {
     if (ctx.user() != null) {
       JsonObject userData = new JsonObject()
           .put("username", ctx.user().principal().getString("username"))
-          .put("id", ctx.user().principal().getString("_id"))
+          .put("id", ctx.user().principal().getString("id"))
           .put("role", ctx.user().principal().getString("role"))
           .put("status", ctx.user().principal().getBoolean("status"))
           .put("first_login", ctx.user().principal().getBoolean("first_login"))
@@ -684,7 +682,7 @@ public void downloadFile(RoutingContext ctx) {
               .putHeader("content-type", "application/json")
               .end(response.encode());
         } else {
-          ctx.response().setStatusCode(401).end(reply.cause().getMessage());
+          ctx.response().setStatusCode(401).putHeader("content-type", "application/json").end(new JsonObject().put("message", reply.cause().getMessage()).encode());
         }
       });
     } catch (Exception e) {
