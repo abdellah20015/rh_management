@@ -42,6 +42,7 @@ public class Services {
   //Files
   public static final String FILE_DOWNLOAD = "file.download";
   public static final String FILE_GET = "file.get";
+  public static final String FILE_DOWNLOAD_PDF = "file.download.pdf";
 
   public static final String DEMAND_UPDATE = "updateDemand";
   public static final String DEMAND_PDF_GENERATE = "generateDemandPdf";
