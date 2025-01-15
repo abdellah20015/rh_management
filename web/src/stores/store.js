@@ -1,12 +1,40 @@
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
+import utils from "@/shared/utils";
+import services from "@/shared/services";
 
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    user: null,
+    
+    initialized: false,
+  }),
+  actions: {
+    // Authentification avec un utilisateur
+    auth(user) {
+      this.user = user;
+      this.isAuthenticated = true;
+      this.initialized = true;
+    },
+
+    // Déconnexion
+    logout() {
+      this.user = null;   
+      this.initialized = false;
+    },
+
+    // Vérification de l'authentification
+    async checkauth() {
+      try {
+        const data = await utils.fetch_methode(services.checkauth);
+        if (data && data.userData) {
+          this.user = data.userData;
+          this.initialized = true;
+        } else {
+          this.user = null;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    }
   }
-
-  return { count, doubleCount, increment }
-})
+});
