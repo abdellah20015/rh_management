@@ -85,7 +85,7 @@ public class MainVerticle extends AbstractVerticle {
       // path: /private/demand/create
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
-      routerBuilder.getRoute("updateDemand").addHandler(this::updateDemand);
+      routerBuilder.getRoute("updateDemand").addHandler(ctx -> { handlePermission(ctx, "update_demand"); }).addHandler(this::updateDemand);
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
 
       // Add handlers
@@ -100,28 +100,28 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("resetPassword").addHandler(this::resetPasswordHandler);
 
       //  path : /private/user/list
-      routerBuilder.getRoute("listUsers").addHandler(this::ListUsersHandler);
+      routerBuilder.getRoute("listUsers").addHandler(ctx -> { handlePermission(ctx, "view_users"); }).addHandler(this::ListUsersHandler);
 
       // path : /private/user/create
       routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
 
       // path : /private/user/update
-      routerBuilder.getRoute("updateUser").addHandler(this::updateUserHandler);
+      routerBuilder.getRoute("updateUser").addHandler(ctx -> { handlePermission(ctx, "update_user"); }).addHandler(this::updateUserHandler);
 
       // path : /private/user/delete
-      routerBuilder.getRoute("deleteUser").addHandler(this::DeleteUserHandler);
+      routerBuilder.getRoute("deleteUser").addHandler(ctx -> { handlePermission(ctx, "delete_user"); }).addHandler(this::DeleteUserHandler);
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
 
       // Contracts
-      routerBuilder.getRoute("createContract").addHandler(this::createContract);
-      routerBuilder.getRoute("updateContract").addHandler(this::updateContract);
+      routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
+      routerBuilder.getRoute("updateContract").addHandler(ctx -> { handlePermission(ctx, "update_contract"); }).addHandler(this::updateContract);
       routerBuilder.getRoute("getContract").addHandler(this::getContract);
 
       // Files
-      routerBuilder.getRoute("uploadFile").addHandler(this::uploadFile);
-      routerBuilder.getRoute("getfiles").addHandler(this::getFiles);
+      routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
+      routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
 
 
 
@@ -512,7 +512,7 @@ public void getFiles(RoutingContext ctx) {
 
    public static void  handleAuth(RoutingContext ctx){
     try {
-      if (ctx.user() == null) {
+      if (ctx.user() == null || ctx.user().principal().getBoolean("status") == false) {
           ctx.response()
               .setStatusCode(401)
               .putHeader("content-type", "application/json")
@@ -649,7 +649,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
       JsonObject match = new JsonObject();
       if (!ctx.user().principal().getString("role").equals("admin")) {
-        match.put("_id", ctx.user().principal().getString("id"));
+        match.put("manager_id", ctx.user().principal().getString("id"));
       }
 
       JsonObject lookupContracts = new JsonObject()
@@ -658,18 +658,12 @@ public void handlePermission(RoutingContext ctx, String permission) {
           .put("foreignField", "user_id")
           .put("as", "contracts");
 
-      JsonObject lookupDemands = new JsonObject()
-          .put("from", Collections.DEMANDS)
-          .put("localField", "_id")
-          .put("foreignField", "user_id")
-          .put("as", "demands");
 
       JsonObject aggregate = new JsonObject()
           .put("collection", Collections.USER)
           .put("pipeline", new JsonArray()
               .add(new JsonObject().put("$match", match))
               .add(new JsonObject().put("$lookup", lookupContracts))
-              .add(new JsonObject().put("$lookup", lookupDemands))
               .add(new JsonObject().put("$skip", skip))
               .add(new JsonObject().put("$limit", limit))
           )
