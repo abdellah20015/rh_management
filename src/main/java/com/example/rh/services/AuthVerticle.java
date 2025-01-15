@@ -70,6 +70,8 @@ public class AuthVerticle extends AbstractVerticle {
                     .put("username", username)
                     .put("id", res.result().principal().getString("_id"))
                     .put("role", res.result().principal().getString("role"))
+                    .put("status", res.result().principal().getBoolean("status"))
+                    .put("first_login", res.result().principal().getBoolean("first_login"))
                     .put("permissions", res.result().principal().getJsonArray("permissions"))
                     );
                     message.reply(user);
@@ -107,6 +109,7 @@ public class AuthVerticle extends AbstractVerticle {
                                  .add("view_users")
                                  .add("import_user")
                                  .add("update_demand")
+                                 .add("update_contract")
                                  .add("create_contract");
                         break;
                     case "manager":
@@ -114,7 +117,7 @@ public class AuthVerticle extends AbstractVerticle {
                                  .add("update_demand");
                         break;
                     default:
-                        permissions.add("");
+                        permissions.add(null);
                 }
             }
     

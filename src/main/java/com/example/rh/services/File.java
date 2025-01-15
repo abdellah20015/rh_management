@@ -31,6 +31,7 @@ public class File extends AbstractVerticle {
 
       vertx.eventBus().consumer(Services.FILE_DOWNLOAD, this::uploadFileHandler);
       vertx.eventBus().consumer(Services.FILE_GET, this::getFileHandler);
+      vertx.eventBus().consumer(Services.FILE_DOWNLOAD_PDF, this::downloadFileHandler);
     } catch(Exception e) {
       System.out.println("Error starting File verticle: " + e);
     }
@@ -181,6 +182,48 @@ public class File extends AbstractVerticle {
         message.fail(500, "Erreur lors de la récupération des fichiers: " + e.getMessage());
     }
   }
+
+  /**
+   * @param message Message
+   * @author abdellah
+   * <p>
+   * Handler to download file
+   * </p>
+   */
+
+   private void downloadFileHandler(Message<JsonObject> message) {
+    try {
+        JsonObject body = message.body();
+        String filepath = body.getString("filepath");
+
+        if (filepath == null || filepath.isEmpty()) {
+            message.fail(400, "Chemin du fichier manquant");
+            return;
+        }
+
+        String fullPath = Paths.get(filepath).toString();
+
+        vertx.fileSystem().exists(fullPath, existResult -> {
+            if (existResult.succeeded() && existResult.result()) {
+                vertx.fileSystem().readFile(fullPath, readResult -> {
+                    if (readResult.succeeded()) {
+                        message.reply(new JsonObject()
+                            .put("content", readResult.result().getBytes())
+                            .put("filepath", filepath)
+                        );
+                    } else {
+                        message.fail(500, "Erreur lors de la lecture du fichier");
+                    }
+                });
+            } else {
+                message.fail(404, "Fichier non trouvé");
+            }
+        });
+    } catch(Exception e) {
+        System.err.println("Error in downloadFileHandler: " + e);
+        message.fail(500, "Erreur inattendue lors du téléchargement du fichier");
+    }
+}
 
   /**
    * @param fileInfo JsonObject
