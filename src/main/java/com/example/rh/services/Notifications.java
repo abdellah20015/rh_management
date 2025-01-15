@@ -53,16 +53,16 @@ public class Notifications extends AbstractVerticle {
           .put(Fields.NOTIFICATION_DATE_CREATION, System.currentTimeMillis());
 
       }else {
-        user_id = body.getString("user_id");
-        String user_username = body.getString(Fields.NOTIFICATION_USER_USERNAME);
+        user_id = body.getString(Fields.DEMAND_USER_ID);
         String employee = body.getString(Fields.NOTIFICATION_EMPLOYEE_ID);
+        String user_username = body.getString(Fields.NOTIFICATION_USER_USERNAME);
 
-        notification_message = "Une nouvelle demande a été créée par " + user_username;
+        notification_message = "Une nouvelle demande a été créée!";
 
         query = new JsonObject()
           .put(Fields.NOTIFICATION_USER_ID, user_id)
-          .put(Fields.NOTIFICATION_USER_USERNAME, user_username)
           .put(Fields.NOTIFICATION_EMPLOYEE_ID, employee)
+          .put(Fields.NOTIFICATION_USER_USERNAME, user_username)
           .put(Fields.NOTIFICATION_DEMAND_ID, demand_id)
           .put(Fields.NOTIFICATION_MESSAGE, notification_message)
           .put(Fields.NOTIFICATION_IS_READ, false)
@@ -95,12 +95,26 @@ public class Notifications extends AbstractVerticle {
 
     try {
       JsonObject query = body.getJsonObject("query");
+      String user_id = query.getString("user_id");
+      JsonObject options = body.getJsonObject("options");
 
-      JsonObject msg = new JsonObject().
-        put("collection", Collections.NOTIFICATIONS)
-        .put("query", query);
+      int page = options.getInteger("page");
+      int limit = options.getInteger("limit");
+      int skip = (page - 1) * limit;
 
-      vertx.eventBus().request(Services.DB_FIND, msg, res -> {
+
+      JsonArray pipeline = new JsonArray()
+        .add(new JsonObject().put("$match" , new JsonObject()
+          .put("user_id", user_id)))
+        .add(new JsonObject().put("$skip", skip))
+        .add(new JsonObject().put("$limit", limit));
+
+      JsonObject aggregation = new JsonObject()
+        .put("collection" , Collections.NOTIFICATIONS)
+        .put("pipeline", pipeline)
+        .put("options", new JsonObject());
+
+      vertx.eventBus().request(Services.DB_AGGREGATE, aggregation, res -> {
         if (res.succeeded()) {
           message.reply(res.result().body());
         } else {

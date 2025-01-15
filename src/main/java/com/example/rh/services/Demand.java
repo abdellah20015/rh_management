@@ -38,6 +38,11 @@ public class Demand extends AbstractVerticle {
       String manager_id = query.getString("manager_id");
       String user_id = query.getString("user_id");
 
+      JsonObject option = body.getJsonObject("options");
+      int page = option.getInteger("page");
+      int limit = option.getInteger("limit");
+      int skip = (page - 1) * limit;
+
       JsonArray pipeline = new JsonArray()
         .add(new JsonObject().put("$lookup", new JsonObject()
           .put("from", "user")
@@ -53,8 +58,11 @@ public class Demand extends AbstractVerticle {
           pipeline.add(new JsonObject().put("$match", new JsonObject()
               .put("user._id", user_id)));
         }
-        pipeline.add(new JsonObject().put("$project", new JsonObject()
-        .put("user", 0)));
+
+        pipeline.add(new JsonObject().put("$skip" , skip))
+          .add(new JsonObject().put("$limit" , limit))
+          .add(new JsonObject().put("$project", new JsonObject()
+            .put("user", 0)));
 
       System.out.println("message " + pipeline);
 
