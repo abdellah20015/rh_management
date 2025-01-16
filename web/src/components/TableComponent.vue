@@ -26,7 +26,6 @@
                     'opacity-50 pointer-events-none': typeof button.disabled === 'function' ? button.disabled(row) : button.disabled
                   }" class="flex px-2"></div>
               </div>
-              <div v-else>{{ row[header.key] }}</div>
             </td>
           </tr>
         </tbody>

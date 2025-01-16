@@ -4,16 +4,15 @@ import services from "@/shared/services";
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    user: null,
-    
+    user: null,    
     initialized: false,
   }),
   actions: {
     // Authentification avec un utilisateur
-    auth(user) {
-      this.user = user;
-      this.isAuthenticated = true;
+    auth(data) {
+      this.user = data.user;
       this.initialized = true;
+      console.log(this.user)
     },
 
     // Déconnexion
@@ -26,6 +25,7 @@ export const useAuthStore = defineStore('auth', {
     async checkauth() {
       try {
         const data = await utils.fetch_methode(services.checkauth);
+        console.log("-----------------------------------" +data)
         if (data && data.userData) {
           this.user = data.userData;
           this.initialized = true;

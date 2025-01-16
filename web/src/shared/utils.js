@@ -13,12 +13,12 @@ const fetch_methode = async (url, body = null, headers = {}) => {
             body,
             credentials: "include"
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message);
-        }
-        return await response.json();
+        return response
+        // if (!response.ok) {
+        //     const errorData = await response.json();
+        //     throw new Error(errorData);
+        // }
+        // return await response.json();
     } catch (error) {
         console.error('Erreur lors de la requête :', error);
         throw error;

@@ -6,7 +6,7 @@
                 <button class="w-48 bg-black text-white rounded p-2">Ajouter un demande</button>
             </div>
             <div>
-                <TableComponent :tableInfo="tableInfo" :pageSize="pageSize" :currentPage="currentPage" :totalPages="totalPages"></TableComponent>
+              <TableComponent :tableInfo :pageSize :currentPage :totalPages></TableComponent>
             </div>
         </div>
     </div>
@@ -55,7 +55,7 @@ export default {
     methods: {
         //fetch demand list
         async fetchDemands() {
-            await fetch_methode(services.demand.list, { query: {}, options: { "page": this.currentPage, "limit": this.pageSize } })
+            await fetch_methode(services.demand.list, { query: {}, options: {"page": this.currentPage, "limit": this.pageSize } })
                 .then((data) => {
                     this.tableInfo.data = data.data
                     console.log(data);
