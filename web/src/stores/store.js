@@ -25,6 +25,7 @@ export const useAuthStore = defineStore('auth', {
     async checkauth() {
       try {
         const data = await utils.fetch_methode(services.checkauth);
+        console.log("-----------------------------------" +data)
         if (data && data.userData) {
           this.user = data.userData;
           this.initialized = true;

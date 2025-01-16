@@ -35,8 +35,14 @@ public class Demand extends AbstractVerticle {
     try {
       JsonObject body = (JsonObject) message.body();
       JsonObject query = body.getJsonObject("query");
-      String manager_id = query.getString("manager_id");
-      String user_id = query.getString("user_id");
+      JsonObject user = body.getJsonObject("user");
+
+      System.out.println(user);
+
+      JsonObject option = body.getJsonObject("options");
+      int page = option.getInteger("page");
+      int limit = option.getInteger("limit");
+      int skip = (page - 1) * limit;
 
       JsonArray pipeline = new JsonArray()
         .add(new JsonObject().put("$lookup", new JsonObject()
@@ -46,15 +52,25 @@ public class Demand extends AbstractVerticle {
           .put("as", "user")))
         .add(new JsonObject().put("$unwind", "$user"));
 
-        if(query.containsKey("manager_id")){
+        if(user.getString("role").equals("manager")){
           pipeline.add(new JsonObject().put("$match", new JsonObject()
-            .put("user.manager_id", manager_id)));
-        }else if(query.containsKey("user_id")){
+            .put("user.manager_id", user.getString("id"))));
+        }else if(user.getString("role").equals("employee")){
           pipeline.add(new JsonObject().put("$match", new JsonObject()
-              .put("user._id", user_id)));
+              .put("user._id", user.getString("id"))));
         }
-        pipeline.add(new JsonObject().put("$project", new JsonObject()
-        .put("user", 0)));
+
+        pipeline.add(new JsonObject().put("$skip" , skip))
+          .add(new JsonObject().put("$limit" , limit))
+          .add(new JsonObject().put("$project", new JsonObject()
+            .put("_id", 1)
+            .put("user_id", 1)
+            .put("type", 1)
+            .put("details", 1)
+            .put("status", 1)
+            .put("file_path", 1)
+            .put("created_date", 1)
+            .put("username", "$user.username")));
 
       System.out.println("message " + pipeline);
 

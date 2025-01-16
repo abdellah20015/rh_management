@@ -9,9 +9,6 @@ import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
-import com.example.rh.services.AuthVerticle;
-import com.example.rh.services.Db;
-
 import com.example.rh.constants.Services;
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
@@ -90,6 +87,9 @@ public class MainVerticle extends AbstractVerticle {
 
       // Add handlers
 
+       // path  /check
+      routerBuilder.getRoute("checkAuth").addHandler(this::handleCheck);
+
       // path: /login
       routerBuilder.getRoute("login").addHandler(this::LoginHandler);
 
@@ -161,8 +161,11 @@ public class MainVerticle extends AbstractVerticle {
   private void getListDemands(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
-      vertx.eventBus().request(Services.DEMAND_LIST ,body , res-> {
-        if(res.succeeded()){
+      JsonObject user = ctx.user().principal();
+      body.put("user" , user);
+
+      vertx.eventBus().request(Services.DEMAND_LIST, body, res -> {
+        if (res.succeeded()) {
           ctx.response()
             .setStatusCode(200)
             .putHeader("content-type", "application/json")
@@ -566,11 +569,12 @@ public void handlePermission(RoutingContext ctx, String permission) {
   }
 }
 
- /**
-  * Login handler
-  * @author Ilyass
-    login method to authenticate the user and create a session for him
-  */
+  /**
+   * Login handler
+   *
+   * @author Ilyass
+   *         login method to authenticate the user and create a session for him
+   */
   public void LoginHandler(RoutingContext ctx) {
     try {
       JsonObject body = ctx.body().asJsonObject();
@@ -599,6 +603,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
   }
   /**
    * Logout handler
+   *
    * @author ilyass
    * logout method to destroy the session of the user
    */
@@ -610,10 +615,32 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "logout successful").encode());
   }
+  public void handleCheck(RoutingContext ctx) {
+    if (ctx.user() != null) {
+      JsonObject userData = new JsonObject()
+          .put("username", ctx.user().principal().getString("username"))
+          .put("id", ctx.user().principal().getString("id"))
+          .put("role", ctx.user().principal().getString("role"))
+          .put("status", ctx.user().principal().getBoolean("status"))
+          .put("first_login", ctx.user().principal().getBoolean("first_login"))
+          .put("permissions", ctx.user().principal().getJsonArray("permissions"));
+
+          ctx.response()
+            .setStatusCode(200)
+            .putHeader("Content-Type", "application/json")
+            .end(userData.encode());
+    } else {
+      ctx.response()
+      .setStatusCode(401)
+      .putHeader("Content-Type", "application/json")
+      .end(new JsonObject().put("message", "Not authenticated").encode());
+    }
+  }
   /**
-    * Reset password handler
-    * @author ilyass
-    * reset password method to reset the password of the user
+   * Reset password handler
+   *
+   * @author ilyass
+   *         reset password method to reset the password of the user
    */
   public void resetPasswordHandler(RoutingContext ctx) {
     JsonObject body = ctx.body().asJsonObject();
@@ -635,6 +662,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
   /**
    * List users handler
+   *
    * @param ctx RoutingContext
    * @author ilyass
    * list users method to list all the users with aggregation
@@ -692,6 +720,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
   /**
    * Create user handler
+   *
    * @author ilyass
    * create user method to create a new user
    */
@@ -714,6 +743,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
   }
   /**
    * Update user handler
+   *
    * @author ilyass
    * update user method to update the user information
    */
@@ -743,6 +773,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
   }
   /**
    * Delete user handler
+   *
    * @author ilyass
    * delete user method to delete the user
    */
@@ -772,6 +803,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
   /**
    * Get user profile handler
+   *
    * @author ilyass
    * get user profile method to get the profile of the user
    */
