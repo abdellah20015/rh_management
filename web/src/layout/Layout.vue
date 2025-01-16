@@ -1,5 +1,6 @@
 <template>
   <!-- Navbar -->
+   <div>
   <nav class="bg-black p-3">
     <div class="container mx-auto flex justify-between items-center">
       <div class="text-white text-2xl font-bold">RH</div>
@@ -49,6 +50,7 @@
       <p>&copy; 2025 RH. All Rights Reserved.</p>
     </div>
   </footer>
+</div>
 </template>
 
 <script>

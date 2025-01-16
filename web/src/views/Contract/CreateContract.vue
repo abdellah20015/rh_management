@@ -24,7 +24,7 @@ export default {
     const router = useRouter()
     const selectedType = ref('')
 
-    
+
     const allFields = ref([
       {
         type: 'select',
@@ -54,20 +54,20 @@ export default {
       }
     ])
 
-    
+
     const endDateField = {
       type: 'date',
       name: 'end_date',
       label: 'Date de fin (Pour CDD)'
     }
 
-    
+
     const fields = computed(() => {
       if (selectedType.value === 'cdd') {
         return [
-          ...allFields.value.slice(0, 2), 
-          endDateField,                    
-          ...allFields.value.slice(2) 
+          ...allFields.value.slice(0, 2),
+          endDateField,
+          ...allFields.value.slice(2)
         ]
       }
       return allFields.value

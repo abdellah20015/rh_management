@@ -6,7 +6,7 @@
                 <button class="w-48 bg-black text-white rounded p-2">Ajouter un demande</button>
             </div>
             <div>
-                <TableComponent :tableInfo :pageSize :currentPage :totalPages></TableComponent>
+                <TableComponent :tableInfo="tableInfo" :pageSize="pageSize" :currentPage="currentPage" :totalPages="totalPages"></TableComponent>
             </div>
         </div>
     </div>

@@ -70,11 +70,11 @@
         <label class="text-gray-700 text-sm">{{ field.label }}</label>
       </div>
     </div>
-    
+
 
     <div class="flex items-center justify-between">
       <button
-        class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+        class="bg-black w-full hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
         type="submit"
       >
         {{ btn_text }}
@@ -107,7 +107,7 @@ export default {
   setup(props, { emit }) {
     const formState = ref({})
 
-    
+
     watch(() => props.fields, (newFields) => {
       newFields.forEach(field => {
         if (!(field.name in formState.value)) {
@@ -124,9 +124,6 @@ export default {
     const handleSubmit = () => {
       emit('formSubmitted', { ...formState.value })
     }
-
-    
-
     return {
       formState,
       updateField,
