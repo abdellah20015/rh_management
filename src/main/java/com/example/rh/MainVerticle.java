@@ -191,6 +191,9 @@ public class MainVerticle extends AbstractVerticle {
   private void getListDemands(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
+      JsonObject user = ctx.user().principal();
+      body.put("user" , user);
+
       vertx.eventBus().request(Services.DEMAND_LIST, body, res -> {
         if (res.succeeded()) {
           ctx.response()
@@ -664,7 +667,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Login handler
-   * 
+   *
    * @author Ilyass
    *         login method to authenticate the user and create a session for him
    */
@@ -696,7 +699,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Logout handler
-   * 
+   *
    * @author ilyass
    *         logout method to destroy the session of the user
    */
@@ -711,7 +714,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Reset password handler
-   * 
+   *
    * @author ilyass
    *         reset password method to reset the password of the user
    */
@@ -735,7 +738,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * List users handler
-   * 
+   *
    * @param ctx RoutingContext
    * @author ilyass
    *         list users method to list all the users with aggregation
@@ -791,7 +794,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Create user handler
-   * 
+   *
    * @author ilyass
    *         create user method to create a new user
    */
@@ -815,7 +818,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Update user handler
-   * 
+   *
    * @author ilyass
    *         update user method to update the user information
    */
@@ -846,7 +849,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Delete user handler
-   * 
+   *
    * @author ilyass
    *         delete user method to delete the user
    */
@@ -875,7 +878,7 @@ public void downloadFile(RoutingContext ctx) {
 
   /**
    * Get user profile handler
-   * 
+   *
    * @author ilyass
    *         get user profile method to get the profile of the user
    */
