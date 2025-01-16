@@ -71,7 +71,6 @@
 import services from '@/shared/services';
 import fetch_methode from '@/shared/utils';
 import { RouterView } from 'vue-router';
-import { useAuthStore } from '@/stores/store';
 
 export default {
   data() {
