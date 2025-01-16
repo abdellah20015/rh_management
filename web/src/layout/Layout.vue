@@ -57,7 +57,7 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="bg-gray-50 h-screen">
+  <main class="bg-gray-50">
     <RouterView />
   </main>
 
