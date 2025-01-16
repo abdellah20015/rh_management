@@ -636,6 +636,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
       .end(new JsonObject().put("message", "Not authenticated").encode());
     }
   }
+
   /**
    * Reset password handler
    *

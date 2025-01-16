@@ -9,6 +9,7 @@
         <a href="#" class="text-white hover:text-gray-300">Lien 3</a>
       </div>
       <div class="flex items-center space-x-4">
+
         <!-- Notification Dropdown -->
         <div class="relative">
           <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleNotificationDropdown">
@@ -35,6 +36,7 @@
         <!-- Profile Dropdown -->
         <div class="relative">
           <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleProfileDropdown">
+
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
               stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -55,7 +57,7 @@
   </nav>
 
   <!-- Main Content -->
-  <main class="bg-gray-50 h-screen">
+  <main class="bg-gray-50">
     <RouterView />
   </main>
 
@@ -65,6 +67,7 @@
       <p>&copy; 2025 RH. All Rights Reserved.</p>
     </div>
   </footer>
+</div>
 </template>
 
 <script>
@@ -109,7 +112,6 @@ export default {
 </script>
 
 <style scoped>
-
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
