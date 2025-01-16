@@ -40,6 +40,8 @@ public class Fields {
 
   // NOTIFICATIONS
   public static final String NOTIFICATION_USER_ID = "user_id";
+  public static final String NOTIFICATION_USER_USERNAME = "user_username";
+  public static final String NOTIFICATION_EMPLOYEE_ID = "employee_id";
   public static final String NOTIFICATION_DEMAND_ID = "demand_id";
   public static final String NOTIFICATION_MESSAGE = "message";
   public static final String NOTIFICATION_IS_READ = "is_read";

@@ -35,12 +35,12 @@ import { RouterView } from 'vue-router';
   </nav>
 
   <!-- Main Content -->
-  <main class="bg-gray-50 h-[100%]">
+  <main class="bg-gray-50 ">
     <RouterView />
   </main>
 
   <!-- Footer -->
-  <footer class="bg-black text-white py-6 mt-4">
+  <footer class="bg-black text-white py-6">
     <div class="container mx-auto text-center">
       <p>&copy; 2025 RH. All Rights Reserved.</p>
     </div>
