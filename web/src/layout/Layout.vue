@@ -112,6 +112,7 @@ export default {
 </script>
 
 <style scoped>
+
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
