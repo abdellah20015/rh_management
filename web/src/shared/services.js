@@ -17,7 +17,7 @@ export default {
         create:'/private/demand/create'
     },
     notification:{
-        list: '/private/notification'
+        list: 'private/notification'
     },
     file:{
         list : '/private/file/get',

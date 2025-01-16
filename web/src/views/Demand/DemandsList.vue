@@ -55,7 +55,7 @@ export default {
     methods: {
         //fetch demand list
         async fetchDemands() {
-            await fetch_methode(services.demand.list, { query: {}, options: { "page": this.currentPage, "limit": this.pageSize } })
+            await fetch_methode(services.demand.list, { query: {}, options: {"page": this.currentPage, "limit": this.pageSize } })
                 .then((data) => {
                     this.tableInfo.data = data.data
                     console.log(data);

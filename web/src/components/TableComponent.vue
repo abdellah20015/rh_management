@@ -20,8 +20,8 @@
             <td v-for="(header, colIndex) in tableInfo.headers" :key="colIndex"
               class="px-6 py-4 text-sm text-gray-600 border-b border-gray-300">
               <div v-if="header != 'actions'">{{ row[header.key] }}</div>
-              <div class="flex">
-                <div v-for="(button, colIndex) in tableInfo.buttons" v-if="header.key === 'actions'" :key="colIndex"
+              <div class="flex" v-if="header.key === 'actions'">
+                <div v-for="(button, colIndex) in tableInfo.buttons" :key="colIndex"
                   v-html="button.button" @click="button.action(row)" :class="{
                     'opacity-50 pointer-events-none': typeof button.disabled === 'function' ? button.disabled(row) : button.disabled
                   }" class="flex px-2"></div>
