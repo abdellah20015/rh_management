@@ -109,7 +109,7 @@ export default {
 </script>
 
 <style scoped>
-
+/* Transition classes for fade and slide animations */
 .fade-slide-enter-active,
 .fade-slide-leave-active {
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;

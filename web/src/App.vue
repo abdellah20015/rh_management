@@ -7,5 +7,11 @@ import {RouterView } from 'vue-router'
   <RouterView />
 </template>
 <style>
+/* *{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%;
+} */
 
 </style>
