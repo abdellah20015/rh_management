@@ -13,16 +13,25 @@ const fetch_methode = async (url, body = null, headers = {}) => {
             body,
             credentials: "include"
         });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message);
-        }
-        return await response.json();
+        return response
+        // if (!response.ok) {
+        //     const errorData = await response.json();
+        //     throw new Error(errorData);
+        // }
+        // return await response.json();
     } catch (error) {
         console.error('Erreur lors de la requête :', error);
         throw error;
     }
 };
 
-export default fetch_methode;
+const convertDate = (date) => {
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+    return formattedDate;
+};
+
+
+export default {
+    fetch_methode,
+    convertDate
+};

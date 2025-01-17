@@ -7,7 +7,7 @@
         <thead class="bg-black">
           <tr>
             <th v-for="(header, index) in tableInfo.headers" :key="index"
-              class="px-6 py-3 text-left text-sm font-medium text-white border-b border-gray-300">
+              class="px-6 py-3 text-left text-base font-medium text-white border-b border-gray-300">
               {{ header.title }}
             </th>
           </tr>
@@ -18,8 +18,9 @@
           <tr v-for="(row, rowIndex) in tableInfo.data" :key="rowIndex"
             class="hover:bg-gray-100 transition duration-300">
             <td v-for="(header, colIndex) in tableInfo.headers" :key="colIndex"
-              class="px-6 py-4 text-sm text-gray-600 border-b border-gray-300">
-              <div v-if="header != 'actions'">{{ row[header.key] }}</div>
+              class="px-6 py-4 text-base text-gray-600 border-b border-gray-300">
+              <div v-if="header.key != 'created_date'">{{ row[header.key] }}</div>
+              <div v-if="header.key == 'created_date'">{{ convertDate(row[header.key]) }}</div>
               <div class="flex" v-if="header.key === 'actions'">
                 <div v-for="(button, colIndex) in tableInfo.buttons" :key="colIndex"
                   v-html="button.button" @click="button.action(row)" :class="{
@@ -55,6 +56,7 @@
 </template>
 
 <script>
+import utils from '@/shared/utils';
 export default {
   props: {
     tableInfo: {
@@ -78,6 +80,9 @@ export default {
     changePage(newPage) {
       this.$emit("page-changed", newPage);
     },
+    convertDate(date) {
+      return utils.convertDate(date);
+    }
   },
 };
 </script>

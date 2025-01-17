@@ -20,12 +20,38 @@
           </button>
           <transition name="fade-slide">
             <div v-if="isNotificationDropdownOpen"
-              class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg py-2 z-20">
+              class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg py-2 z-20 h-96 overflow-y-auto">
               <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
               <div v-else>
-                <a v-for="(notification, index) in notifications" :key="index" href="#"
-                  class="block px-4 py-3 text-gray-700 hover:bg-gray-100">
-                  <p>{{ notification.message }}</p>
+                <div class="mb-3 mt-1 mx-4">
+                  <p class="text-sm font-semibold">Notifications : ( {{ notifications.length }} )</p>
+                </div>
+                <a @click="navigateToDemandsList()"  v-for="(notification, index) in notifications" :key="index" href="#"
+                  class="block border-t border-gray-300 text-gray-700  hover:bg-gray-100">
+                  <div v-if="notification.is_read" class="p-4 flex items-center gap-5">
+                    <div>
+                      <img width="20" height="20"
+                        src="https://img.icons8.com/external-vitaliy-gorbachev-fill-vitaly-gorbachev/60/1A1A1A/external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev.png"
+                        alt="external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev" />
+                    </div>
+                    <div class="w-full">
+                      <p class="text-sm font-semibold">{{ notification.message }}</p>
+                      <p class="text-xs font-bold" v-if="user && user.role == 'manager'">par {{ notification.user_username }}</p>
+                      <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
+                    </div>
+                  </div>
+                  <div v-else class="bg-slate-200 p-4 flex items-center gap-5">
+                    <div>
+                      <img width="20" height="20"
+                        src="https://img.icons8.com/external-creatype-glyph-colourcreatype/64/1A1A1A/external-app-web-application-v1-creatype-glyph-colourcreatype-31.png"
+                        alt="external-app-web-application-v1-creatype-glyph-colourcreatype-31" />
+                    </div>
+                    <div class="w-full" >
+                      <p class="text-sm font-bold">{{ notification.message }}</p>
+                      <p class="text-xs font-bold" v-if="user && user.role == 'manager'">par {{ notification.user_username }}</p>
+                      <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
+                    </div>
+                  </div>
                 </a>
               </div>
             </div>
@@ -44,9 +70,9 @@
           </button>
           <transition name="fade-slide">
             <div v-if="isProfileDropdownOpen"
-              class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-2 z-20">
+              class="absolute right-0 mt-2 w-48 bg-white border border-gray-400 rounded-md shadow-lg py-2 z-20">
               <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-              <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Logout</a>
+              <a @click="logout()"  class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
             </div>
           </transition>
         </div>
@@ -69,8 +95,10 @@
 
 <script>
 import services from '@/shared/services';
-import fetch_methode from '@/shared/utils';
+import utils from '@/shared/utils';
 import { RouterView } from 'vue-router';
+import { useAuthStore } from '@/stores/store';
+import router from '@/router';
 
 export default {
   data() {
@@ -78,28 +106,48 @@ export default {
       isProfileDropdownOpen: false,
       isNotificationDropdownOpen: false,
       notifications: [],
+      user: useAuthStore().user,
       pageSize: 10,
       currentPage: 1,
       totalPages: 1,
     };
   },
   methods: {
+    //handler profile dropdown
     toggleProfileDropdown() {
       this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
-      this.getNotifications();
-    },
-    toggleNotificationDropdown() {
-      this.isNotificationDropdownOpen = !this.isNotificationDropdownOpen;
+      this.isNotificationDropdownOpen = false
       this.getNotifications();
     },
 
+    //handler notifications dropdown
+    toggleNotificationDropdown() {
+      this.isNotificationDropdownOpen = !this.isNotificationDropdownOpen;
+      this.isProfileDropdownOpen = false
+      this.getNotifications();
+    },
+
+    //fetch notifications by logged user
     async getNotifications() {
-      await fetch_methode(services.notification.list, { query: { "user_id": "6788d778b1b810614aee49ea" }, options: { "page": this.currentPage, "limit": this.pageSize } })
-        .then((data) => {
-          this.notifications = data.data;
-          console.log(data);
-        });
-    }
+      const response = await utils.fetch_methode(services.notification.list, { query: { "user_id": this.user.id }, options: { "page": this.currentPage, "limit": this.pageSize } });
+      const data = await response.json();
+      this.notifications = data.data.reverse();
+    },
+
+    convertDate(date) {
+      return utils.convertDate(date)
+    },
+
+    navigateToDemandsList () {
+      router.push({ "name" : "list_demand"})
+    },
+
+    async logout() {
+      const response = await utils.fetch_methode(services.logout)
+      if(response.ok) {
+        router.push({"name" : "login"})
+      }
+    },
   },
   mounted() {
     this.getNotifications();

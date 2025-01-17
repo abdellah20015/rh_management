@@ -19,7 +19,7 @@
 import FormComponent from "@/components/FormComponent.vue";
 import { useAuthStore } from "@/stores/store";
 import services from "@/shared/services";
-import fetch_methode from "@/shared/utils";
+import utils from "@/shared/utils";
 
 export default {
   components: {
@@ -51,18 +51,24 @@ export default {
       const { username, password } = formdata;
 
       try {
-        await fetch_methode(services.login, { username, password })
-          .then((data) => {
-            console.log(data);
-            authStore.auth(data);
-            this.$router.push("/");
-          })
-          .catch((err) => {
-            alert(err);
-          });
+        const response = await utils.fetch_methode(services.login, {
+          username,
+          password,
+        });
+        const data = await response.json();
+        if (response.ok) {
+           authStore.auth(data);
+          if (["admin", "manager"].includes(data.user.role)) {
+            this.$router.push({ name: "list_user" })
+          } else {
+            this.$router.push({ name: "list_demand" })
+          }
+        } else {
+          console.log(data);
+        }
       } catch (error) {
         console.error("Erreur lors de la connexion:", error);
-        alert("Une erreur est survenue lors de la connexion.");
+        alert(error);
       }
     },
   },
