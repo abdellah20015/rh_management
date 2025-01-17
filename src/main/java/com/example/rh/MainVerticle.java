@@ -809,7 +809,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
    * get user profile method to get the profile of the user
    */
   public void getUserProfileHandler(RoutingContext ctx) {
-    String userId = ctx.user().principal().getString("id");
+    String userId = ctx.body().asJsonObject().getString("user_id");
 
     JsonObject match = new JsonObject().put("_id", userId);
 

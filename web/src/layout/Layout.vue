@@ -67,7 +67,7 @@
       <p>&copy; 2025 RH. All Rights Reserved.</p>
     </div>
   </footer>
-</div>
+
 </template>
 
 <script>

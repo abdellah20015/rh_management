@@ -348,7 +348,7 @@
                   }
               }
           }
-      },    
+      },
       "/private/user/checkauth": {
         "post": {
           "operationId": "checkAuth",
@@ -850,7 +850,7 @@
             }
           }
         }
-      
+
       ,
       "/private/file/get": {
           "post": {
