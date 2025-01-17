@@ -2,6 +2,7 @@ export default {
     
     login : 'login',
     checkauth : '/private/user/checkauth',
+    logout: '/private/logout',
     user:{
         list: '/private/user/list',
         create:'/private/user/create',

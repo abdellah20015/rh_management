@@ -19,7 +19,7 @@
 import FormComponent from "@/components/FormComponent.vue";
 import { useAuthStore } from "@/stores/store";
 import services from "@/shared/services";
-import fetch_methode from "@/shared/utils";
+import utils from "@/shared/utils";
 
 export default {
   components: {
@@ -51,7 +51,7 @@ export default {
       const { username, password } = formdata;
 
       try {
-        const response = await fetch_methode(services.login, {
+        const response = await utils.fetch_methode(services.login, {
           username,
           password,
         });

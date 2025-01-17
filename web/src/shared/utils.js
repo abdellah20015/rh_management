@@ -25,4 +25,13 @@ const fetch_methode = async (url, body = null, headers = {}) => {
     }
 };
 
-export default fetch_methode;
+const convertDate = (date) => {
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+    return formattedDate;
+};
+
+
+export default {
+    fetch_methode,
+    convertDate
+};

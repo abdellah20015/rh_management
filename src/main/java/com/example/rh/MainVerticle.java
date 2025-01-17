@@ -615,6 +615,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "logout successful").encode());
   }
+
   public void handleCheck(RoutingContext ctx) {
     if (ctx.user() != null) {
       JsonObject userData = new JsonObject()
