@@ -50,5 +50,5 @@ public class Services {
   //notification
   public static final String NOTIFICATION_CREATE = "createNotification";
   public static final String NOTIFICATION_LIST = "getListNotification";
-
+  public static final String NOTIFICATION_UPDATE_STATUS = "updateNotificationStatus";
 }
