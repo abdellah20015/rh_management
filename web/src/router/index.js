@@ -76,7 +76,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore();
-  await auth.checkauth();
+  if (to.name !== "login") {
+    await auth.checkauth();
+  }
 
   // Vérification de l'authentification
   if (!auth.user && to.name !== "login") {
@@ -98,4 +100,5 @@ router.beforeEach(async (to, from, next) => {
 
 
 
-export default router
+export default router;
+
