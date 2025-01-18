@@ -18,55 +18,55 @@ const router = createRouter({
           path: '/private/user/list',
           name: 'list_user',
           component: ()=> import('@/views/Users/ListUser.vue'),
-        },       
+        },
         {
           path: '/private/user/create',
           name: 'create_user',
           component: ()=> import('@/views/Users/CreateUsers.vue'),
-        },       
+        },
         {
           path: '/private/user/update',
           name: 'update_user',
           component: ()=> import('@/views/Users/UpdateUser.vue'),
-        },       
+        },
         {
           path: '/private/user/profile',
           name: 'profile_user',
           component: ()=> import('@/views/Users/UserDetails.vue'),
-        },       
+        },
         {
           path: '/private/user/reset_password',
           name: 'reset_password',
           component: ()=> import('@/views/Users/Reset_password.vue'),
-        },       
+        },
         // contract
         {
           path: '/private/user/contract/update',
           name: 'contract_update',
           component: ()=> import('@/views/Contract/UpdateContract.vue'),
-        },       
+        },
         {
           path: '/private/user/contract/create',
           name: 'contract_create',
           component: ()=> import('@/views/Contract/CreateContract.vue'),
-        },     
+        },
         // demande
         {
           path: '/private/user/demand/list',
           name: 'list_demand',
           component: ()=> import('@/views/Demand/DemandsList.vue'),
-        },       
+        },
         {
           path: '/private/user/demand/create',
           name: 'create_demand',
           component: ()=> import('@/views/Demand/CreateDemand.vue'),
-        },   
+        },
         // notification
         {
           path: '/private/notifications',
           name: 'notification',
           component: ()=> import('@/views/Notification/Notification.vue'),
-        },   
+        },
       ]
     }
 
@@ -76,7 +76,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const auth = useAuthStore();
-  await auth.checkauth();
+  if (to.name !== "login") {
+    await auth.checkauth();
+  }
 
   // Vérification de l'authentification
   if (!auth.user && to.name !== "login") {
@@ -98,4 +100,5 @@ router.beforeEach(async (to, from, next) => {
 
 
 
-export default router
+export default router;
+

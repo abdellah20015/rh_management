@@ -222,7 +222,7 @@ export default {
             }
         },
 
-        //hanlder filter 
+        //hanlder filter
         filterHandler(filterData) {
             const currentData = this.user.role === "manager"
                 ? this.managerTableInfo.data

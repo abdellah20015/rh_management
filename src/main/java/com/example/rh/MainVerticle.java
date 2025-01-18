@@ -5,6 +5,7 @@ package com.example.rh;
 
 
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import com.example.rh.constants.Collections;
@@ -13,6 +14,7 @@ import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -102,6 +104,8 @@ public class MainVerticle extends AbstractVerticle {
 
       //  path : /private/user/list
       routerBuilder.getRoute("listUsers").addHandler(ctx -> { handlePermission(ctx, "view_users"); }).addHandler(this::ListUsersHandler);
+      //  path : /private/user/manager
+      routerBuilder.getRoute("getManager").addHandler(ctx -> { handlePermission(ctx, "update_user"); }).addHandler(this::getManager);
 
       // path : /private/user/create
       routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
@@ -123,6 +127,7 @@ public class MainVerticle extends AbstractVerticle {
       // Files
       routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
       routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
+      routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
 
 
 
@@ -299,42 +304,55 @@ public void updateContract(RoutingContext ctx) {
  */
 public void getContract(RoutingContext ctx) {
   try {
-    JsonObject body = ctx.getBodyAsJson();
+      JsonObject body = ctx.getBodyAsJson();
 
-    vertx.eventBus().request(Services.CONTRACT_GET, body, res -> {
-      if (res.succeeded()) {
-        JsonObject response = (JsonObject) res.result().body();
-        if (response.isEmpty()) {
+      if (!body.containsKey("user_id")) {
           ctx.response()
-            .putHeader("content-type", "application/json")
-            .setStatusCode(404)
-            .end(new JsonObject()
-              .put("error", "Contract not found")
-              .toString());
-        } else {
-          ctx.response()
-            .putHeader("content-type", "application/json")
-            .end(response.toString());
-        }
-      } else {
-        ctx.response()
-          .putHeader("content-type", "application/json")
-          .setStatusCode(res.cause().getMessage().contains("ID du contrat requis") ? 400 : 500)
-          .end(new JsonObject()
-            .put("error", res.cause().getMessage())
-            .toString());
+              .setStatusCode(400)
+              .putHeader("content-type", "application/json")
+              .end(new JsonObject()
+                  .put("error", "user_id est requis")
+                  .toString());
+          return;
       }
-    });
+
+      JsonObject query = new JsonObject().put("user_id", body.getString("user_id"));
+
+      vertx.eventBus().request(Services.CONTRACT_GET, query, res -> {
+          if (res.succeeded()) {
+              JsonObject response = (JsonObject) res.result().body();
+              if (response == null || response.isEmpty()) {
+                  ctx.response()
+                      .putHeader("content-type", "application/json")
+                      .setStatusCode(404)
+                      .end(new JsonObject()
+                          .put("error", "Contrat non trouvé")
+                          .toString());
+              } else {
+                  ctx.response()
+                      .putHeader("content-type", "application/json")
+                      .end(response.toString());
+              }
+          } else {
+              ctx.response()
+                  .setStatusCode(500)
+                  .putHeader("content-type", "application/json")
+                  .end(new JsonObject()
+                      .put("error", res.cause().getMessage())
+                      .toString());
+          }
+      });
   } catch (Exception e) {
-    System.out.println("error " + e);
-    ctx.response()
-      .putHeader("content-type", "application/json")
-      .setStatusCode(500)
-      .end(new JsonObject()
-        .put("error", "Erreur inattendue")
-        .toString());
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject()
+              .put("error", "Erreur : " + e.getMessage())
+              .toString());
   }
 }
+
+
 
 /**
  * @param ctx RoutingContext
@@ -450,6 +468,52 @@ public void getFiles(RoutingContext ctx) {
               .toString());
     }
   }
+
+  /**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route DownloadFile
+ * request body <JsonObject>
+ * </p>
+ */
+public void downloadFile(RoutingContext ctx) {
+  try {
+      String filepath = ctx.body().asJsonObject().getString("filepath");
+      JsonObject fileInfo = new JsonObject()
+          .put("filepath", "uploads/" + filepath);
+
+      vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
+          if (res.succeeded()) {
+              JsonObject response = (JsonObject) res.result().body();
+              byte[] content = response.getBinary("content");
+              String filename = Paths.get(response.getString("filepath")).getFileName().toString();
+
+              ctx.response()
+                  .putHeader("Content-Type", "application/pdf")
+                  .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                  .end(Buffer.buffer(content));
+          } else {
+              String error = res.cause().getMessage();
+              int statusCode = error.contains("non trouvé") ? 404 : 500;
+
+              ctx.response()
+                  .setStatusCode(statusCode)
+                  .putHeader("content-type", "application/json")
+                  .end(new JsonObject()
+                      .put("error", error)
+                      .toString());
+          }
+      });
+  } catch (Exception e) {
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject()
+              .put("error", "Erreur lors du téléchargement du fichier: " + e.getMessage())
+              .toString());
+  }
+}
 
   /**
    * @param ctx RoutingContext
@@ -678,6 +742,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
     body.put("username", ctx.user().principal().getString("username"));
     vertx.eventBus().request(Services.AUTH_RESET_PASSWORD, body, reply -> {
       if (reply.succeeded()) {
+        ctx.user().principal().put("first_login", false);
         ctx.response()
           .setStatusCode(200)
           .putHeader("content-type", "application/json")
@@ -747,6 +812,25 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
     }
+  }
+
+  public void getManager(RoutingContext ctx){
+    JsonObject payload = new JsonObject()
+                              .put("collection",  Collections.USER)
+                              .put("query", new JsonObject().put("role", "manager"));
+    vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
+      if (reply.succeeded()) {
+        ctx.response()
+            .setStatusCode(200)
+            .putHeader("content-type", "application/json")
+            .end(reply.result().body().toString());
+      } else {
+        ctx.response()
+        .setStatusCode(500)
+        .putHeader("content-type", "application/json")
+        .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+      }
+    });
   }
 
   /**
@@ -839,7 +923,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
    * get user profile method to get the profile of the user
    */
   public void getUserProfileHandler(RoutingContext ctx) {
-    String userId = ctx.user().principal().getString("id");
+    String userId = ctx.body().asJsonObject().getString("user_id");
 
     JsonObject match = new JsonObject().put("_id", userId);
 

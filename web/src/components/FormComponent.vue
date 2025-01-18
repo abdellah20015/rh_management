@@ -102,7 +102,7 @@ export default {
       required: true
     }
   },
-  
+
   emits: ['fieldChange', 'formSubmitted'],
   setup(props, { emit }) {
     const formState = ref({})
