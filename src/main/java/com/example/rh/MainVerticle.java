@@ -479,7 +479,6 @@ public void getFiles(RoutingContext ctx) {
 public void downloadFile(RoutingContext ctx) {
   try {
       String filepath = ctx.body().asJsonObject().getString("filepath");
-
       JsonObject fileInfo = new JsonObject()
           .put("filepath", "uploads/" + filepath);
 
