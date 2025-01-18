@@ -25,4 +25,23 @@ const fetch_methode = async (url, body = null, headers = {}) => {
     }
 };
 
-export default fetch_methode;
+//convert milliseconds format to yyyy-mm-dd
+const convertDate = (date) => {
+    const formattedDate = new Date(date).toISOString().split("T")[0];
+    return formattedDate;
+};
+
+//convert string from ex: demande_de_conge to Demande de conde
+const formatString = (str) => {
+    return str
+        .replace(/_/g, ' ') // Replace underscores with spaces
+        .toLowerCase()      // Convert to lowercase
+        .replace(/(^\w|\s\w)/g, (match) => match.toUpperCase()); // Capitalize words
+}
+
+
+export default {
+    fetch_methode,
+    convertDate,
+    formatString
+};

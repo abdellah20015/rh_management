@@ -20,7 +20,7 @@
 import FormComponent from "@/components/FormComponent.vue";
 import { useAuthStore } from "@/stores/store";
 import services from "@/shared/services";
-import fetch_methode from "@/shared/utils";
+import utils from "@/shared/utils";
 
 export default {
   components: {
@@ -49,13 +49,13 @@ export default {
           name: "manager",
           type: "select",
           label: "manager",
-          options: [{ label: "manager", value: "6788d778b1b810614aee49ea" }],
+          options: [],
         },
         {
           name: "permissions",
           type: "select",
           label: "permissions",
-          multiple: true, 
+          multiple: true,
           options: [
             { label: "create user", value: "create_user" },
             { label: "update user", value: "update_user" },
@@ -75,26 +75,36 @@ export default {
   },
   methods: {
     async updateUser(formdata) {
-      const payload = {
-        user_id: this.userId,
-        update: {
-          ...formdata,
-        },
-      };
+      try {
+        const payload = {
+          user_id: this.userId,
+          update: {
+            ...formdata,
+          },
+        };
 
-      const response = await fetch_methode(services.user.update, payload);
-      const data = await response.json();
-      if (response.ok) {
-        alert("success");
-       this.$router.push({name : "list_user"})
-      } else {
-        console.log(data);
+        const response = await utils.fetch_methode(
+          services.user.update,
+          payload
+        );
+        const data = await response.json();
+        if (response.ok) {
+          alert("success");
+          this.$router.push({ name: "list_user" });
+        } else {
+          console.log(data);
+        }
+      } catch (error) {
+        console.log(error);
       }
     },
     async getUser() {
       try {
         const payload = { user_id: this.userId };
-        const response = await fetch_methode(services.user.profile, payload);
+        const response = await utils.fetch_methode(
+          services.user.profile,
+          payload
+        );
         const data = await response.json();
 
         if (response.ok) {
@@ -115,6 +125,30 @@ export default {
         console.error("Error retrieving user data:", error);
       }
     },
+
+    async getManager() {
+      try {
+        const response = await utils.fetch_methode(services.user.manager);
+        const data = await response.json();
+        if (response.ok) {
+          const managers = data.data.map((manager) => ({
+            label: manager.username,
+            value: manager._id,
+          }));
+          const managerField = this.formFields.find(
+            (field) => field.name === "manager"
+          );
+          if (managerField) {
+            managerField.options = managers;
+          }
+          console.log("Managers loaded:", managers);
+        } else {
+          console.error("Failed to fetch managers:", data);
+        }
+      } catch (error) {
+        console.error("Error fetching managers:", error);
+      }
+    },
   },
   computed: {
     userId() {
@@ -124,6 +158,7 @@ export default {
   },
   mounted() {
     this.getUser();
+    this.getManager()
   },
 };
 </script>

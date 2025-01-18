@@ -18,7 +18,7 @@
 <script>
 import FormComponent from "@/components/FormComponent.vue";
 import services from "@/shared/services";
-import fetch_methode from "@/shared/utils";
+import utils from "@/shared/utils";
 import { useAuthStore } from "@/stores/store";
 export default {
   components: {
@@ -54,7 +54,7 @@ export default {
     async reset_password(formdata) {
       const { old_password, new_password } = formdata;
       try {
-        const response = await fetch_methode(services.user.resetPassword, {
+        const response = await utils.fetch_methode(services.user.resetPassword, {
           old_password,
           new_password,
         });

@@ -2,6 +2,7 @@ export default {
     
     login : 'login',
     checkauth : '/private/user/checkauth',
+    logout: '/private/logout',
     user:{
         list: '/private/user/list',
         create:'/private/user/create',
@@ -9,7 +10,8 @@ export default {
         delete:'/private/user/delete',
         profile:'/private/user/profile',
         resetPassword:'/private/reset_password',
-        import_users : '/private/user/import'
+        import_users : '/private/user/import',
+        manager: '/private/user/manager'
     },
     demand:{
         list:'/private/demand/list',

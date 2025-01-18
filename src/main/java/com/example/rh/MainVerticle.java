@@ -101,6 +101,8 @@ public class MainVerticle extends AbstractVerticle {
 
       //  path : /private/user/list
       routerBuilder.getRoute("listUsers").addHandler(ctx -> { handlePermission(ctx, "view_users"); }).addHandler(this::ListUsersHandler);
+      //  path : /private/user/manager
+      routerBuilder.getRoute("getManager").addHandler(ctx -> { handlePermission(ctx, "update_user"); }).addHandler(this::getManager);
 
       // path : /private/user/create
       routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
@@ -615,6 +617,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "logout successful").encode());
   }
+
   public void handleCheck(RoutingContext ctx) {
     if (ctx.user() != null) {
       JsonObject userData = new JsonObject()
@@ -636,6 +639,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
       .end(new JsonObject().put("message", "Not authenticated").encode());
     }
   }
+
   /**
    * Reset password handler
    *
@@ -717,6 +721,25 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
     }
+  }
+
+  public void getManager(RoutingContext ctx){
+    JsonObject payload = new JsonObject()
+                              .put("collection",  Collections.USER)
+                              .put("query", new JsonObject().put("role", "manager"));
+    vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
+      if (reply.succeeded()) {
+        ctx.response()
+            .setStatusCode(200)
+            .putHeader("content-type", "application/json")
+            .end(reply.result().body().toString());
+      } else {
+        ctx.response()
+        .setStatusCode(500)
+        .putHeader("content-type", "application/json")
+        .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+      }
+    });
   }
 
   /**

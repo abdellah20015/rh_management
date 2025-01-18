@@ -6,11 +6,22 @@
       <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
 
       <!-- Champ de type input -->
-      <div v-if="['text', 'email', 'password'].includes(field.type)" class="mb-6">
+      <div v-if="['text', 'email', 'password' , 'number'].includes(field.type)" class="mb-6">
         <input
           :type="field.type"
+          :id="field.name"
           :name="field.name"
           :placeholder="field.placeholder"
+          v-model="formData[field.name]"
+          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+        />
+      </div>
+
+      <div v-if="field.type === 'date'" class="mb-6">
+        <input
+          type="date"
+          :id="field.name"
+          :name="field.name"
           v-model="formData[field.name]"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         />
@@ -19,12 +30,13 @@
       <!-- Champ de type select -->
       <div v-if="field.type === 'select'" class="mb-6">
         <select
+          :id="field.name"
           :name="field.name"
           v-model="formData[field.name]"
           :multiple="field.multiple"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         >
-          <option value="" disabled  >{{ field.label }}</option>
+          <option value="" disabled  selected>{{ field.label }}</option>
           
           <!-- Options dynamiques -->
           <option v-for="option in field.options" :key="option.value" :value="option.value">
@@ -62,9 +74,10 @@
       </div>
     </div>
 
+
     <div class="flex items-center justify-between">
       <button
-        class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+        class="bg-black w-full hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
         type="submit"
       >
         {{ btn_text }}
@@ -75,15 +88,15 @@
 
 <script>
 export default {
-  name: "FormComponent",
+  name: 'FormComponent',
   props: {
     fields: {
       type: Array,
-      required: true,
+      required: true
     },
     btn_text: {
       type: String,
-      required: true,
+      required: true
     },
     title: {
       type: String,
