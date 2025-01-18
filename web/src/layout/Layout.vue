@@ -82,7 +82,6 @@
               </div>
             </transition>
           </div>
->>>>>>> main
         </div>
       </div>
     </nav>

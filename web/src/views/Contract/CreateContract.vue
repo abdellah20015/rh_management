@@ -15,15 +15,16 @@ import { ref, computed } from 'vue'
 import FormComponent from '@/components/FormComponent.vue'
 import utils from "@/shared/utils"
 import services from "@/shared/services"
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 
 export default {
   name: 'CreateContract',
   components: { FormComponent },
   setup() {
     const router = useRouter()
+    const route = useRoute()
     const selectedType = ref('')
-
+    const userId = computed(() => route.params.userId)
 
     const allFields = ref([
       {
@@ -54,13 +55,11 @@ export default {
       }
     ])
 
-
     const endDateField = {
       type: 'date',
       name: 'end_date',
       label: 'Date de fin (Pour CDD)'
     }
-
 
     const fields = computed(() => {
       if (selectedType.value === 'cdd') {
@@ -100,6 +99,7 @@ export default {
 
         const contractData = {
           ...formData,
+          user_id: userId.value,
           salary: parseFloat(formData.salary),
           leave_balance: parseInt(formData.leave_balance),
           status: true
@@ -107,9 +107,14 @@ export default {
 
         const response = await utils.fetch_methode(services.contract.create, contractData)
 
-        if (response.status === 'success') {
-          alert('Contrat créé avec succès')
-          router.push('/private/user/list')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.status === 'success') {
+            alert('Contrat créé avec succès')
+            router.push(`/private/user/profile/${userId.value}`)
+          } else {
+            alert('Erreur lors de la création du contrat: ' + result.message)
+          }
         } else {
           alert('Erreur lors de la création du contrat')
         }

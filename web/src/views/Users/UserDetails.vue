@@ -30,7 +30,17 @@
           <!-- Manager -->
           <div v-if="authStore.user.role === 'employee'" class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
             <span class="font-medium text-gray-600">Manager:</span>
-            <span class="col-span-2 text-gray-900">{{ userData?.manager }}</span>
+            <span class="col-span-2 text-gray-900">
+              <template v-if="loading">
+                <span class="text-gray-400">Loading...</span>
+              </template>
+              <template v-else-if="managerUsername">
+                {{ managerUsername }}
+              </template>
+              <template v-else>
+                <span class="text-gray-400">Not assigned</span>
+              </template>
+            </span>
           </div>
           <!-- Status -->
           <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
@@ -236,7 +246,27 @@ const router = useRouter();
 const loading = ref(false);
 const error = ref(null);
 const userData = ref(null);
+const managerUsername = ref(null);
 
+const fetchManagerDetails = async (managerId) => {
+  try {
+    const response = await utils.fetch_methode(services.user.profile, {
+      user_id: managerId
+    });
+
+    if (response.ok) {
+      const responseData = await response.json();
+      if (responseData.data && responseData.data[0]) {
+        managerUsername.value = responseData.data[0].username;
+        console.log('Manager username fetched:', managerUsername.value);
+      }
+    } else {
+      console.error('Failed to fetch manager details:', response.status);
+    }
+  } catch (err) {
+    console.error('Error fetching manager details:', err);
+  }
+};
 
 const fetchUserProfile = async () => {
   loading.value = true;
@@ -255,6 +285,11 @@ const fetchUserProfile = async () => {
       if (responseData.data && responseData.data[0]) {
         userData.value = responseData.data[0];
         console.log('User profile data set:', userData.value);
+
+        // Fetch manager details if manager_id exists
+        if (userData.value.manager_id) {
+          await fetchManagerDetails(userData.value.manager_id);
+        }
       } else {
         console.log('No profile data found');
         userData.value = null;
@@ -277,9 +312,7 @@ const navigateToContractCreate = () => {
 };
 
 const navigateToContractUpdate = () => {
-  if (userData.value?.contracts?.[0]?._id) {
-    router.push(`/private/user/contract/update/${userData.value.contracts[0]._id}`);
-  }
+  router.push('/private/user/contract/update/');
 };
 
 
