@@ -6,11 +6,17 @@
                 <RouterLink :to="{ name: 'create_demand' }" class="w-48 bg-black text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
-            <div v-if="user.role == 'manager'">
+            <div class="flex items-center justify-between p-5 ">
+                <TableFilterComponent :filterStructure="filterStructure" @filterHandler="filterHandler"
+                    @searchHandler="searchHandler"
+                    @resertFilterHandler="resertFilterHandler">
+                </TableFilterComponent>
+            </div>
+            <div v-if="user.permissions.includes('update_demand')">
                 <TableComponent :tableInfo="managerTableInfo" :pageSize="pageSize" :currentPage="currentPage"
                     :totalPages="totalPages"></TableComponent>
             </div>
-            <div v-if="user.role == 'employee'">
+            <div v-if="!user.permissions.includes('update_demand')">
                 <TableComponent :tableInfo="employeeTableInfo" :pageSize="pageSize" :currentPage="currentPage"
                     :totalPages="totalPages"></TableComponent>
             </div>
@@ -20,6 +26,7 @@
 
 <script>
 import TableComponent from '@/components/TableComponent.vue';
+import TableFilterComponent from '@/components/TableFilterComponent.vue';
 import services from '@/shared/services';
 import utils from "@/shared/utils";
 import { useAuthStore } from '@/stores/store';
@@ -61,8 +68,8 @@ export default {
             //employee table infos
             employeeTableInfo: {
                 headers: [
-                    { title: "Type de demand", key: "type" },
-                    { title: "Status", key: "status" },
+                    { title: "Type de demand", key: "typeTitle" },
+                    { title: "Status", key: "statusTitle" },
                     { title: "created_date", key: "created_date" },
                     { title: "Actions", key: "actions" }
                 ],
@@ -75,6 +82,57 @@ export default {
                     }
                 ],
             },
+
+            //filter structure
+            filterStructure: [
+                {
+                    name: "Type",
+                    values: [
+                        {
+                            title: "Demande Conge",
+                            value: "demande_conge",
+                            key: "type",
+                            selected: false
+                        },
+                        {
+                            title: "Ordre De Mission",
+                            value: "ordre_de_mission",
+                            key: "type",
+                            selected: false
+                        },
+                        {
+                            title: "Attestation De Travail",
+                            value: "attestation_de_travail",
+                            key: "type",
+                            selected: false
+                        },
+                    ]
+                },
+                {
+                    name: "Status",
+                    values: [
+                        {
+                            title: "Acceptée",
+                            value: "approved",
+                            key: "status",
+                            selected: false
+                        },
+                        {
+                            title: "Rejectée",
+                            value: "rejected",
+                            key: "status",
+                            selected: false
+                        },
+                        {
+                            title: "En attende",
+                            value: "pending",
+                            key: "status",
+                            selected: false
+                        },
+                    ]
+                },
+            ],
+
             pageSize: 10,
             currentPage: 1,
             totalPages: 1,
@@ -162,14 +220,88 @@ export default {
             } catch (err) {
                 console.log(err);
             }
+        },
+
+        //hanlder filter 
+        filterHandler(filterData) {
+            const currentData = this.user.role === "manager"
+                ? this.managerTableInfo.data
+                : this.employeeTableInfo.data;
+
+            if (filterData.length > 0) {
+                // Group filters by field name
+                const groupedFilters = {};
+                filterData.forEach(filter => {
+                    const fieldName = Object.keys(filter)[0];
+                    const value = filter[fieldName];
+
+                    if (!groupedFilters[fieldName]) {
+                        groupedFilters[fieldName] = [];
+                    }
+                    groupedFilters[fieldName].push(value);
+                });
+
+                // Filter data based on grouped filters
+                const filteredData = currentData.filter((demande) => {
+                    return Object.keys(groupedFilters).every((fieldName) => {
+                        return groupedFilters[fieldName].some(filterValue =>
+                            String(demande[fieldName]).toLowerCase() === String(filterValue).toLowerCase()
+                        );
+                    });
+                });
+
+                // update table with filtred data
+                if (this.user.role === "manager") {
+                    this.managerTableInfo.data = filteredData;
+                } else {
+                    this.employeeTableInfo.data = filteredData;
+                }
+            }
+        },
+
+
+        //search handle
+        searchHandler(searchValue) {
+
+            //get demande if value empty
+            if(searchValue == "") {
+                this.fetchDemands()
+            }
+
+            const currentData = this.user.role === "manager"
+                ? this.managerTableInfo.data
+                : this.employeeTableInfo.data;
+
+            if (!searchValue) {
+                return currentData;
+            }
+
+            const searchedData = currentData.filter((demande) => {
+                return Object.values(demande).some(value =>
+                    String(value).toLowerCase().includes(searchValue.toLowerCase())
+                );
+            });
+
+            if (this.user.role === "manager") {
+                this.managerTableInfo.data = searchedData;
+            } else {
+                this.employeeTableInfo.data = searchedData;
+            }
+        },
+
+        //resert filter
+        resertFilterHandler() {
+            this.fetchDemands();
         }
 
     },
+
     mounted() {
         this.fetchDemands();
     },
     components: {
-        TableComponent
+        TableComponent,
+        TableFilterComponent
     }
 };
 </script>

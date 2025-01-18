@@ -8,14 +8,13 @@ import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
-import java.security.SecureRandom;
-
 public class Notifications extends AbstractVerticle {
 
   @Override
   public void start() {
     vertx.eventBus().consumer(Services.NOTIFICATION_CREATE, this::createNotificationHandler);
     vertx.eventBus().consumer(Services.NOTIFICATION_LIST, this::getListNotificationHandler);
+    vertx.eventBus().consumer(Services.NOTIFICATION_UPDATE_STATUS, this::updateNotificationStatusHandler);
   }
 
   /**
@@ -125,4 +124,38 @@ public class Notifications extends AbstractVerticle {
       System.out.println("error" + e);
     }
   }
+
+  /**
+   * @param message Message
+   * @author : youssef
+   * <p>
+   * this function is an event bus consumer handler that update status of notificaton is_read to true
+   * </p>
+   */
+  private void updateNotificationStatusHandler(Message message) {
+    JsonObject body = (JsonObject) message.body();
+
+    try {
+      String notificationId = body.getString("notification_id");
+
+      JsonObject update = new JsonObject()
+        .put(Fields.NOTIFICATION_IS_READ, true);
+
+      JsonObject msg = new JsonObject()
+        .put("collection" , Collections.NOTIFICATIONS)
+        .put("id" , notificationId)
+        .put("update" , update);
+
+      vertx.eventBus().request(Services.DB_UPDATE, msg, res -> {
+        if(res.succeeded()){
+          message.reply(res.result().body());
+        }else {
+          message.fail(500, res.cause().getMessage());
+        }
+      });
+    }catch (Exception e) {
+      System.out.println("error " + e);
+    }
+  }
+
 }

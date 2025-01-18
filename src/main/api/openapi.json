@@ -348,7 +348,7 @@
                   }
               }
           }
-      },    
+      },
       "/private/user/checkauth": {
         "post": {
           "operationId": "checkAuth",
@@ -762,6 +762,36 @@
               }
           }
       },
+      "/private/notification/update/status": {
+        "post": {
+          "summary" : "update notification status",
+          "operationId": "updateNotificationStatus" ,
+          "tags": [
+            "notification"
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "notification_id": {
+                      "type": "string"
+                    }
+                  },
+                  "required": ["notification_id"]
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "notification has been updated"
+            }
+          }
+        }
+      },
       "/private/file/upload": {
           "post": {
               "summary": "Upload de fichiers",
@@ -850,7 +880,7 @@
             }
           }
         }
-      
+
       ,
       "/private/file/get": {
           "post": {

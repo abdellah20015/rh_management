@@ -5,19 +5,21 @@
       <div class="container mx-auto flex justify-between items-center">
         <div class="text-white text-2xl font-bold">RH</div>
         <div class="flex justify-evenly w-1/3">
-          <a href="./users.html" class="text-white hover:text-gray-300">Lien 1</a>
-          <a href="#" class="text-white hover:text-gray-300">Lien 2</a>
-          <a href="#" class="text-white hover:text-gray-300">Lien 3</a>
+          <RouterLink :to="{ name : 'list_user' }" v-if="user.permissions.includes('view_users')" href="./users.html" class="text-white hover:text-gray-300">Les Utilisateurs</RouterLink>
+          <RouterLink :to="{ name : 'list_demand' }" v-if="user.role != 'admin'" href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
         </div>
         <div class="flex items-center space-x-4">
           <!-- Notification Dropdown -->
           <div class="relative">
             <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleNotificationDropdown">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
+              <div>
+                <img v-if="notifications.filter((notification) => notification.is_read == false).length > 0" class="-mb-2" width="10" height="10" src="https://img.icons8.com/ios-filled/50/FA5252/filled-circle.png" alt="filled-circle"/>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+              </div>
             </button>
             <transition name="fade-slide">
               <div v-if="isNotificationDropdownOpen"
@@ -25,9 +27,9 @@
                 <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
                 <div v-else>
                   <div class="mb-3 mt-1 mx-4">
-                    <p class="text-sm font-semibold">Notifications : ( {{ notifications.length }} )</p>
+                    <p class="text-sm font-semibold">notifications non lues : ( {{ notifications.filter(notification => notification.is_read == false ).length }} )</p>
                   </div>
-                  <RouterLink :to="{ name : 'list_demand' }"  @click="navigateToDemandsList()" v-for="(notification, index) in notifications" :key="index"
+                  <a @click="updateNotificationStatus(notification)" v-for="(notification, index) in notifications" :key="index"
                     href="#" class="block border-t border-gray-300 text-gray-700  hover:bg-gray-100">
                     <div v-if="notification.is_read" class="p-4 flex items-center gap-5">
                       <div>
@@ -55,7 +57,7 @@
                         <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
                       </div>
                     </div>
-                  </RouterLink>
+                  </a>
                 </div>
               </div>
             </transition>
@@ -84,7 +86,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="bg-gray-50 flex-grow">
+    <main class="bg-gray-50 flex-grow" @click="closeDropDowns()">
       <RouterView />
     </main>
 
@@ -138,12 +140,25 @@ export default {
       this.notifications = data.data.reverse();
     },
 
-    convertDate(date) {
-      return utils.convertDate(date)
+    //update notification is_read statsu to true
+    async updateNotificationStatus(notification) {
+      const query = { notification_id : notification._id }
+      try {
+        const response = await utils.fetch_methode(services.notification.updateStatus, query);
+        if(response.ok) {
+          console.log(response);
+          this.getNotifications()
+          router.push({ "name": "list_demand" })
+        }else {
+          console.log(response);
+        }
+      }catch(err){
+        console.log(err);
+      } 
     },
 
-    navigateToDemandsList() {
-      router.push({ "name": "list_demand" })
+    convertDate(date) {
+      return utils.convertDate(date)
     },
 
     async logout() {
@@ -152,9 +167,16 @@ export default {
         router.push({ "name": "login" })
       }
     },
+
+    //close navBar dropDowns
+    closeDropDowns() {
+      this.isProfileDropdownOpen = false
+      this.isNotificationDropdownOpen = false
+    }
   },
   mounted() {
     this.getNotifications();
+    console.log(this.user.permissions);
   }
 };
 </script>
