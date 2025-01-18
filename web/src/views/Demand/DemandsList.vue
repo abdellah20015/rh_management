@@ -7,12 +7,14 @@
                     Ajouter un demande</RouterLink>
             </div>
             <div v-if="user.role == 'manager'">
+
                 <TableComponent :tableInfo="managerTableInfo" :pageSize="pageSize" :currentPage="currentPage"
                     :totalPages="totalPages"></TableComponent>
             </div>
             <div v-if="user.role == 'employee'">
                 <TableComponent :tableInfo="employeeTableInfo" :pageSize="pageSize" :currentPage="currentPage"
                     :totalPages="totalPages"></TableComponent>
+
             </div>
         </div>
     </div>
@@ -25,6 +27,7 @@ import utils from "@/shared/utils";
 import { useAuthStore } from '@/stores/store';
 import { RouterLink } from 'vue-router';
 
+
 export default {
     name: 'DemandsList',
     data() {
@@ -34,7 +37,9 @@ export default {
                 headers: [
                     { title: "Type de demand", key: "typeTitle" },
                     { title: "Username", key: "username" },
+
                     { title: "Status", key: "statusTitle" },
+
                     { title: "Created date", key: "created_date" },
                     { title: "Actions", key: "actions" }
                 ],
@@ -75,10 +80,30 @@ export default {
                     }
                 ],
             },
+
+            //employee table infos
+            employeeTableInfo: {
+                headers: [
+                    { title: "Type de demand", key: "type" },
+                    { title: "Status", key: "status" },
+                    { title: "created_date", key: "created_date" },
+                    { title: "Actions", key: "actions" }
+                ],
+                data: [],
+                buttons: [
+                    {
+                        button: `<button style='background-color : #495057; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/print.png" alt="print"/></button>`,
+                        action: "",
+                        disabled: false
+                    }
+                ],
+            },
             pageSize: 10,
             currentPage: 1,
             totalPages: 1,
+
             user: useAuthStore().user,
+
         };
     },
     methods: {
@@ -88,6 +113,7 @@ export default {
                 const response = await utils.fetch_methode(services.demand.list, { query: {}, options: { "page": this.currentPage, "limit": this.pageSize } })
                 const data = await response.json();
                 if (response.ok) {
+
                     const processedData = data.data.map((item) => ({
                         //create now object from the original objct
                         ...item,
@@ -100,6 +126,7 @@ export default {
                         this.managerTableInfo.data = processedData.reverse();
                     } else if (this.user.role == 'employee') {
                         this.employeeTableInfo.data = processedData.reverse();
+
                     }
                 } else {
                     console.log(response);
@@ -132,7 +159,9 @@ export default {
         async rejecetDemand(demand) {
             try {
                 if (demand.status !== "rejected") {
+
                     const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected" });
+
                     const data = await response.json();
 
                     if (response.ok) {
@@ -142,10 +171,13 @@ export default {
                         console.log(response);
                         console.log(JSON.stringify(this.user));
 
+
+
                     }
                 }
             } catch (err) {
                 console.log(err);
+
             }
         },
 
@@ -161,6 +193,7 @@ export default {
                 }
             } catch (err) {
                 console.log(err);
+
             }
         }
 

@@ -1,4 +1,5 @@
 <template>
+
   <div class="flex flex-col min-h-screen">
     <!-- Navbar -->
     <nav class="bg-black p-3">
@@ -57,9 +58,11 @@
                     </div>
                   </RouterLink>
                 </div>
+
               </div>
             </transition>
           </div>
+
 
           <!-- Profile Dropdown -->
           <div class="relative">
@@ -88,6 +91,7 @@
       <RouterView />
     </main>
 
+
     <!-- Footer -->
     <footer class="bg-black text-white py-3 mt-4">
       <div class="container mx-auto text-center">
@@ -95,6 +99,7 @@
       </div>
     </footer>
   </div>
+
 </template>
 
 <script>
@@ -142,14 +147,18 @@ export default {
       return utils.convertDate(date)
     },
 
+
     navigateToDemandsList() {
       router.push({ "name": "list_demand" })
+
     },
 
     async logout() {
       const response = await utils.fetch_methode(services.logout)
+
       if (response.ok) {
         router.push({ "name": "login" })
+
       }
     },
   },

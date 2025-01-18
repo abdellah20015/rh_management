@@ -1,20 +1,35 @@
 <template>
   <form @submit.prevent="handleSubmit" class="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto space-y-6">
-    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{ title }}</h2>
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{title}}</h2>
 
     <div v-for="field in fields" :key="field.name" class="space-y-2">
       <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
 
-      <!-- Champ de type input -->
-      <div v-if="['text', 'email', 'password' , 'number'].includes(field.type)" class="mb-6">
+      <div v-if="['text', 'email', 'password', 'number'].includes(field.type)" class="mb-6">
         <input
           :type="field.type"
           :id="field.name"
           :name="field.name"
           :placeholder="field.placeholder"
-          v-model="formData[field.name]"
+          v-model="formState[field.name]"
+          @input="updateField(field.name, $event.target.value)"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         />
+      </div>
+
+      <div v-if="field.type === 'select'" class="mb-6">
+        <select
+          :id="field.name"
+          :name="field.name"
+          v-model="formState[field.name]"
+          @change="updateField(field.name, $event.target.value)"
+          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+        >
+          <option value="">Sélectionnez une option</option>
+          <option v-for="option in field.options" :key="option.value" :value="option.value">
+            {{ option.label }}
+          </option>
+        </select>
       </div>
 
       <div v-if="field.type === 'date'" class="mb-6">
@@ -22,30 +37,12 @@
           type="date"
           :id="field.name"
           :name="field.name"
-          v-model="formData[field.name]"
+          v-model="formState[field.name]"
+          @input="updateField(field.name, $event.target.value)"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         />
       </div>
 
-      <!-- Champ de type select -->
-      <div v-if="field.type === 'select'" class="mb-6">
-        <select
-          :id="field.name"
-          :name="field.name"
-          v-model="formData[field.name]"
-          :multiple="field.multiple"
-          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-        >
-          <option value="" disabled  selected>{{ field.label }}</option>
-          
-          <!-- Options dynamiques -->
-          <option v-for="option in field.options" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Autres types de champ -->
       <div v-if="field.type === 'radio'" class="mb-6 flex flex-col space-y-2">
         <div v-for="option in field.options" :key="option.value" class="flex items-center">
           <input
@@ -87,6 +84,8 @@
 </template>
 
 <script>
+import { ref, watch } from 'vue'
+
 export default {
   name: 'FormComponent',
   props: {
@@ -100,41 +99,36 @@ export default {
     },
     title: {
       type: String,
-      required: true,
-    },
-    initialData: {
-      type: Object,
-      default: () => ({}),
-    },
+      required: true
+    }
   },
-  data() {
+
+  emits: ['fieldChange', 'formSubmitted'],
+  setup(props, { emit }) {
+    const formState = ref({})
+
+
+    watch(() => props.fields, (newFields) => {
+      newFields.forEach(field => {
+        if (!(field.name in formState.value)) {
+          formState.value[field.name] = ''
+        }
+      })
+    }, { immediate: true, deep: true })
+
+    const updateField = (name, value) => {
+      formState.value[name] = value
+      emit('fieldChange', { name, value })
+    }
+
+    const handleSubmit = () => {
+      emit('formSubmitted', { ...formState.value })
+    }
     return {
-      formData: {},
-    };
-  },
-  watch: {
-    initialData: {
-      handler(newVal) {
-        this.formData = { ...newVal };
-      },
-    },
-  },
-  created() {
-    this.fields.forEach((field) => {
-      this.formData[field.name] =
-        this.initialData[field.name] !== undefined
-          ? this.initialData[field.name]
-          : field.type === "checkbox"
-          ? false
-          : field.type === "select" && Array.isArray(this.initialData[field.name])
-          ? [...this.initialData[field.name]]
-          : "";
-    });
-  },
-  methods: {
-    handleSubmit() {
-      this.$emit("formSubmitted", this.formData);
-    },
-  },
-};
+      formState,
+      updateField,
+      handleSubmit
+    }
+  }
+}
 </script>

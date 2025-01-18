@@ -380,7 +380,7 @@
                   }
               }
           }
-      },    
+      },
       "/private/user/checkauth": {
         "post": {
           "operationId": "checkAuth",
@@ -595,12 +595,12 @@
                           "schema": {
                               "type": "object",
                               "properties": {
-                                  "contract_id": {
+                                  "user_id": {
                                       "type": "string"
                                   }
                               },
                               "required": [
-                                  "contract_id"
+                                  "user_id"
                               ]
                           }
                       }
@@ -882,7 +882,7 @@
             }
           }
         }
-      
+
       ,
       "/private/file/get": {
           "post": {

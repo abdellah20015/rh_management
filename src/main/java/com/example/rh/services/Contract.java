@@ -260,30 +260,31 @@ private void createContractHandler(Message<JsonObject> message) {
    */
   private void getContractHandler(Message<JsonObject> message) {
     try {
-      JsonObject body = (JsonObject) message.body();
+        JsonObject body = (JsonObject) message.body();
 
-      String contractId = body.getString("contract_id");
-      if (contractId == null || contractId.isEmpty()) {
-        message.fail(400, "ID du contrat requis");
-        return;
-      }
-
-      JsonObject query = new JsonObject().put("_id", contractId);
-      JsonObject msg = new JsonObject()
-        .put("collection", Collections.CONTRACTS)
-        .put("query", query);
-
-      vertx.eventBus().request(Services.DB_FIND_ONE, msg, res -> {
-        if (res.succeeded()) {
-          message.reply(res.result().body());
-        } else {
-          message.fail(500, res.cause().getMessage());
+        String userId = body.getString("user_id");
+        if (userId == null || userId.isEmpty()) {
+            message.fail(400, "ID de l'utilisateur requis");
+            return;
         }
-      });
-    } catch(Exception e) {
-      message.fail(500, "error " + e);
+
+        JsonObject query = new JsonObject().put("user_id", userId);
+        JsonObject msg = new JsonObject()
+            .put("collection", Collections.CONTRACTS)
+            .put("query", query);
+
+        vertx.eventBus().request(Services.DB_FIND_ONE, msg, res -> {
+            if (res.succeeded()) {
+                message.reply(res.result().body());
+            } else {
+                message.fail(500, res.cause().getMessage());
+            }
+        });
+    } catch (Exception e) {
+        message.fail(500, "Erreur " + e);
     }
-  }
+}
+
 
   /**
    * @param contract JsonObject
