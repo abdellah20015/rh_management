@@ -86,7 +86,7 @@
           </select>
         </div>
 
-        <!-- Submit Button -->
+
         <button
           type="submit"
           class="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition duration-200"
@@ -142,7 +142,7 @@ export default {
             userData.value = result.data[0]
             contractData.value = result.data[0].contracts[0]
 
-            // Remplir le formulaire avec les données existantes
+
             formData.value = {
               type: contractData.value.type,
               start_date: utils.convertDate(contractData.value.start_date),
