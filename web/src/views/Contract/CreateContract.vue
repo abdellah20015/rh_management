@@ -105,11 +105,11 @@ export default {
           status: true
         }
 
-        const response = await utils.fetch_methode(services.contract_create, contractData)
+        const response = await utils.fetch_methode(services.contract.create, contractData)
 
         if (response.status === 'success') {
           alert('Contrat créé avec succès')
-          router.push('/user/list')
+          router.push('/private/user/list')
         } else {
           alert('Erreur lors de la création du contrat')
         }

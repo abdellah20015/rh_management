@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import fetch_methode from "@/shared/utils";
+import utils from "@/shared/utils";
 import services from "@/shared/services";
 
 export const useAuthStore = defineStore('auth', {
@@ -24,7 +24,7 @@ export const useAuthStore = defineStore('auth', {
     // Vérification de l'authentification
     async checkauth() {
       try {
-        const data = await fetch_methode(services.checkauth);
+        const data = await utils.fetch_methode(services.checkauth);
         if (data) {
           this.user =  await data.json();
           console.log(this.user.username)
