@@ -647,6 +647,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
     body.put("username", ctx.user().principal().getString("username"));
     vertx.eventBus().request(Services.AUTH_RESET_PASSWORD, body, reply -> {
       if (reply.succeeded()) {
+        ctx.user().principal().put("first_login", false);
         ctx.response()
           .setStatusCode(200)
           .putHeader("content-type", "application/json")
@@ -808,7 +809,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
    * get user profile method to get the profile of the user
    */
   public void getUserProfileHandler(RoutingContext ctx) {
-    String userId = ctx.user().principal().getString("id");
+    String userId = ctx.body().asJsonObject().getString("user_id");
 
     JsonObject match = new JsonObject().put("_id", userId);
 

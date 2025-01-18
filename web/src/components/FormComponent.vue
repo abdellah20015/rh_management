@@ -1,10 +1,11 @@
 <template>
   <form @submit.prevent="handleSubmit" class="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto space-y-6">
-    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{title}}</h2>
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{ title }}</h2>
 
     <div v-for="field in fields" :key="field.name" class="space-y-2">
       <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
 
+      <!-- Champ de type input -->
       <div v-if="['text', 'email', 'password'].includes(field.type)" class="mb-6">
         <input
           :type="field.type"
@@ -15,18 +16,24 @@
         />
       </div>
 
+      <!-- Champ de type select -->
       <div v-if="field.type === 'select'" class="mb-6">
         <select
           :name="field.name"
           v-model="formData[field.name]"
+          :multiple="field.multiple"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         >
+          <option value="" disabled  >{{ field.label }}</option>
+          
+          <!-- Options dynamiques -->
           <option v-for="option in field.options" :key="option.value" :value="option.value">
             {{ option.label }}
           </option>
         </select>
       </div>
 
+      <!-- Autres types de champ -->
       <div v-if="field.type === 'radio'" class="mb-6 flex flex-col space-y-2">
         <div v-for="option in field.options" :key="option.value" class="flex items-center">
           <input
@@ -78,19 +85,37 @@ export default {
       type: String,
       required: true,
     },
-    title:{
-      type : String,
-      required : true
-    }
+    title: {
+      type: String,
+      required: true,
+    },
+    initialData: {
+      type: Object,
+      default: () => ({}),
+    },
   },
   data() {
     return {
       formData: {},
     };
   },
+  watch: {
+    initialData: {
+      handler(newVal) {
+        this.formData = { ...newVal };
+      },
+    },
+  },
   created() {
     this.fields.forEach((field) => {
-      this.formData[field.name] = field.type === "checkbox" ? false : "";
+      this.formData[field.name] =
+        this.initialData[field.name] !== undefined
+          ? this.initialData[field.name]
+          : field.type === "checkbox"
+          ? false
+          : field.type === "select" && Array.isArray(this.initialData[field.name])
+          ? [...this.initialData[field.name]]
+          : "";
     });
   },
   methods: {

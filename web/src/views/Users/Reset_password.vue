@@ -58,9 +58,8 @@ export default {
           old_password,
           new_password,
         });
+        
         if (response.ok) {
-          this.user.first_login = false
-          // alert(this.user.first_login)
           if (["admin", "manager"].includes(this.user.role)) {
             this.$router.push({ name: "list_user" });
           } else {

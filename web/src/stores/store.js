@@ -5,6 +5,7 @@ import services from "@/shared/services";
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,    
+    user_id: null,
     initialized: false,
   }),
   actions: {
@@ -20,14 +21,18 @@ export const useAuthStore = defineStore('auth', {
       this.user = null;   
       this.initialized = false;
     },
+    // user_id 
+    setUserId(id) {
+      console.log("from store  :", id); 
+      this.user_id = id; 
+    },
 
     // Vérification de l'authentification
     async checkauth() {
       try {
         const data = await fetch_methode(services.checkauth);
-        if (data) {
+        if (data.ok) {
           this.user =  await data.json();
-          console.log(this.user.username)
           this.initialized = true;
         } else {
           this.user = null;
