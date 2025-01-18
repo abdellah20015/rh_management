@@ -108,7 +108,7 @@ public class Demand extends AbstractVerticle {
 
       String userId = body.getString(Fields.DEMAND_USER_ID);
       String type = body.getString(Fields.DEMAND_TYPE);
-      String status = "padding";
+      String status = "pending";
       JsonObject details = body.getJsonObject(Fields.DEMAND_DETAILS);
       String filePath = body.getString(Fields.DEMAND_FILE_PATH);
 
