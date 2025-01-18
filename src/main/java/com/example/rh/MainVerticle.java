@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
-import com.example.rh.constants.Services;
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -23,7 +22,6 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 
 import io.vertx.ext.auth.User;
-import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -85,7 +83,10 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(ctx -> { handlePermission(ctx, "update_demand"); }).addHandler(this::updateDemand);
+
+      //notificaiton
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
+      routerBuilder.getRoute("updateNotificationStatus").addHandler(this::updateNotificationStatus);
 
       // Add handlers
 
@@ -568,6 +569,34 @@ public void downloadFile(RoutingContext ctx) {
     } catch (Exception e) {
       System.out.println("error " + e);
     }
+  }
+
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route updateNotifications
+   * request body <JsonObject>
+   * </p>
+   */
+  public void updateNotificationStatus(RoutingContext ctx) {
+    JsonObject body = ctx.getBodyAsJson();
+
+//    try {
+      vertx.eventBus().request(Services.NOTIFICATION_UPDATE_STATUS, body, res -> {
+        if(res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        }else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+//    }catch(Exception e) {
+//      System.out.println("error " + e);
+//    }
   }
 
 
