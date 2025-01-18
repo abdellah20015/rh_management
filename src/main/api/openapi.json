@@ -145,6 +145,38 @@
               }
           }
       },
+      "/private/user/manager" :{
+        "post":{
+            "summary": "get all managers",
+            "operationId": "getManager",
+            "tags": [
+                "User"
+            ],
+            "requestBody": {
+            "required": false,
+            "content": {
+                "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": false
+                }
+                }
+            }
+            },
+            "responses": {
+                "200": {
+                    "description": "Liste des managers"
+                },
+                "403": {
+                    "description": "Accès non autorisé"
+                },
+                "500": {
+                    "description": "Erreur serveur"
+                }
+            }
+        }
+      } ,
       "/private/user/create": {
           "post": {
               "summary": "Création d'un utilisateur",
@@ -385,7 +417,7 @@
                   "User"
               ],
               "requestBody": {
-                  "required": false,
+                  "required": true,
                   "content": {
                       "application/json": {
                           "schema": {
