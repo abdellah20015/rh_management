@@ -1,6 +1,6 @@
 <template>
   <form @submit.prevent="handleSubmit" class="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto space-y-6">
-    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{title}}</h2>
+    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{ title }}</h2>
 
     <div v-for="field in fields" :key="field.name" class="space-y-2">
       <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
@@ -21,6 +21,7 @@
         <select
           :id="field.name"
           :name="field.name"
+          :multiple="field.multiple"
           v-model="formState[field.name]"
           @change="updateField(field.name, $event.target.value)"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
@@ -49,7 +50,7 @@
             type="radio"
             :name="field.name"
             :value="option.value"
-            v-model="formData[field.name]"
+            v-model="formState[field.name]"
             class="mr-2"
           />
           <label class="text-gray-700 text-sm">{{ option.label }}</label>
@@ -59,18 +60,17 @@
       <div v-if="field.type === 'textarea'" class="mb-6">
         <textarea
           :name="field.name"
-          v-model="formData[field.name]"
+          v-model="formState[field.name]"
           :placeholder="field.placeholder"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         ></textarea>
       </div>
 
       <div v-if="field.type === 'checkbox'" class="mb-6 flex items-center">
-        <input type="checkbox" :name="field.name" v-model="formData[field.name]" class="mr-2" />
+        <input type="checkbox" :name="field.name" v-model="formState[field.name]" class="mr-2" />
         <label class="text-gray-700 text-sm">{{ field.label }}</label>
       </div>
     </div>
-
 
     <div class="flex items-center justify-between">
       <button
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue'
+import { ref, watch } from 'vue';
 
 export default {
   name: 'FormComponent',
@@ -100,35 +100,44 @@ export default {
     title: {
       type: String,
       required: true
+    },
+    initialData: {
+      type: Object,
+      default: () => ({})
     }
   },
 
   emits: ['fieldChange', 'formSubmitted'],
   setup(props, { emit }) {
-    const formState = ref({})
+    const formState = ref({});
 
+    const initializeForm = () => {
+      props.fields.forEach((field) => {
+        formState.value[field.name] =
+          props.initialData[field.name] !== undefined
+            ? props.initialData[field.name]
+            : field.type === 'checkbox'
+            ? false
+            : '';
+      });
+    };
 
-    watch(() => props.fields, (newFields) => {
-      newFields.forEach(field => {
-        if (!(field.name in formState.value)) {
-          formState.value[field.name] = ''
-        }
-      })
-    }, { immediate: true, deep: true })
+    watch(() => props.initialData, initializeForm, { immediate: true, deep: true });
 
     const updateField = (name, value) => {
-      formState.value[name] = value
-      emit('fieldChange', { name, value })
-    }
+      formState.value[name] = value;
+      emit('fieldChange', { name, value });
+    };
 
     const handleSubmit = () => {
-      emit('formSubmitted', { ...formState.value })
-    }
+      emit('formSubmitted', { ...formState.value });
+    };
+
     return {
       formState,
       updateField,
       handleSubmit
-    }
+    };
   }
-}
+};
 </script>
