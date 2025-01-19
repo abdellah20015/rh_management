@@ -58,7 +58,7 @@
             <h3 class="font-medium text-gray-600">Permissions:</h3>
             <div class="grid grid-flow-row grid-cols-2 gap-2">
               <span
-                v-for="permission in userData?.permission"
+                v-for="permission in userData?.permissions"
                 :key="permission"
                 class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm text-center"
               >
@@ -324,3 +324,4 @@ onMounted(() => {
   }
 });
 </script>
+

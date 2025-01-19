@@ -595,12 +595,12 @@
                           "schema": {
                               "type": "object",
                               "properties": {
-                                  "user_id": {
+                                  "contract_id": {
                                       "type": "string"
                                   }
                               },
                               "required": [
-                                  "user_id"
+                                  "contract_id"
                               ]
                           }
                       }
