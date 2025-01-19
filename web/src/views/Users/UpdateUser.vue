@@ -89,12 +89,14 @@ export default {
         );
         const data = await response.json();
         if (response.ok) {
-          alert("success");
+          utils.successAlert("Success: User information has been updated successfully.");
           this.$router.push({ name: "list_user" });
         } else {
+          utils.errorAlert("Error: Failed to update user information. Please try again.");
           console.log(data);
         }
       } catch (error) {
+        utils.errorAlert("Error: Failed to update user information. Please try again.");
         console.log(error);
       }
     },
