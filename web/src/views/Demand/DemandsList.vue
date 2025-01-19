@@ -58,7 +58,7 @@ export default {
                         disabled: (demand) => demand.status === "rejected"
                     },
                     {
-                        button: `<button style='background-color : #495057; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
+                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
                         disabled: false
                     }
@@ -76,7 +76,17 @@ export default {
                 data: [],
                 buttons: [
                     {
-                        button: `<button style='background-color : #495057; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/print.png" alt="print"/></button>`,
+                        button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+                        action: this.approveDemand,
+                        disabled: (demand) => demand.status === "approved"
+                    },
+                    {
+                        button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+                        action: this.rejecetDemand,
+                        disabled: (demand) => demand.status === "rejected"
+                    },
+                    {
+                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
                         disabled: false
                     }

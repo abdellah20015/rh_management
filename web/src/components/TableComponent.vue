@@ -14,7 +14,10 @@
         </thead>
 
         <!-- Table Body -->
-        <tbody>
+        <div v-if="tableInfo.data.length == 0">
+          <p class="p-5 text-lg font-semibold">Aucune information trouvée</p>
+        </div>
+        <tbody v-else>
           <tr v-for="(row, rowIndex) in tableInfo.data" :key="rowIndex"
             class="hover:bg-gray-100 transition duration-300">
             <td v-for="(header, colIndex) in tableInfo.headers" :key="colIndex"
@@ -22,10 +25,11 @@
               <div v-if="header.key != 'created_date'">{{ row[header.key] }}</div>
               <div v-if="header.key == 'created_date'">{{ convertDate(row[header.key]) }}</div>
               <div class="flex" v-if="header.key === 'actions'">
-                <div v-for="(button, colIndex) in tableInfo.buttons" :key="colIndex"
-                  v-html="button.button" @click="button.action(row)" :class="{
-                    'opacity-50 pointer-events-none': typeof button.disabled === 'function' ? button.disabled(row) : button.disabled
-                  }" class="flex px-2"></div>
+                <div v-for="(button, colIndex) in tableInfo.buttons" :key="colIndex" :class="{
+                  'opacity-50 pointer-events-none': typeof button.disabled === 'function' ? button.disabled(row) : button.disabled
+                }" class="flex px-2" @click="!isButtonDisabled(button, row) ? button.action(row) : null">
+                  <div v-html="button.button"></div>
+                </div>
               </div>
             </td>
           </tr>
@@ -82,6 +86,9 @@ export default {
     },
     convertDate(date) {
       return utils.convertDate(date);
+    },
+    isButtonDisabled(button, row) {
+      return typeof button.disabled === 'function' ? button.disabled(row) : button.disabled;
     }
   },
 };

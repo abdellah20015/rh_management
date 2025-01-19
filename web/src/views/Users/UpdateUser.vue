@@ -117,7 +117,6 @@ export default {
             permissions: user.permissions || [],
           };
 
-          console.log("User data retrieved:", this.userData);
         } else {
           console.error("No user found or incorrect data format:", data);
         }

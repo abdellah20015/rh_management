@@ -11,124 +11,115 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
-import FormComponent from '@/components/FormComponent.vue'
-import utils from "@/shared/utils"
-import services from "@/shared/services"
-import { useRouter, useRoute } from 'vue-router'
+import FormComponent from "@/components/FormComponent.vue";
+import utils from "@/shared/utils";
+import services from "@/shared/services";
+import { useAuthStore } from "@/stores/store";
+
 
 export default {
-  name: 'CreateContract',
+  name: "CreateContract",
   components: { FormComponent },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const selectedType = ref('')
-    const userId = computed(() => route.params.userId)
-
-    const allFields = ref([
-      {
-        type: 'select',
-        name: 'type',
-        label: 'Type de contrat',
-        options: [
-          { value: 'cdi', label: 'CDI' },
-          { value: 'cdd', label: 'CDD' }
-        ]
+  data() {
+    return {
+      selectedType: "",
+      allFields: [
+        {
+          type: "select",
+          name: "type",
+          label: "Type de contrat",
+          options: [
+            { value: "cdi", label: "CDI" },
+            { value: "cdd", label: "CDD" },
+          ],
+        },
+        {
+          type: "date",
+          name: "start_date",
+          label: "Date de début",
+        },
+        {
+          type: "text",
+          name: "salary",
+          label: "Salaire",
+          placeholder: "Entrez le salaire",
+        },
+        {
+          type: "number",
+          name: "leave_balance",
+          label: "Solde congés",
+          placeholder: "Entrez le solde de congés",
+        },
+      ],
+      endDateField: {
+        type: "date",
+        name: "end_date",
+        label: "Date de fin (Pour CDD)",
       },
-      {
-        type: 'date',
-        name: 'start_date',
-        label: 'Date de début'
-      },
-      {
-        type: 'number',
-        name: 'salary',
-        label: 'Salaire',
-        placeholder: 'Entrez le salaire'
-      },
-      {
-        type: 'number',
-        name: 'leave_balance',
-        label: 'Solde congés',
-        placeholder: 'Entrez le solde de congés'
-      }
-    ])
-
-    const endDateField = {
-      type: 'date',
-      name: 'end_date',
-      label: 'Date de fin (Pour CDD)'
-    }
-
-    const fields = computed(() => {
-      if (selectedType.value === 'cdd') {
+      auth : useAuthStore()
+    };
+  },
+  computed: {
+    fields() {
+      if (this.selectedType === "cdd") {
         return [
-          ...allFields.value.slice(0, 2),
-          endDateField,
-          ...allFields.value.slice(2)
-        ]
+          ...this.allFields.slice(0, 2),
+          this.endDateField,
+          ...this.allFields.slice(2),
+        ];
       }
-      return allFields.value
-    })
-
-    const handleFieldChange = ({ name, value }) => {
-      if (name === 'type') {
-        selectedType.value = value
+      return this.allFields;
+    },
+  },
+  methods: {
+    handleFieldChange({ name, value }) {
+      if (name === "type") {
+        this.selectedType = value;
       }
-    }
-
-    const validateFormData = (data) => {
-      const requiredFields = ['type', 'start_date', 'salary', 'leave_balance']
-      if (data.type === 'cdd') {
-        requiredFields.push('end_date')
+    },
+    validateFormData(data) {
+      const requiredFields = ["type", "start_date", "salary", "leave_balance"];
+      if (data.type === "cdd") {
+        requiredFields.push("end_date");
       }
-
-      return requiredFields.every(field => {
-        const value = data[field]
-        return value !== undefined && value !== null && value !== ''
-      })
-    }
-
-    const handleContractSubmission = async (formData) => {
+      return requiredFields.every((field) => {
+        const value = data[field];
+        return value !== undefined && value !== null && value !== "";
+      });
+    },
+    async handleContractSubmission(formData) {
       try {
-        if (!validateFormData(formData)) {
-          alert('Veuillez remplir tous les champs obligatoires')
-          return
+        if (!this.validateFormData(formData)) {
+          alert("Veuillez remplir tous les champs obligatoires");
+          return;
         }
+
+        const salary = parseFloat(formData.salary)
 
         const contractData = {
           ...formData,
-          user_id:"",
-          salary: parseFloat(formData.salary),
+          user_id: this.auth.user_id,
+          salary,
           leave_balance: parseInt(formData.leave_balance),
-          status: true
-        }
+          status: true,
+        };
 
-        const response = await utils.fetch_methode(services.contract.create, contractData)
+        const response = await utils.fetch_methode(
+          services.contract.create,
+          contractData
+        );
 
+        const result = await response.json();
         if (response.ok) {
-          const result = await response.json()
-          if (result.status === 'success') {
-            alert('Contrat créé avec succès')
-            router.push(`/private/user/profile/${userId.value}`)
-          } else {
-            alert('Erreur lors de la création du contrat: ' + result.message)
-          }
+          this.$router.push({name : "details_user"})
         } else {
-          alert('Erreur lors de la création du contrat')
+          alert("Erreur lors de la création du contrat" + result.message);
         }
       } catch (error) {
-        console.error('Erreur lors de la création du contrat:', error)
-        alert('Une erreur est survenue lors de la création du contrat')
+        console.error("Erreur lors de la création du contrat:", error);
+        alert("Une erreur est survenue lors de la création du contrat");
       }
-    }
-
-    return {
-      fields,
-      handleFieldChange,
-      handleContractSubmission
-    }
-  }
-}
+    },
+  },
+};
 </script>
