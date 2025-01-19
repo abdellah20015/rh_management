@@ -31,8 +31,8 @@
         tableInfo: {
           headers: [
             { title: "User Name", key: "username" },
-            { title: "Type de contrat", key: "contractType" },
-            { title: "Status", key: "status" },
+            { title: "Type de contrat", key: "contractTypeTitle" },
+            { title: "Status", key: "userStatusTitle" },
             { title: "Role", key: "role" },
             { title: "Actions", key: "actions" },
           ],
@@ -80,10 +80,16 @@
           const data = await response.json();
   
           if (response.ok) {
+            console.log(data.data);
+            
             this.tableInfo.data = data.data.map((user) => ({
               ...user,
-              contractType: user.contracts.length > 0 ? user.contracts[0].type || "Pas de contrat" : "Pas de contrat",
+              contractTypeTitle : user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
+              userStatusTitle : user.status == true ? "Active" : "Désactivé"
+              
             }));
+            console.log(this.tableInfo.data);
+            
           } else {
             console.error(data);
           }
@@ -92,8 +98,9 @@
         }
       },
       viewUser(user) {
+        localStorage.setItem("id" ,user._id)
         this.authStore.setUserId(user._id)
-        this.$router.push({ name: "profile_user" });
+        this.$router.push({ name: "details_user" });
       },
       deleteUser(user) {
         const response = fetch_methode(services.user.delete , {user_id : user._id})

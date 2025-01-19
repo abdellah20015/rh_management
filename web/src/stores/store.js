@@ -5,7 +5,7 @@ import services from "@/shared/services";
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     user: null,    
-    user_id: null,
+    user_id: localStorage.getItem("id"),
     initialized: false,
   }),
   actions: {

@@ -481,7 +481,7 @@ public void downloadFile(RoutingContext ctx) {
   try {
       String filepath = ctx.body().asJsonObject().getString("filepath");
       JsonObject fileInfo = new JsonObject()
-          .put("filepath", "uploads/" + filepath);
+          .put("filepath", filepath);
 
       vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
           if (res.succeeded()) {
