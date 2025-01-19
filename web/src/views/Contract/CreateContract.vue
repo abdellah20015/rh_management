@@ -99,7 +99,7 @@ export default {
 
         const contractData = {
           ...formData,
-          user_id: userId.value,
+          user_id:"",
           salary: parseFloat(formData.salary),
           leave_balance: parseInt(formData.leave_balance),
           status: true
