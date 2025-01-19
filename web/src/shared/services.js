@@ -1,10 +1,10 @@
 export default {
-    
+
     login : 'login',
     checkauth : '/private/user/checkauth',
     logout: '/private/logout',
     user:{
-        list: '/private/user/list',
+        list:'/private/user/list',
         create:'/private/user/create',
         update:'/private/user/update',
         delete:'/private/user/delete',
@@ -23,9 +23,9 @@ export default {
         updateStatus : 'private/notification/update/status'
     },
     file:{
-        list : '/private/file/get',
-        download: '/private/file/download',
-        upload : ' /private/file/upload'
+        list :'/private/file/get',
+        download:'/private/file/download',
+        upload : '/private/file/upload'
     },
     contract:{
         get : '/private/contract/get',
