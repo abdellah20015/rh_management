@@ -76,8 +76,8 @@
             <transition name="fade-slide">
               <div v-if="isProfileDropdownOpen"
                 class="absolute right-0 mt-2 w-48 bg-white border border-gray-400 rounded-md shadow-lg py-2 z-20">
-                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                <a @click="logout()" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
+                <a @click="profile()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                <a @click="logout()" href="#" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
               </div>
             </transition>
           </div>
@@ -102,7 +102,7 @@
 <script>
 import services from '@/shared/services';
 import utils from '@/shared/utils';
-import { RouterView } from 'vue-router';
+import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from '@/stores/store';
 import router from '@/router';
 
@@ -118,6 +118,11 @@ export default {
       totalPages: 1,
     };
   },
+  computed: {
+      authStore() {
+        return useAuthStore();
+      },
+    },
   methods: {
     //handler profile dropdown
     toggleProfileDropdown() {
@@ -164,6 +169,7 @@ export default {
     async logout() {
       const response = await utils.fetch_methode(services.logout)
       if (response.ok) {
+        localStorage.clear();
         router.push({ "name": "login" })
       }
     },
@@ -172,6 +178,15 @@ export default {
     closeDropDowns() {
       this.isProfileDropdownOpen = false
       this.isNotificationDropdownOpen = false
+    },
+
+    profile() {
+      this.$router.push({ name: "profile_user" }).then(() => {
+        window.location.reload();
+      });
+      this.authStore.setUserId(this.user.id)
+      localStorage.setItem("id" , this.user.id)
+      console.log(this.user.id);
     }
   },
   mounted() {
