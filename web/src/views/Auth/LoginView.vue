@@ -57,18 +57,19 @@ export default {
         });
         const data = await response.json();
         if (response.ok) {
-           authStore.auth(data);
+          utils.successAlert("Login successful");
+           authStore.auth(data)
           if (["admin", "manager"].includes(data.user.role)) {
             this.$router.push({ name: "list_user" })
           } else {
             this.$router.push({ name: "list_demand" })
           }
         } else {
-          console.log(data);
+          utils.errorAlert("Username or password is incorrect");
         }
       } catch (error) {
+        utils.errorAlert("Username or password is incorrect");
         console.error("Erreur lors de la connexion:", error);
-        alert(error);
       }
     },
   },

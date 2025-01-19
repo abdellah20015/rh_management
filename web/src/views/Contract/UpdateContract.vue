@@ -23,7 +23,7 @@ export default {
   data() {
     return {
       selectedType: "",
-      contractId: this.$route.params.contractId, // Récupération de l'ID du contrat à mettre à jour
+      // contractId: this.$route.params.contractId, 
       allFields: [
         {
           type: "select",
@@ -135,12 +135,13 @@ export default {
         const data = await response.json();
         console.log(data)
         if (response.ok) {
-          alert("success");
+          utils.successAlert("contract updated successful");
           this.$router.push({ name: "details_user" });
         } else {
-          console.log(data);
+          utils.errorAlert("Error: Failed to update the contract. Please try again.");
         }
       } catch (error) {
+        utils.errorAlert("Error: Failed to update the contract. Please try again.");
         console.log(error);
       }
     },

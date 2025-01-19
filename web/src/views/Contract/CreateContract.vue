@@ -111,13 +111,16 @@ export default {
 
         const result = await response.json();
         if (response.ok) {
+          utils.successAlert("contract created successful");
           this.$router.push({name : "details_user"})
         } else {
-          alert("Erreur lors de la création du contrat" + result.message);
+         utils.errorAlert("Error: Contract creation failed.");
+          console.log("Erreur lors de la création du contrat" + result.message);
         }
       } catch (error) {
+       utils.errorAlert("Error: Contract creation failed. Please try again.");
         console.error("Erreur lors de la création du contrat:", error);
-        alert("Une erreur est survenue lors de la création du contrat");
+      
       }
     },
   },

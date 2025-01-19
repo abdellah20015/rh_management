@@ -60,17 +60,20 @@ export default {
         });
         
         if (response.ok) {
+          utils.successAlert("Success: Password has been reset successfully.");
           if (["admin", "manager"].includes(this.user.role)) {
             this.$router.push({ name: "list_user" });
           } else {
             this.$router.push({ name: "list_demand" });
           }
         } else {
+          utils.errorAlert("Error: Unable to reset the password. Please try again.");
           const data = await response.json();
           console.log(data);
         }
       } catch (error) {
-        alert(error);
+        utils.errorAlert("Error: Unable to reset the password. Please try again.");
+        console.log(error)
       }
     },
   },
