@@ -5,6 +5,7 @@ package com.example.rh;
 
 
 
+import java.nio.file.Paths;
 import java.util.List;
 
 import com.example.rh.constants.Collections;
@@ -14,6 +15,7 @@ import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -83,7 +85,10 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(ctx -> { handlePermission(ctx, "update_demand"); }).addHandler(this::updateDemand);
+
+      //notificaiton
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
+      routerBuilder.getRoute("updateNotificationStatus").addHandler(this::updateNotificationStatus);
 
       // Add handlers
 
@@ -102,7 +107,7 @@ public class MainVerticle extends AbstractVerticle {
       //  path : /private/user/list
       routerBuilder.getRoute("listUsers").addHandler(ctx -> { handlePermission(ctx, "view_users"); }).addHandler(this::ListUsersHandler);
       //  path : /private/user/manager
-      routerBuilder.getRoute("getManager").addHandler(ctx -> { handlePermission(ctx, "update_user"); }).addHandler(this::getManager);
+      routerBuilder.getRoute("getManager").addHandler(this::getManager);
 
       // path : /private/user/create
       routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
@@ -124,7 +129,7 @@ public class MainVerticle extends AbstractVerticle {
       // Files
       routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
       routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
-
+      routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
 
 
 
@@ -452,6 +457,53 @@ public void getFiles(RoutingContext ctx) {
     }
   }
 
+    /**
+ * @param ctx RoutingContext
+ * @author abdellah
+ * <p>
+ * OpenAPI3 Route DownloadFile
+ * request body <JsonObject>
+ * </p>
+ */
+public void downloadFile(RoutingContext ctx) {
+  try {
+      String filepath = ctx.body().asJsonObject().getString("filepath");
+      JsonObject fileInfo = new JsonObject()
+          .put("filepath", filepath);
+
+      vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
+          if (res.succeeded()) {
+              JsonObject response = (JsonObject) res.result().body();
+              byte[] content = response.getBinary("content");
+              String filename = Paths.get(response.getString("filepath")).getFileName().toString();
+
+              ctx.response()
+                  .putHeader("Content-Type", "application/pdf")
+                  .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                  .end(Buffer.buffer(content));
+          } else {
+              String error = res.cause().getMessage();
+              int statusCode = error.contains("non trouvé") ? 404 : 500;
+
+              ctx.response()
+                  .setStatusCode(statusCode)
+                  .putHeader("content-type", "application/json")
+                  .end(new JsonObject()
+                      .put("error", error)
+                      .toString());
+          }
+      });
+  } catch (Exception e) {
+      ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject()
+              .put("error", "Erreur lors du téléchargement du fichier: " + e.getMessage())
+              .toString());
+  }
+}
+
+
   /**
    * @param ctx RoutingContext
    * @author Youssef
@@ -508,6 +560,33 @@ public void getFiles(RoutingContext ctx) {
     }
   }
 
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route updateNotifications
+   * request body <JsonObject>
+   * </p>
+   */
+  public void updateNotificationStatus(RoutingContext ctx) {
+    JsonObject body = ctx.getBodyAsJson();
+
+//    try {
+      vertx.eventBus().request(Services.NOTIFICATION_UPDATE_STATUS, body, res -> {
+        if(res.succeeded()) {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        }else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+//    }catch(Exception e) {
+//      System.out.println("error " + e);
+//    }
+  }
 
     /**
    * @author ilyass
@@ -723,10 +802,17 @@ public void handlePermission(RoutingContext ctx, String permission) {
     }
   }
 
+   /**
+   * List manager handler
+   * @param ctx RoutingContext
+   * @author ilyass
+   * list manager method to list all the manager
+   */
+
   public void getManager(RoutingContext ctx){
     JsonObject payload = new JsonObject()
                               .put("collection",  Collections.USER)
-                              .put("query", new JsonObject().put("role", "manager"));
+                              .put("query", new JsonObject().put("role", "manager").put("role", "admin"));
     vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
       if (reply.succeeded()) {
         ctx.response()
