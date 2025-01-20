@@ -25,13 +25,18 @@ const router = createRouter({
           component: ()=> import('@/views/Users/CreateUsers.vue'),
         },
         {
-          path: '/private/user/update',
+          path: '/private/user/update/:id',
           name: 'update_user',
           component: ()=> import('@/views/Users/UpdateUser.vue'),
         },
         {
-          path: '/private/user/profile',
+          path: '/private/user/profile/:id',
           name: 'profile_user',
+          component: ()=> import('@/views/Users/UserDetails.vue'),
+        },
+        {
+          path: '/private/user/details/:id',
+          name: 'details_user',
           component: ()=> import('@/views/Users/UserDetails.vue'),
         },
         {
@@ -41,12 +46,12 @@ const router = createRouter({
         },
         // contract
         {
-          path: '/private/user/contract/update',
+          path: '/private/user/contract/update/:id',
           name: 'contract_update',
           component: ()=> import('@/views/Contract/UpdateContract.vue'),
         },
         {
-          path: '/private/user/contract/create',
+          path: '/private/user/contract/create/:id',
           name: 'contract_create',
           component: ()=> import('@/views/Contract/CreateContract.vue'),
         },

@@ -3,10 +3,12 @@
     <!-- Navbar -->
     <nav class="bg-black p-3">
       <div class="container mx-auto flex justify-between items-center">
-        <div class="text-white text-2xl font-bold">RH</div>
+        <div class="text-white text-2xl font-bold">
+          <RouterLink :to="{ name : 'list_demand' }"> RH</RouterLink>
+        </div>
         <div class="flex justify-evenly w-1/3">
           <RouterLink :to="{ name : 'list_user' }" v-if="user.permissions.includes('view_users')" href="./users.html" class="text-white hover:text-gray-300">Les Utilisateurs</RouterLink>
-          <RouterLink :to="{ name : 'list_demand' }" v-if="user.role != 'admin'" href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
+          <RouterLink :to="{ name : 'list_demand' }"  href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
         </div>
         <div class="flex items-center space-x-4">
           <!-- Notification Dropdown -->
@@ -76,8 +78,8 @@
             <transition name="fade-slide">
               <div v-if="isProfileDropdownOpen"
                 class="absolute right-0 mt-2 w-48 bg-white border border-gray-400 rounded-md shadow-lg py-2 z-20">
-                <a href="#" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                <a @click="logout()" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
+                <a @click="profile()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
+                <a @click="logout()" href="#" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
               </div>
             </transition>
           </div>
@@ -102,7 +104,7 @@
 <script>
 import services from '@/shared/services';
 import utils from '@/shared/utils';
-import { RouterView } from 'vue-router';
+import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from '@/stores/store';
 import router from '@/router';
 
@@ -118,6 +120,11 @@ export default {
       totalPages: 1,
     };
   },
+  computed: {
+      authStore() {
+        return useAuthStore();
+      },
+    },
   methods: {
     //handler profile dropdown
     toggleProfileDropdown() {
@@ -164,6 +171,7 @@ export default {
     async logout() {
       const response = await utils.fetch_methode(services.logout)
       if (response.ok) {
+        localStorage.clear();
         router.push({ "name": "login" })
       }
     },
@@ -172,6 +180,13 @@ export default {
     closeDropDowns() {
       this.isProfileDropdownOpen = false
       this.isNotificationDropdownOpen = false
+    },
+
+    profile() {
+      this.$router.push({ name: "profile_user" , params : {id : this.authStore.user.id} }).then(() => {
+        window.location.reload();
+      });
+
     }
   },
   mounted() {

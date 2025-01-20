@@ -22,7 +22,7 @@
                             <div v-for="(filter, index) in filterStructure" :key="index">
                                 <p class="text-sm font-semibold">{{ filter.name }} :</p>
                                 <div class="flex justify-evenly p-3">
-                                    <a href="#" @click="selectFilter(value)" v-for="(value, index) in filter.values" :key="index"
+                                    <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values" :key="index"
                                         class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
                                         :class="{ 'bg-black text-white': value.selected === true }">
                                         <p class="text-sm">{{ value.title }}</p>
@@ -81,7 +81,6 @@ export default {
                 console.log("after remove value from filter : ");
                 console.log(this.searchValues);
             }
-
         },
 
         search() {

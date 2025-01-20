@@ -1,117 +1,244 @@
 <template>
-    <div class="flex justify-center">
-      <div class="w-11/12">
-        <div class="flex items-center justify-between p-5">
-          <p class="text-2xl font-semibold">Listes des utilisateurs</p>
-          <router-link  :to="{ name: 'create_user' }" class="w-48 bg-black text-white rounded p-2">
-            Ajouter un utilisateur
-          </router-link>
-        </div>
-        <div>
-          <TableComponent :tableInfo="tableInfo" :pageSize="pageSize" :currentPage="currentPage" :totalPages="totalPages" />
-        </div>
+  <div class="flex justify-center">
+    <div class="w-11/12">
+      <div class="flex items-center justify-between p-5">
+        <p class="text-2xl font-semibold">Listes des utilisateurs</p>
+        <router-link
+          :to="{ name: 'create_user' }"
+          class="w-48 bg-black text-white rounded p-2"
+        >
+          Ajouter un utilisateur
+        </router-link>
+      </div>
+      <div class="flex items-center justify-between p-5">
+        <TableFilterComponent
+          :filterStructure="filterStructure"
+          @filterHandler="filterHandler"
+          @searchHandler="searchHandler"
+          @resertFilterHandler="resertFilterHandler"
+        >
+        </TableFilterComponent>
+      </div>
+      <div>
+        <TableComponent
+          :tableInfo="tableInfo"
+          :pageSize="pageSize"
+          :currentPage="currentPage"
+          :totalPages="totalPages"
+          @page-changed="handlePageChange"
+        />
       </div>
     </div>
-  </template>
-  
-  <script>
-  import { useAuthStore } from "@/stores/store";
-  import TableComponent from "@/components/TableComponent.vue";
-  import services from "@/shared/services";
-  import utils from "@/shared/utils";
+  </div>
+</template>
 
-  
-  export default {
-    name: "ListUser",
-    components: {
-      TableComponent,
-    },
-    data() {
-      return {
-        tableInfo: {
-          headers: [
-            { title: "User Name", key: "username" },
-            { title: "Type de contrat", key: "contractType" },
-            { title: "Status", key: "status" },
-            { title: "Role", key: "role" },
-            { title: "Actions", key: "actions" },
-          ],
-          data: [],
-          buttons: [
-            {
-              button: `<button style='background-color: #3498db; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" />
+<script>
+import { useAuthStore } from "@/stores/store";
+import TableComponent from "@/components/TableComponent.vue";
+import services from "@/shared/services";
+import utils from "@/shared/utils";
+import TableFilterComponent from "@/components/TableFilterComponent.vue";
+
+export default {
+  name: "ListUser",
+  components: {
+    TableComponent,
+    TableFilterComponent,
+  },
+  data() {
+    return {
+      tableInfo: {
+        headers: [
+          { title: "User Name", key: "username" },
+          { title: "Type de contrat", key: "contractTypeTitle" },
+          { title: "Status", key: "userStatusTitle" },
+          { title: "Role", key: "role" },
+          { title: "Actions", key: "actions" },
+        ],
+        data: [],
+        buttons: [
+          {
+            button: `<button style='background-color: #3498db; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" />
 </button>`,
-              action: this.viewUser,
-              disabled: false,
+            action: this.viewUser,
+            disabled: false,
+          },
+          {
+            button: `<button style='background-color: #e74c3c; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
+            action: this.deleteUser,
+            disabled: () =>
+              !this.authStore.user.permissions.includes("delete_user"),
+          },
+          {
+            button: `<button style='background-color: #f39c12; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/available-updates.png" alt="Update Icon" /></button>`,
+            action: this.updateUser,
+            disabled: () =>
+              !this.authStore.user.permissions.includes("update_user"),
+          },
+        ],
+      },
+
+      filterStructure: [
+        {
+          name: "Role",
+          values: [
+            {
+              title: "Manager",
+              value: "manager",
+              key: "role",
+              selected: false,
             },
             {
-              button: `<button style='background-color: #e74c3c; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
-              action: this.deleteUser,
-              disabled: () => !this.authStore.user.permissions.includes("delete_user"),
+              title: "Employee",
+              value: "employee",
+              key: "role",
+              selected: false,
             },
             {
-              button: `<button style='background-color: #f39c12; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/available-updates.png" alt="Update Icon" /></button>`,
-              action: this.updateUser,
-              disabled: () => !this.authStore.user.permissions.includes("update_user"),
+              title: "Admin",
+              value: "ADMIN",
+              key: "role",
+              selected: false,
             },
           ],
         },
-        pageSize: 10,
-        currentPage: 1,
-        totalPages: 1,
-      };
-    },
-    computed: {
-      authStore() {
-        return useAuthStore();
-      },
-    },
-    methods: {
-      async fetchUsers() {
-        try {
-          const payload = {
-            query: {
-              page: this.currentPage,
-              limit: this.pageSize,
+        {
+          name: "Type de contrat",
+          values: [
+            {
+              title: "cdd",
+              value: "cdd",
+              key: "contractType",
+              selected: false,
             },
-          };
-  
-          const response = await utils.fetch_methode(services.user.list, payload);
-          const data = await response.json();
-  
-          if (response.ok) {
-            this.tableInfo.data = data.data.map((user) => ({
-              ...user,
-              contractType: user.contracts.length > 0 ? user.contracts[0].type || "Pas de contrat" : "Pas de contrat",
-            }));
-          } else {
-            console.error(data);
-          }
-        } catch (error) {
-          console.error("Erreur lors de la récupération des utilisateurs:", error);
-        }
-      },
-      viewUser(user) {
-        this.authStore.setUserId(user._id)
-        this.$router.push({ name: "profile_user" });
-      },
-      deleteUser(user) {
-        const response = fetch_methode(services.user.delete , {user_id : user._id})
-        if (response.ok) {
-            alert("delete success")
-            this.fetchUsers();
-        } else {
-            console.log(response)
-        }
-      },
-      updateUser(user) {
-        this.authStore.setUserId(user._id)
-        this.$router.push({ name: "update_user" });
-      },
+            {
+              title: "cdi",
+              value: "cdi",
+              key: "contractType",
+              selected: false,
+            },
+            {
+              title: "Pas de contrat",
+              value: "Pas de contrat",
+              key: "contractType",
+              selected: false,
+            },
+          ],
+        },
+      ],
+      pageSize: 10,
+      currentPage: 1,
+      totalPages: 1,
+    };
+  },
+  computed: {
+    authStore() {
+      return useAuthStore();
     },
-    mounted() {
+  },
+  methods: {
+    async fetchUsers() {
+      try {
+        const payload = {
+          query: {
+            page: this.currentPage,
+            limit: this.pageSize,
+          },
+        };
+
+        const response = await utils.fetch_methode(services.user.list, payload);
+        const data = await response.json();
+
+        if (response.ok) {
+          this.tableInfo.data = data.data.map((user) => ({
+            ...user,
+              contractTypeTitle : user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
+              userStatusTitle : user.status == true ? "Active" : "Désactivé"
+          }));
+
+          this.totalPages = data.totalPages || 1;
+        } else {
+          console.error(data);
+        }
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des utilisateurs:",
+          error
+        );
+      }
+    },
+    handlePageChange(newPage) {
+      this.currentPage = newPage;
       this.fetchUsers();
     },
-  };
-  </script>
-  
+    viewUser(user) {
+      this.$router.push({ name: "profile_user" , params : {id : user._id} });
+    },
+    async deleteUser(user) {
+      const response = await utils.fetch_methode(services.user.delete, {
+        user_id: user._id,
+      });
+      const res = await response.json()
+      if (response.ok) {
+        utils.successAlert("User successfully deleted.");
+        this.fetchUsers();
+      } else {
+        utils.errorAlert("Error: Failed to delete user. Please try again.");
+        console.log(res);
+      }
+    },
+    updateUser(user) {
+      this.$router.push({ name: "update_user", params: { id: user._id } });
+    },
+
+    filterHandler(filterData) {
+      const currentData = this.tableInfo.data;
+      if (filterData.length > 0) {
+        const groupedFilters = {};
+        filterData.forEach((filter) => {
+          const fieldName = Object.keys(filter)[0];
+          const value = filter[fieldName];
+          if (!groupedFilters[fieldName]) {
+            groupedFilters[fieldName] = [];
+          }
+          groupedFilters[fieldName].push(value);
+        });
+
+        const filteredData = currentData.filter((demande) => {
+          return Object.keys(groupedFilters).every((fieldName) => {
+            return groupedFilters[fieldName].some(
+              (filterValue) =>
+                String(demande[fieldName]).toLowerCase() ===
+                String(filterValue).toLowerCase()
+            );
+          });
+        });
+
+        this.tableInfo.data = filteredData;
+      }
+    },
+
+    searchHandler(searchValue) {
+      if (!searchValue) {
+        this.fetchUsers();
+        return;
+      }
+
+      const searchedData = this.tableInfo.data.filter((user) => {
+        return Object.values(user).some((value) =>
+          String(value).toLowerCase().includes(searchValue.toLowerCase())
+        );
+      });
+
+      this.tableInfo.data = searchedData;
+    },
+
+    resertFilterHandler() {
+      this.fetchUsers();
+    },
+  },
+  mounted() {
+    this.fetchUsers();
+  },
+};
+</script>

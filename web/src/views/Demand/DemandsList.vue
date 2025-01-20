@@ -3,7 +3,7 @@
         <div class="w-11/12">
             <div class="flex items-center justify-between p-5 my-3">
                 <p class="text-2xl font-semibold">Listes des demands</p>
-                <RouterLink :to="{ name: 'create_demand' }" class="w-48 bg-black text-center text-white rounded p-2">
+                <RouterLink :to="{ name: 'create_demand' }"  v-if="!this.user.role == 'admin'"  class="w-48 bg-black text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
             <div class="flex items-center justify-between p-5 ">
@@ -58,7 +58,7 @@ export default {
                         disabled: (demand) => demand.status === "rejected"
                     },
                     {
-                        button: `<button style='background-color : #495057; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
+                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
                         disabled: false
                     }
@@ -76,7 +76,17 @@ export default {
                 data: [],
                 buttons: [
                     {
-                        button: `<button style='background-color : #495057; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/print.png" alt="print"/></button>`,
+                        button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+                        action: this.approveDemand,
+                        disabled: (demand) => demand.status === "approved"
+                    },
+                    {
+                        button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+                        action: this.rejecetDemand,
+                        disabled: (demand) => demand.status === "rejected"
+                    },
+                    {
+                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
                         disabled: false
                     }
@@ -154,7 +164,7 @@ export default {
                         statusTitle: item.status === "approved" ? "Acceptée" : item.status === "rejected" ? "Rejectée" : item.status === "pending" ? "En attente" : item.status,
                     }));
 
-                    if (this.user.role == 'manager') {
+                    if (this.user.role == 'manager' || this.user.role == "admin") {
                         this.managerTableInfo.data = processedData.reverse();
                     } else if (this.user.role == 'employee') {
                         this.employeeTableInfo.data = processedData.reverse();
@@ -176,6 +186,7 @@ export default {
 
                     if (response.ok) {
                         console.log(data);
+                        utils.successAlert("Demand has been approved")
                         this.fetchDemands()
                     } else {
                         console.log(response);
@@ -195,6 +206,7 @@ export default {
 
                     if (response.ok) {
                         console.log(data);
+                        utils.successAlert("Demand has been rejected")
                         this.fetchDemands()
                     } else {
                         console.log(response);
@@ -210,6 +222,7 @@ export default {
         //download demande pdf
         async downloadDemand(demand) {
             const query = { filepath: demand.file_path }
+            console.log(query)
             try {
                 const response = await utils.fetch_methode(services.file.download, query)
                 if (response.ok) {

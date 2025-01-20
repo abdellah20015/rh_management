@@ -46,7 +46,7 @@ export default {
           ],
         },
         {
-          name: "manager",
+          name: "manager_id",
           type: "select",
           label: "manager",
           options: [],
@@ -71,6 +71,7 @@ export default {
       btn_text: "Update user",
       title: "Update user Form",
       userData: {},
+      userId: null,
     };
   },
   methods: {
@@ -82,19 +83,21 @@ export default {
             ...formdata,
           },
         };
-
+        console.log(payload)
         const response = await utils.fetch_methode(
           services.user.update,
           payload
         );
         const data = await response.json();
         if (response.ok) {
-          alert("success");
+          utils.successAlert("Success: User information has been updated successfully.");
           this.$router.push({ name: "list_user" });
         } else {
+          utils.errorAlert("Error: Failed to update user information. Please try again.");
           console.log(data);
         }
       } catch (error) {
+        utils.errorAlert("Error: Failed to update user information. Please try again.");
         console.log(error);
       }
     },
@@ -113,11 +116,10 @@ export default {
           this.userData = {
             username: user.username,
             role: user.role,
-            manager: user.manager_id,
+            manager_id: user.manager_id,
             permissions: user.permissions || [],
           };
 
-          console.log("User data retrieved:", this.userData);
         } else {
           console.error("No user found or incorrect data format:", data);
         }
@@ -130,13 +132,14 @@ export default {
       try {
         const response = await utils.fetch_methode(services.user.manager);
         const data = await response.json();
+        console.log(data.data)
         if (response.ok) {
           const managers = data.data.map((manager) => ({
             label: manager.username,
             value: manager._id,
           }));
           const managerField = this.formFields.find(
-            (field) => field.name === "manager"
+            (field) => field.name === "manager_id"
           );
           if (managerField) {
             managerField.options = managers;
@@ -151,12 +154,10 @@ export default {
     },
   },
   computed: {
-    userId() {
-      const authStore = useAuthStore();
-      return authStore.user_id;
-    },
+
   },
   mounted() {
+    this.userId = this.$route.params.id;
     this.getUser();
     this.getManager()
   },

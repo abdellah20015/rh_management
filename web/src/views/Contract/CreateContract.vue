@@ -1,134 +1,116 @@
 <template>
   <div class="p-6">
     <FormComponent
-      :fields="fields"
+      :fields="allFields"
       :btn_text="'Créer le contrat'"
       :title="'Création d\'un contrat'"
       @formSubmitted="handleContractSubmission"
-      @fieldChange="handleFieldChange"
     />
   </div>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
-import FormComponent from '@/components/FormComponent.vue'
-import utils from "@/shared/utils"
-import services from "@/shared/services"
-import { useRouter, useRoute } from 'vue-router'
+import FormComponent from "@/components/FormComponent.vue";
+import utils from "@/shared/utils";
+import services from "@/shared/services";
+import { useAuthStore } from "@/stores/store";
+
 
 export default {
-  name: 'CreateContract',
+  name: "CreateContract",
   components: { FormComponent },
-  setup() {
-    const router = useRouter()
-    const route = useRoute()
-    const selectedType = ref('')
-    const userId = computed(() => route.params.userId)
-
-    const allFields = ref([
-      {
-        type: 'select',
-        name: 'type',
-        label: 'Type de contrat',
-        options: [
-          { value: 'cdi', label: 'CDI' },
-          { value: 'cdd', label: 'CDD' }
-        ]
-      },
-      {
-        type: 'date',
-        name: 'start_date',
-        label: 'Date de début'
-      },
-      {
-        type: 'number',
-        name: 'salary',
-        label: 'Salaire',
-        placeholder: 'Entrez le salaire'
-      },
-      {
-        type: 'number',
-        name: 'leave_balance',
-        label: 'Solde congés',
-        placeholder: 'Entrez le solde de congés'
+  data() {
+    return {
+      selectedType: "",
+      allFields: [
+        {
+          type: "select",
+          name: "type",
+          label: "Type de contrat",
+          options: [
+            { value: "cdi", label: "CDI" },
+            { value: "cdd", label: "CDD" },
+          ],
+        },
+        {
+          type: "date",
+          name: "start_date",
+          label: "Date de début",
+        },
+        {
+        type: "date",
+        name: "end_date",
+        label: "Date de fin (Pour CDD)",
+        hidden: (formData) => formData.type !== "cdd", 
+        },
+        {
+          type: "text",
+          name: "salary",
+          label: "Salaire",
+          placeholder: "Entrez le salaire",
+        },
+        {
+          type: "number",
+          name: "leave_balance",
+          label: "Solde congés",
+          placeholder: "Entrez le solde de congés",
+        },
+ 
+      ],
+      auth : useAuthStore(),
+      user_id : null
+    };
+  },
+  methods: {
+    validateFormData(data) {
+      const requiredFields = ["type", "start_date", "salary", "leave_balance"];
+      if (data.type === "cdd") {
+        requiredFields.push("end_date");
       }
-    ])
-
-    const endDateField = {
-      type: 'date',
-      name: 'end_date',
-      label: 'Date de fin (Pour CDD)'
-    }
-
-    const fields = computed(() => {
-      if (selectedType.value === 'cdd') {
-        return [
-          ...allFields.value.slice(0, 2),
-          endDateField,
-          ...allFields.value.slice(2)
-        ]
-      }
-      return allFields.value
-    })
-
-    const handleFieldChange = ({ name, value }) => {
-      if (name === 'type') {
-        selectedType.value = value
-      }
-    }
-
-    const validateFormData = (data) => {
-      const requiredFields = ['type', 'start_date', 'salary', 'leave_balance']
-      if (data.type === 'cdd') {
-        requiredFields.push('end_date')
-      }
-
-      return requiredFields.every(field => {
-        const value = data[field]
-        return value !== undefined && value !== null && value !== ''
-      })
-    }
-
-    const handleContractSubmission = async (formData) => {
+      return requiredFields.every((field) => {
+        const value = data[field];
+        return value !== undefined && value !== null && value !== "";
+      });
+    },
+    async handleContractSubmission(formData) {
       try {
-        if (!validateFormData(formData)) {
-          alert('Veuillez remplir tous les champs obligatoires')
-          return
+        if (!this.validateFormData(formData)) {
+          alert("Veuillez remplir tous les champs obligatoires");
+          return;
         }
+
+        const salary = parseFloat(formData.salary)
 
         const contractData = {
           ...formData,
-          user_id: userId.value,
-          salary: parseFloat(formData.salary),
+          user_id: this.user_id,
+          salary,
           leave_balance: parseInt(formData.leave_balance),
-          status: true
-        }
+          status: true,
+        };
 
-        const response = await utils.fetch_methode(services.contract.create, contractData)
+        const response = await utils.fetch_methode(
+          services.contract.create,
+          contractData
+        );
 
+        const result = await response.json();
         if (response.ok) {
-          const result = await response.json()
-          if (result.status === 'success') {
-            alert('Contrat créé avec succès')
-            router.push(`/private/user/profile/${userId.value}`)
-          } else {
-            alert('Erreur lors de la création du contrat: ' + result.message)
-          }
+          utils.successAlert("contract created successful");
+          this.$router.push({name : "details_user"})
         } else {
-          alert('Erreur lors de la création du contrat')
+         utils.errorAlert("Error: Contract creation failed.");
+          console.log("Erreur lors de la création du contrat" + result.message);
         }
       } catch (error) {
-        console.error('Erreur lors de la création du contrat:', error)
-        alert('Une erreur est survenue lors de la création du contrat')
+       utils.errorAlert("Error: Contract creation failed. Please try again.");
+        console.error("Erreur lors de la création du contrat:", error);
+      
       }
-    }
-
-    return {
-      fields,
-      handleFieldChange,
-      handleContractSubmission
-    }
+    },
+  },
+  mounted(){
+    this.user_id = this.$route.params.id;
   }
-}
+};
 </script>

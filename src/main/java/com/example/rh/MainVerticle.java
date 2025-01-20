@@ -10,6 +10,7 @@ import java.util.List;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
+import com.example.rh.constants.Services;
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
@@ -22,6 +23,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.FileUpload;
 
 import io.vertx.ext.auth.User;
+import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -105,7 +107,7 @@ public class MainVerticle extends AbstractVerticle {
       //  path : /private/user/list
       routerBuilder.getRoute("listUsers").addHandler(ctx -> { handlePermission(ctx, "view_users"); }).addHandler(this::ListUsersHandler);
       //  path : /private/user/manager
-      routerBuilder.getRoute("getManager").addHandler(ctx -> { handlePermission(ctx, "update_user"); }).addHandler(this::getManager);
+      routerBuilder.getRoute("getManager").addHandler(this::getManager);
 
       // path : /private/user/create
       routerBuilder.getRoute("createUser").addHandler(ctx -> { handlePermission(ctx, "create_user"); }).addHandler(this::createUserHandler);
@@ -128,7 +130,6 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
       routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
       routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
-
 
 
 
@@ -304,55 +305,42 @@ public void updateContract(RoutingContext ctx) {
  */
 public void getContract(RoutingContext ctx) {
   try {
-      JsonObject body = ctx.getBodyAsJson();
+    JsonObject body = ctx.getBodyAsJson();
 
-      if (!body.containsKey("user_id")) {
+    vertx.eventBus().request(Services.CONTRACT_GET, body, res -> {
+      if (res.succeeded()) {
+        JsonObject response = (JsonObject) res.result().body();
+        if (response.isEmpty()) {
           ctx.response()
-              .setStatusCode(400)
-              .putHeader("content-type", "application/json")
-              .end(new JsonObject()
-                  .put("error", "user_id est requis")
-                  .toString());
-          return;
-      }
-
-      JsonObject query = new JsonObject().put("user_id", body.getString("user_id"));
-
-      vertx.eventBus().request(Services.CONTRACT_GET, query, res -> {
-          if (res.succeeded()) {
-              JsonObject response = (JsonObject) res.result().body();
-              if (response == null || response.isEmpty()) {
-                  ctx.response()
-                      .putHeader("content-type", "application/json")
-                      .setStatusCode(404)
-                      .end(new JsonObject()
-                          .put("error", "Contrat non trouvé")
-                          .toString());
-              } else {
-                  ctx.response()
-                      .putHeader("content-type", "application/json")
-                      .end(response.toString());
-              }
-          } else {
-              ctx.response()
-                  .setStatusCode(500)
-                  .putHeader("content-type", "application/json")
-                  .end(new JsonObject()
-                      .put("error", res.cause().getMessage())
-                      .toString());
-          }
-      });
-  } catch (Exception e) {
-      ctx.response()
-          .setStatusCode(500)
-          .putHeader("content-type", "application/json")
-          .end(new JsonObject()
-              .put("error", "Erreur : " + e.getMessage())
+            .putHeader("content-type", "application/json")
+            .setStatusCode(404)
+            .end(new JsonObject()
+              .put("error", "Contract not found")
               .toString());
+        } else {
+          ctx.response()
+            .putHeader("content-type", "application/json")
+            .end(response.toString());
+        }
+      } else {
+        ctx.response()
+          .putHeader("content-type", "application/json")
+          .setStatusCode(res.cause().getMessage().contains("ID du contrat requis") ? 400 : 500)
+          .end(new JsonObject()
+            .put("error", res.cause().getMessage())
+            .toString());
+      }
+    });
+  } catch (Exception e) {
+    System.out.println("error " + e);
+    ctx.response()
+      .putHeader("content-type", "application/json")
+      .setStatusCode(500)
+      .end(new JsonObject()
+        .put("error", "Erreur inattendue")
+        .toString());
   }
 }
-
-
 
 /**
  * @param ctx RoutingContext
@@ -469,7 +457,7 @@ public void getFiles(RoutingContext ctx) {
     }
   }
 
-  /**
+    /**
  * @param ctx RoutingContext
  * @author abdellah
  * <p>
@@ -481,7 +469,7 @@ public void downloadFile(RoutingContext ctx) {
   try {
       String filepath = ctx.body().asJsonObject().getString("filepath");
       JsonObject fileInfo = new JsonObject()
-          .put("filepath", "uploads/" + filepath);
+          .put("filepath", filepath);
 
       vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
           if (res.succeeded()) {
@@ -514,6 +502,7 @@ public void downloadFile(RoutingContext ctx) {
               .toString());
   }
 }
+
 
   /**
    * @param ctx RoutingContext
@@ -598,7 +587,6 @@ public void downloadFile(RoutingContext ctx) {
 //      System.out.println("error " + e);
 //    }
   }
-
 
     /**
    * @author ilyass
@@ -814,10 +802,18 @@ public void handlePermission(RoutingContext ctx, String permission) {
     }
   }
 
+   /**
+   * List manager handler
+   * @param ctx RoutingContext
+   * @author ilyass
+   * list manager method to list all the manager
+   */
+
   public void getManager(RoutingContext ctx){
     JsonObject payload = new JsonObject()
-                              .put("collection",  Collections.USER)
-                              .put("query", new JsonObject().put("role", "manager"));
+                            .put("collection", Collections.USER)
+                            .put("query", new JsonObject()
+                            .put("role", new JsonObject().put("$in", new JsonArray().add("manager").add("admin"))));
     vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
       if (reply.succeeded()) {
         ctx.response()

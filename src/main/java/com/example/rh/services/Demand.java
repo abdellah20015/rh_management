@@ -52,7 +52,7 @@ public class Demand extends AbstractVerticle {
           .put("as", "user")))
         .add(new JsonObject().put("$unwind", "$user"));
 
-        if(user.getString("role").equals("manager")){
+        if(user.getString("role").equals("manager") || user.getString("role").equals("admin")){
           pipeline.add(new JsonObject().put("$match", new JsonObject()
             .put("user.manager_id", user.getString("id"))));
         }else if(user.getString("role").equals("employee")){
