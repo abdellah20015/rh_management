@@ -83,7 +83,7 @@ export default {
             ...formdata,
           },
         };
-
+        console.log(payload)
         const response = await utils.fetch_methode(
           services.user.update,
           payload
@@ -116,7 +116,7 @@ export default {
           this.userData = {
             username: user.username,
             role: user.role,
-            manager: user.manager_id,
+            manager_id: user.manager_id,
             permissions: user.permissions || [],
           };
 
@@ -132,13 +132,14 @@ export default {
       try {
         const response = await utils.fetch_methode(services.user.manager);
         const data = await response.json();
+        console.log(data.data)
         if (response.ok) {
           const managers = data.data.map((manager) => ({
             label: manager.username,
             value: manager._id,
           }));
           const managerField = this.formFields.find(
-            (field) => field.name === "manager"
+            (field) => field.name === "manager_id"
           );
           if (managerField) {
             managerField.options = managers;
