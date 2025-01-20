@@ -183,12 +183,10 @@ export default {
     },
 
     profile() {
-      this.$router.push({ name: "profile_user" }).then(() => {
+      this.$router.push({ name: "profile_user" , params : {id : this.authStore.user.id} }).then(() => {
         window.location.reload();
       });
-      this.authStore.setUserId(this.user.id)
-      localStorage.setItem("id" , this.user.id)
-      console.log(this.user.id);
+
     }
   },
   mounted() {

@@ -282,6 +282,8 @@ export default {
           ]
         },
       ],
+      userId: null,
+      contractId: null 
     }
   },
 
@@ -313,15 +315,16 @@ export default {
 
       try {
         const response = await utils.fetch_methode(services.user.profile, {
-          user_id: this.authStore.user_id
+          user_id: this.userId
         });
-
+        console.log(response)
         if (response.ok) {
           const responseData = await response.json();
           console.log('Profile data received:', responseData);
 
           if (responseData.data && responseData.data[0]) {
             this.userData = responseData.data[0];
+            this.contractId = this.userData.contracts[0]?._id;
             console.log('User profile data set:', this.userData);
 
             //to add fields that will show in the table
@@ -410,11 +413,11 @@ export default {
     },
 
     navigateToContractCreate() {
-      this.$router.push('/private/user/contract/create');
+      this.$router.push({name : "contract_create" , params : {id : this.userId}});
     },
 
     navigateToContractUpdate() {
-      this.$router.push('/private/user/contract/update/');
+      this.$router.push({name : "contract_update" ,params : {id : this.userId} });
     },
 
     //hanlder filter
@@ -481,6 +484,7 @@ export default {
   },
 
   mounted() {
+    this.userId = this.$route.params.id;
     if (this.authStore.user?.id) {
       this.fetchUserProfile();
     } else {
