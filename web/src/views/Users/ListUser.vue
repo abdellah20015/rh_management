@@ -50,8 +50,8 @@ export default {
       tableInfo: {
         headers: [
           { title: "User Name", key: "username" },
-          { title: "Type de contrat", key: "contractType" },
-          { title: "Status", key: "status" },
+          { title: "Type de contrat", key: "contractTypeTitle" },
+          { title: "Status", key: "userStatusTitle" },
           { title: "Role", key: "role" },
           { title: "Actions", key: "actions" },
         ],
@@ -152,10 +152,8 @@ export default {
         if (response.ok) {
           this.tableInfo.data = data.data.map((user) => ({
             ...user,
-            contractType:
-              user.contracts.length > 0
-                ? user.contracts[0].type || "Pas de contrat"
-                : "Pas de contrat",
+              contractTypeTitle : user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
+              userStatusTitle : user.status == true ? "Active" : "Désactivé"
           }));
 
           this.totalPages = data.totalPages || 1;
@@ -171,22 +169,23 @@ export default {
     },
     handlePageChange(newPage) {
       this.currentPage = newPage;
-      alert("ok")
       this.fetchUsers();
     },
     viewUser(user) {
       this.authStore.setUserId(user._id);
       this.$router.push({ name: "profile_user" });
     },
-    deleteUser(user) {
-      const response = fetch_methode(services.user.delete, {
+    async deleteUser(user) {
+      const response = await utils.fetch_methode(services.user.delete, {
         user_id: user._id,
       });
+      const res = await response.json()
       if (response.ok) {
-        alert("delete success");
+        utils.successAlert("User successfully deleted.");
         this.fetchUsers();
       } else {
-        console.log(response);
+        utils.errorAlert("Error: Failed to delete user. Please try again.");
+        console.log(res);
       }
     },
     updateUser(user) {

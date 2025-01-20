@@ -3,7 +3,7 @@
         <div class="w-11/12">
             <div class="flex items-center justify-between p-5 my-3">
                 <p class="text-2xl font-semibold">Listes des demands</p>
-                <RouterLink :to="{ name: 'create_demand' }" class="w-48 bg-black text-center text-white rounded p-2">
+                <RouterLink :to="{ name: 'create_demand' }"  v-if="!this.user.role == 'admin'"  class="w-48 bg-black text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
             <div class="flex items-center justify-between p-5 ">
@@ -164,7 +164,7 @@ export default {
                         statusTitle: item.status === "approved" ? "Acceptée" : item.status === "rejected" ? "Rejectée" : item.status === "pending" ? "En attente" : item.status,
                     }));
 
-                    if (this.user.role == 'manager') {
+                    if (this.user.role == 'manager' || this.user.role == "admin") {
                         this.managerTableInfo.data = processedData.reverse();
                     } else if (this.user.role == 'employee') {
                         this.employeeTableInfo.data = processedData.reverse();
@@ -186,6 +186,7 @@ export default {
 
                     if (response.ok) {
                         console.log(data);
+                        utils.successAlert("Demand has been approved")
                         this.fetchDemands()
                     } else {
                         console.log(response);
@@ -205,6 +206,7 @@ export default {
 
                     if (response.ok) {
                         console.log(data);
+                        utils.successAlert("Demand has been rejected")
                         this.fetchDemands()
                     } else {
                         console.log(response);
@@ -220,6 +222,7 @@ export default {
         //download demande pdf
         async downloadDemand(demand) {
             const query = { filepath: demand.file_path }
+            console.log(query)
             try {
                 const response = await utils.fetch_methode(services.file.download, query)
                 if (response.ok) {
