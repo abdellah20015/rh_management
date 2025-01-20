@@ -147,19 +147,11 @@ export default {
           }
         } else {
           console.error('Erreur lors du chargement des managers:', jsonData);
-          Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: 'Impossible de charger la liste des managers'
-          });
+          utils.errorAlert('Impossible de charger la liste des managers');
         }
       } catch (error) {
         console.error('Erreur:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Erreur lors du chargement des managers'
-        });
+        utils.errorAlert('Erreur lors du chargement des managers');
       }
     },
 
@@ -168,28 +160,14 @@ export default {
       try {
         const response = await utils.fetch_methode(services.user.create, formData);
         if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Succès',
-            text: 'Utilisateur créé avec succès',
-            timer: 3000,
-            timerProgressBar: true
-          });
+          utils.successAlert('Utilisateur créé avec succès');
         } else {
           const error = await response.json();
-          Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: error.message || 'Erreur lors de la création de l\'utilisateur'
-          });
+          utils.errorAlert(error.message || 'Erreur lors de la création de l\'utilisateur');
         }
       } catch (error) {
         console.error('Erreur:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Erreur lors de la création de l\'utilisateur'
-        });
+        utils.errorAlert('Erreur lors de la création de l\'utilisateur');
       }
     },
     handleFileChange(event) {
@@ -197,11 +175,7 @@ export default {
     },
     async handleFileSubmit() {
       if (!this.selectedFile) {
-        Swal.fire({
-          icon: 'warning',
-          title: 'Attention',
-          text: 'Veuillez sélectionner un fichier avant de continuer'
-        });
+        utils.errorAlert('Veuillez sélectionner un fichier avant de continuer');
         return;
       }
 
@@ -216,32 +190,18 @@ export default {
         });
 
         if (response.ok) {
-          Swal.fire({
-            icon: 'success',
-            title: 'Succès',
-            text: 'Fichier importé avec succès',
-            timer: 3000,
-            timerProgressBar: true
-          });
+          utils.successAlert('Fichier importé avec succès');
           await this.loadFileHistory();
           this.selectedFile = null;
           const fileInput = document.querySelector('input[type="file"]');
           if (fileInput) fileInput.value = '';
         } else {
           const error = await response.text();
-          Swal.fire({
-            icon: 'error',
-            title: 'Erreur',
-            text: error || 'Erreur lors de l\'import du fichier'
-          });
+          utils.errorAlert(error || 'Erreur lors de l\'import du fichier');
         }
       } catch (error) {
         console.error('Erreur:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Erreur lors de l\'import du fichier'
-        });
+        utils.errorAlert('Erreur lors de l\'import du fichier');
       }
     },
     async loadFileHistory() {
@@ -273,11 +233,7 @@ export default {
         }
       } catch (error) {
         console.error('Erreur lors du chargement de l\'historique:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Erreur',
-          text: 'Impossible de charger l\'historique des fichiers'
-        });
+        utils.errorAlert('Impossible de charger l\'historique des fichiers');
       }
     },
 
