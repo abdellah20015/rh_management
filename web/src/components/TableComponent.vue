@@ -81,7 +81,11 @@ export default {
       this.$emit("page-changed", newPage);
     },
     convertDate(date) {
-      return utils.convertDate(date);
+      if (!typeof data == "string") {
+        return utils.formatDate(date);
+      }else {
+        return date;
+      }
     }
   },
 };
