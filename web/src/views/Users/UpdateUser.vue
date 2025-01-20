@@ -46,7 +46,7 @@ export default {
           ],
         },
         {
-          name: "manager",
+          name: "manager_id",
           type: "select",
           label: "manager",
           options: [],
@@ -71,6 +71,7 @@ export default {
       btn_text: "Update user",
       title: "Update user Form",
       userData: {},
+      userId: null,
     };
   },
   methods: {
@@ -152,12 +153,10 @@ export default {
     },
   },
   computed: {
-    userId() {
-      const authStore = useAuthStore();
-      return authStore.user_id;
-    },
+
   },
   mounted() {
+    this.userId = this.$route.params.id;
     this.getUser();
     this.getManager()
   },

@@ -1,12 +1,11 @@
 <template>
   <div class="p-6">
     <FormComponent
-      :fields="fields"
+      :fields="allFields"
       :btn_text="'Mettre à jour le contrat'"
       :title="'Mise à jour du contrat'"
       :initialData="contractData"
       @formSubmitted="updateContract"
-      @fieldChange="handleFieldChange"
     />
   </div>
 </template>
@@ -40,6 +39,12 @@ export default {
           label: "Date de début",
         },
         {
+        type: "date",
+        name: "end_date",
+        label: "Date de fin (Pour CDD)",
+        hidden: (formData) => formData.type !== "cdd", 
+        },
+        {
           type: "text",
           name: "salary",
           label: "Salaire",
@@ -52,34 +57,12 @@ export default {
           placeholder: "Entrez le solde de congés",
         },
       ],
-      endDateField: {
-        type: "date",
-        name: "end_date",
-        label: "Date de fin (Pour CDD)",
-      },
       auth: useAuthStore(),
       contractData: {},
-      contract_id: null,
+      user_id: null,
     };
   },
-  computed: {
-    fields() {
-      if (this.selectedType === "cdd") {
-        return [
-          ...this.allFields.slice(0, 2),
-          this.endDateField,
-          ...this.allFields.slice(2),
-        ];
-      }
-      return this.allFields;
-    },
-  },
   methods: {
-    handleFieldChange({ name, value }) {
-      if (name === "type") {
-        this.selectedType = value;
-      }
-    },
     validateFormData(data) {
       const requiredFields = ["type", "start_date", "salary", "leave_balance"];
       if (data.type === "cdd") {
@@ -93,7 +76,7 @@ export default {
     async fetchUserProfile() {
       try {
         const response = await utils.fetch_methode(services.user.profile, {
-          user_id: this.auth.user_id,
+          user_id: this.user_id,
         });
         const data = await response.json();
 
@@ -147,6 +130,7 @@ export default {
     },
   },
   mounted() {
+    this.user_id = this.$route.params.id;
     this.fetchUserProfile();
   },
 };

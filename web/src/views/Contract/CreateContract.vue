@@ -1,11 +1,10 @@
 <template>
   <div class="p-6">
     <FormComponent
-      :fields="fields"
+      :fields="allFields"
       :btn_text="'Créer le contrat'"
       :title="'Création d\'un contrat'"
       @formSubmitted="handleContractSubmission"
-      @fieldChange="handleFieldChange"
     />
   </div>
 </template>
@@ -39,6 +38,12 @@ export default {
           label: "Date de début",
         },
         {
+        type: "date",
+        name: "end_date",
+        label: "Date de fin (Pour CDD)",
+        hidden: (formData) => formData.type !== "cdd", 
+        },
+        {
           type: "text",
           name: "salary",
           label: "Salaire",
@@ -50,33 +55,13 @@ export default {
           label: "Solde congés",
           placeholder: "Entrez le solde de congés",
         },
+ 
       ],
-      endDateField: {
-        type: "date",
-        name: "end_date",
-        label: "Date de fin (Pour CDD)",
-      },
-      auth : useAuthStore()
+      auth : useAuthStore(),
+      user_id : null
     };
   },
-  computed: {
-    fields() {
-      if (this.selectedType === "cdd") {
-        return [
-          ...this.allFields.slice(0, 2),
-          this.endDateField,
-          ...this.allFields.slice(2),
-        ];
-      }
-      return this.allFields;
-    },
-  },
   methods: {
-    handleFieldChange({ name, value }) {
-      if (name === "type") {
-        this.selectedType = value;
-      }
-    },
     validateFormData(data) {
       const requiredFields = ["type", "start_date", "salary", "leave_balance"];
       if (data.type === "cdd") {
@@ -98,7 +83,7 @@ export default {
 
         const contractData = {
           ...formData,
-          user_id: this.auth.user_id,
+          user_id: this.user_id,
           salary,
           leave_balance: parseInt(formData.leave_balance),
           status: true,
@@ -124,5 +109,8 @@ export default {
       }
     },
   },
+  mounted(){
+    this.user_id = this.$route.params.id;
+  }
 };
 </script>
