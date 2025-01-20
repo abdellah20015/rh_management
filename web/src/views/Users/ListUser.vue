@@ -172,8 +172,7 @@ export default {
       this.fetchUsers();
     },
     viewUser(user) {
-      this.authStore.setUserId(user._id);
-      this.$router.push({ name: "profile_user" });
+      this.$router.push({ name: "profile_user" , params : {id : user._id} });
     },
     async deleteUser(user) {
       const response = await utils.fetch_methode(services.user.delete, {
@@ -189,8 +188,7 @@ export default {
       }
     },
     updateUser(user) {
-      this.authStore.setUserId(user._id);
-      this.$router.push({ name: "update_user" });
+      this.$router.push({ name: "update_user", params: { id: user._id } });
     },
 
     filterHandler(filterData) {

@@ -3,54 +3,58 @@
     <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{ title }}</h2>
 
     <div v-for="field in fields" :key="field.name" class="space-y-2">
-      <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
-
-      <div v-if="['text', 'email', 'password', 'number'].includes(field.type)" class="mb-6">
+      
+      <!-- Champ de type input -->
+      <div v-if="['text', 'email', 'password' , 'number'].includes(field.type)" class="mb-6">
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
         <input
           :type="field.type"
-          :id="field.name"
           :name="field.name"
           :placeholder="field.placeholder"
-          v-model="formState[field.name]"
-          @input="updateField(field.name, $event.target.value)"
+          v-model="formData[field.name]"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         />
       </div>
 
+    <!-- Champ de type date -->
+    <div v-if="field.type === 'date'  && !isFieldHidden(field)" class="mb-6">
+      <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+      <input
+        :type="field.type"
+        :name="field.name"
+        v-model="formData[field.name]"
+        class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+      />
+    </div>
+
+
+      <!-- Champ de type select -->
       <div v-if="field.type === 'select'" class="mb-6">
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
         <select
-          :id="field.name"
           :name="field.name"
+          v-model="formData[field.name]"
           :multiple="field.multiple"
-          v-model="formState[field.name]"
-          @change="updateField(field.name, $event.target.value)"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         >
-          <option value="">Sélectionnez une option</option>
+          <option value="" disabled  >{{ field.label }}</option>
+          
+          <!-- Options dynamiques -->
           <option v-for="option in field.options" :key="option.value" :value="option.value">
             {{ option.label }}
           </option>
         </select>
       </div>
 
-      <div v-if="field.type === 'date'" class="mb-6">
-        <input
-          type="date"
-          :id="field.name"
-          :name="field.name"
-          v-model="formState[field.name]"
-          @input="updateField(field.name, $event.target.value)"
-          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-        />
-      </div>
-
+      <!-- Autres types de champ -->
       <div v-if="field.type === 'radio'" class="mb-6 flex flex-col space-y-2">
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
         <div v-for="option in field.options" :key="option.value" class="flex items-center">
           <input
             type="radio"
             :name="field.name"
             :value="option.value"
-            v-model="formState[field.name]"
+            v-model="formData[field.name]"
             class="mr-2"
           />
           <label class="text-gray-700 text-sm">{{ option.label }}</label>
@@ -58,23 +62,25 @@
       </div>
 
       <div v-if="field.type === 'textarea'" class="mb-6">
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
         <textarea
           :name="field.name"
-          v-model="formState[field.name]"
+          v-model="formData[field.name]"
           :placeholder="field.placeholder"
           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
         ></textarea>
       </div>
 
       <div v-if="field.type === 'checkbox'" class="mb-6 flex items-center">
-        <input type="checkbox" :name="field.name" v-model="formState[field.name]" class="mr-2" />
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+        <input type="checkbox" :name="field.name" v-model="formData[field.name]" class="mr-2" />
         <label class="text-gray-700 text-sm">{{ field.label }}</label>
       </div>
     </div>
 
     <div class="flex items-center justify-between">
       <button
-        class="bg-black w-full hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
+        class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
         type="submit"
       >
         {{ btn_text }}
@@ -84,60 +90,79 @@
 </template>
 
 <script>
-import { ref, watch } from 'vue';
-
 export default {
-  name: 'FormComponent',
+  name: "FormComponent",
   props: {
     fields: {
       type: Array,
-      required: true
+      required: true,
     },
     btn_text: {
       type: String,
-      required: true
+      required: true,
     },
     title: {
       type: String,
-      required: true
+      required: true,
     },
     initialData: {
       type: Object,
-      default: () => ({})
-    }
+      default: () => ({}),
+    },
   },
-
-  emits: ['fieldChange', 'formSubmitted'],
-  setup(props, { emit }) {
-    const formState = ref({});
-
-    const initializeForm = () => {
-      props.fields.forEach((field) => {
-        formState.value[field.name] =
-          props.initialData[field.name] !== undefined
-            ? props.initialData[field.name]
-            : field.type === 'checkbox'
-            ? false
-            : '';
-      });
-    };
-
-    watch(() => props.initialData, initializeForm, { immediate: true, deep: true });
-
-    const updateField = (name, value) => {
-      formState.value[name] = value;
-      emit('fieldChange', { name, value });
-    };
-
-    const handleSubmit = () => {
-      emit('formSubmitted', { ...formState.value });
-    };
-
+  data() {
     return {
-      formState,
-      updateField,
-      handleSubmit
+      formData: {},
     };
+  },
+  watch: {
+    initialData: {
+      handler(newVal) {
+        this.formData = { ...newVal };
+      },
+    },
+    'formData.type': {
+    handler(newVal) {
+      this.fields.forEach((field) => {
+        const isHidden = field.hidden && typeof field.hidden === 'function' && field.hidden(this.formData);
+        if (isHidden && this.formData.hasOwnProperty(field.name)) {
+          delete this.formData[field.name];
+        } else if (!isHidden && !this.formData.hasOwnProperty(field.name)) {
+          this.formData[field.name] = '';
+        }
+      });
+    },
+    immediate: true
   }
+  },
+  created() {
+  this.fields.forEach((field) => {
+    // First check if the field is hidden
+    const isHidden = field.hidden && typeof field.hidden === 'function' && field.hidden(this.formData);
+    
+    // Only add to formData if the field is not hidden
+    if (!isHidden) {
+      this.formData[field.name] = 
+        this.initialData[field.name] !== undefined
+          ? this.initialData[field.name]
+          : field.type === "checkbox"
+          ? false
+          : field.type === "select" && Array.isArray(this.initialData[field.name])
+          ? [...this.initialData[field.name]]
+          : "";
+    }
+  });
+},
+  methods: {
+    isFieldHidden(field) {
+      if (field.hidden && typeof field.hidden === 'function') {
+        return field.hidden(this.formData);
+      }
+      return false;
+    },
+    handleSubmit() {
+      this.$emit("formSubmitted", this.formData);
+    },
+  },
 };
 </script>
