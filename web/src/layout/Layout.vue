@@ -3,10 +3,12 @@
     <!-- Navbar -->
     <nav class="bg-black p-3">
       <div class="container mx-auto flex justify-between items-center">
-        <div class="text-white text-2xl font-bold">RH</div>
+        <div class="text-white text-2xl font-bold">
+          <RouterLink :to="{ name : 'list_demand' }"> RH</RouterLink>
+        </div>
         <div class="flex justify-evenly w-1/3">
           <RouterLink :to="{ name : 'list_user' }" v-if="user.permissions.includes('view_users')" href="./users.html" class="text-white hover:text-gray-300">Les Utilisateurs</RouterLink>
-          <RouterLink :to="{ name : 'list_demand' }" v-if="user.role != 'admin'" href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
+          <RouterLink :to="{ name : 'list_demand' }"  href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
         </div>
         <div class="flex items-center space-x-4">
           <!-- Notification Dropdown -->
