@@ -106,6 +106,7 @@ public class Notifications extends AbstractVerticle {
         .add(new JsonObject().put("$match" , new JsonObject()
           .put("user_id", user_id)))
         .add(new JsonObject().put("$skip", skip))
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
         .add(new JsonObject().put("$limit", limit));
 
       JsonObject aggregation = new JsonObject()

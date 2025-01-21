@@ -49,6 +49,7 @@
 
 <script>
 import FormComponent from '@/components/FormComponent.vue';
+import router from '@/router';
 import services from '@/shared/services';
 import utils from '@/shared/utils';
 import { useAuthStore } from '@/stores/store';
@@ -200,8 +201,11 @@ export default {
             try {
                 console.log(query);
                 const response = utils.fetch_methode(services.demand.create, query)
-                if (response.ok) {
-                    console.log( (await response).json());
+                console.log((await response).status);
+                
+                if ((await response).status == 201) {
+                    utils.successAlert("votre demande a été créée")
+                    router.push({ "name" : "list_demand" })
                 } else {
                     console.log(response);
 
