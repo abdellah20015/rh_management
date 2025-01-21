@@ -6,7 +6,7 @@
       
       <!-- Champ de type input -->
       <div v-if="['text', 'email', 'password' , 'number'].includes(field.type)" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
         <input
           :type="field.type"
           :name="field.name"
@@ -18,7 +18,7 @@
 
     <!-- Champ de type date -->
     <div v-if="field.type === 'date'  && !isFieldHidden(field)" class="mb-6">
-      <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+      <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
       <input
         :type="field.type"
         :name="field.name"
@@ -30,7 +30,7 @@
 
       <!-- Champ de type select -->
       <div v-if="field.type === 'select'" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
         <select
           :name="field.name"
           v-model="formData[field.name]"
@@ -62,7 +62,7 @@
       </div>
 
       <div v-if="field.type === 'textarea'" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
         <textarea
           :name="field.name"
           v-model="formData[field.name]"
@@ -72,7 +72,7 @@
       </div>
 
       <div v-if="field.type === 'checkbox'" class="mb-6 flex items-center">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
+        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
         <input type="checkbox" :name="field.name" v-model="formData[field.name]" class="mr-2" />
         <label class="text-gray-700 text-sm">{{ field.label }}</label>
       </div>
@@ -137,10 +137,7 @@ export default {
   },
   created() {
   this.fields.forEach((field) => {
-    // First check if the field is hidden
     const isHidden = field.hidden && typeof field.hidden === 'function' && field.hidden(this.formData);
-    
-    // Only add to formData if the field is not hidden
     if (!isHidden) {
       this.formData[field.name] = 
         this.initialData[field.name] !== undefined
