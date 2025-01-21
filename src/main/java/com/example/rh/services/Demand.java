@@ -137,16 +137,21 @@ public class Demand extends AbstractVerticle {
             Integer leave_days = details_.getInteger("days");
             if (type.equals("demande_conge") && leave_balance < leave_days) {
               // if (leave_balance <  leave_days) {
-                message.reply("insufficient leave balance");
+              JsonObject response = new JsonObject()
+                .put("status", "error")
+                .put("code", 400)
+                .put("message", "insufficient leave balance");
+              message.reply(response);
+
               // }
             }
             else{
               vertx.eventBus().request(Services.DB_INSERT, msg, res -> {
                 if (res.succeeded()) {
-        
+
                   JsonObject data = (JsonObject) res.result().body();
                   JsonObject demand = data.getJsonObject("data");
-        
+
                   JsonArray aggregation = new JsonArray()
                     .add(new JsonObject().put("$lookup", new JsonObject()
                       .put("from", Collections.USER)
@@ -178,39 +183,39 @@ public class Demand extends AbstractVerticle {
                       .put("user", "$user")
                       .put("contract" , "$contract")
                       .put("manager", "$manager")));
-        
+
                   JsonObject aggregationMsg = new JsonObject()
                     .put("collection", Collections.DEMANDS)
                     .put("pipeline", aggregation)
                     .put("options", new JsonObject());
-        
+
                   vertx.eventBus().request(Services.DB_AGGREGATE, aggregationMsg, aggregationRes -> {
                     try {
                       if (res.succeeded()) {
                         JsonObject aggregationData = (JsonObject) aggregationRes.result().body();
                         JsonArray dataArray = aggregationData.getJsonArray("data");
                         JsonObject result = dataArray.getJsonObject(0);
-        
+
                         System.out.println(dataArray);
-        
+
                         vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
                           if (generatePdfRes.succeeded()) {
-        
+
                             JsonObject demandBody = (JsonObject) res.result().body();
                             JsonObject demandData = demandBody.getJsonObject("data");
-        
+
                             JsonObject update = new JsonObject()
                               .put("file_path", generatePdfRes.result().body());
-        
+
                             JsonObject updateDemandMsg = new JsonObject()
                               .put("collection", Collections.DEMANDS)
                               .put("id", demandData.getString("_id"))
                               .put("update", update);
-        
+
                             vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
                               if (updateDemandRes.succeeded()) {
                                 System.out.println("demand has been created : " + updateDemandRes.result().body());
-        
+
                                 //create notification for manager
                                 JsonArray pipeline = new JsonArray()
                                   .add(new JsonObject().put("$lookup", new JsonObject()
@@ -226,25 +231,25 @@ public class Demand extends AbstractVerticle {
                                     .put(Fields.NOTIFICATION_USER_USERNAME , "$user.username")
                                     .put(Fields.NOTIFICATION_EMPLOYEE_ID , "$user._id")
                                     .put(Fields.NOTIFICATION_USER_ID , "$user.manager_id")));
-        
+
                                 JsonObject NotificationAggregation = new JsonObject()
                                   .put("collection", Collections.DEMANDS)
                                   .put("pipeline", pipeline)
                                   .put("options", new JsonObject());
-        
+
                                 vertx.eventBus().request(Services.DB_AGGREGATE,NotificationAggregation, aggRes -> {
                                   if(aggRes.succeeded()) {
                                     System.out.println("\n +++ notification agg" + aggRes.result().body());
                                     JsonObject notificationAggRes = (JsonObject) aggRes.result().body();
                                     JsonArray notificationArrayData = notificationAggRes.getJsonArray("data");
                                     JsonObject notificationJsonData = notificationArrayData.getJsonObject(0);
-        
+
                                     JsonObject notificationData = new JsonObject()
                                       .put(Fields.NOTIFICATION_DEMAND_ID , notificationJsonData.getString("_id"))
                                       .put(Fields.NOTIFICATION_USER_ID, notificationJsonData.getString(Fields.NOTIFICATION_USER_ID))
                                       .put(Fields.NOTIFICATION_USER_USERNAME, notificationJsonData.getString(Fields.NOTIFICATION_USER_USERNAME))
                                       .put(Fields.NOTIFICATION_EMPLOYEE_ID, notificationJsonData.getString(Fields.NOTIFICATION_EMPLOYEE_ID));
-        
+
                                     vertx.eventBus().request(Services.NOTIFICATION_CREATE, notificationData, notificationRes -> {
                                       message.reply(updateDemandRes.result().body());
                                     });
@@ -265,7 +270,7 @@ public class Demand extends AbstractVerticle {
                   message.reply(res.cause().getMessage());
                 }
               });
-        
+
             }
           }
           else{
@@ -315,11 +320,11 @@ public class Demand extends AbstractVerticle {
               System.out.println("demande conge approved");
                 JsonObject contract = new JsonObject()
                   .put("collection", Collections.CONTRACTS)
-                  .put("query", new JsonObject().put(Fields.CONTRACT_USER_ID, user_id)); 
-                
+                  .put("query", new JsonObject().put(Fields.CONTRACT_USER_ID, user_id));
+
                 vertx.eventBus().request(Services.DB_FIND_ONE, contract, reply ->{
                   if (reply.succeeded()) {
-                    
+
                     JsonObject contractData = (JsonObject) reply.result().body();
                     Integer leave_balance = contractData.getInteger(Fields.CONTRACT_LEAVE_BALANCE);
                     JsonObject details = resBodyData.getJsonObject(Fields.DEMAND_DETAILS);
@@ -336,7 +341,7 @@ public class Demand extends AbstractVerticle {
                         } else {
                           message.reply(contractUpdateReply.cause().getMessage());
                         }
-                      });           
+                      });
                     }
                   }
                   else{

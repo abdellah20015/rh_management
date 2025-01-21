@@ -200,18 +200,24 @@ export default {
             // console.log(query);
             try {
                 console.log(query);
-                const response = utils.fetch_methode(services.demand.create, query)
-                console.log((await response).status);
-                
-                if ((await response).status == 201) {
-                    utils.successAlert("votre demande a été créée")
-                    router.push({ "name" : "list_demand" })
-                } else {
-                    console.log(response);
+                const response = await utils.fetch_methode(services.demand.create, query);
+                const data = await response.json();
 
+                console.log(data.message);
+
+                if (data.code  === 400) {
+                    utils.errorAlert(data.message);
+                    return;
                 }
+
+                if (response.status === 201) {
+                    utils.successAlert("votre demande a été créée");
+                    router.push({ "name": "list_demand" });
+                }
+
             } catch (err) {
-                console.log(err);
+                console.error('Error:', err);
+                utils.errorAlert("Une erreur inattendue s'est produite");
             }
         }
     },
