@@ -3,7 +3,7 @@
     <div class="w-11/12">
       <div class="flex items-center justify-between p-5 my-3">
         <p class="text-2xl font-semibold ">Listes des utilisateurs</p>
-        <router-link :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
+        <router-link v-if="authStore.user.permissions.includes('create_user')" :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
           Ajouter un utilisateur
         </router-link>
       </div>

@@ -776,8 +776,10 @@ public void handlePermission(RoutingContext ctx, String permission) {
           .put("pipeline", new JsonArray()
               .add(new JsonObject().put("$match", match))
               .add(new JsonObject().put("$lookup", lookupContracts))
+              .add(new JsonObject().put("$sort", new JsonObject().put("date_creation", -1)))
               .add(new JsonObject().put("$skip", skip))
               .add(new JsonObject().put("$limit", limit))
+
           )
           .put("options", new JsonObject());
 

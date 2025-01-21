@@ -85,8 +85,8 @@ export default {
       this.$emit("page-changed", newPage);
     },
     convertDate(date) {
-      if (!typeof data == "string") {
-        return utils.formatDate(date);
+      if (typeof date != "string") {
+        return utils.convertDate(date);
       }else {
         return date;
       }

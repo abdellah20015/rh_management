@@ -60,7 +60,7 @@ export default {
                     {
                         button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
-                         disabled: (demand) => demand.status === "rejected"
+                        disabled: false
                     }
                 ],
             },
@@ -167,10 +167,6 @@ export default {
                         this.totalPages = Math.ceil(this.count / this.pageSize);
                     }
 
-                    console.log("count" + this.count);
-                    console.log("pageSize" + this.pageSize);
-                    console.log("totalPages" + this.totalPages);
-
                     const processedData = data.data.map((item) => ({
                         //create new object from the original objct
                         ...item,
@@ -180,9 +176,9 @@ export default {
                     }));
 
                     if (this.user.role == 'manager' || this.user.role == "admin") {
-                        this.managerTableInfo.data = processedData.reverse();
+                        this.managerTableInfo.data = processedData;
                     } else if (this.user.role == 'employee') {
-                        this.employeeTableInfo.data = processedData.reverse();
+                        this.employeeTableInfo.data = processedData;
                     }
                 } else {
                     console.log(response);
