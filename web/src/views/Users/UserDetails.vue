@@ -205,7 +205,9 @@ export default {
       pageSize: 10,
       currentPage: 1,
       totalPages: 1,
+      count: 0,
       authStore: useAuthStore(),
+
       employeeTableInfo: {
         headers: [
           { title: "Type de demand", key: "typeTitle" },
@@ -218,12 +220,12 @@ export default {
           {
             button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
             action: this.approveDemand,
-            disabled: (demand) => demand.status === "approved" || useAuthStore().user.id === useAuthStore().user_id
+            disabled: (demand) => demand.status === "approved" || useAuthStore().user.id === this.userId
           },
           {
             button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
             action: this.rejecetDemand,
-            disabled: (demand) => demand.status === "rejected" || useAuthStore().user.id === useAuthStore().user_id
+            disabled: (demand) => demand.status === "rejected" || useAuthStore().user.id === this.userId
           },
           {
             button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
@@ -283,7 +285,7 @@ export default {
         },
       ],
       userId: null,
-      contractId: null 
+      contractId: null
     }
   },
 
@@ -326,6 +328,14 @@ export default {
             this.userData = responseData.data[0];
             this.contractId = this.userData.contracts[0]?._id;
             console.log('User profile data set:', this.userData);
+
+            //pagination
+            this.count = responseData.count;
+            this.count += (this.currentPage - 1) * this.pageSize;
+            console.log(this.count);
+            if (this.count > this.pageSize) {
+              this.totalPages = Math.ceil(this.count / this.pageSize);
+            }
 
             //to add fields that will show in the table
             const processedData = this.userData.demands.map((item) => ({
@@ -381,6 +391,7 @@ export default {
 
           if (response.ok) {
             console.log(data);
+            utils.successAlert("La demande a été approuvée")
             this.fetchUserProfile()
           } else {
             console.log(response);
@@ -400,6 +411,7 @@ export default {
 
           if (response.ok) {
             console.log(data);
+            utils.successAlert("La demande a été rejetée")
             this.fetchUserProfile()
           } else {
             console.log(response);
@@ -413,11 +425,11 @@ export default {
     },
 
     navigateToContractCreate() {
-      this.$router.push({name : "contract_create" , params : {id : this.userId}});
+      this.$router.push({ name: "contract_create", params: { id: this.userId } });
     },
 
     navigateToContractUpdate() {
-      this.$router.push({name : "contract_update" ,params : {id : this.userId} });
+      this.$router.push({ name: "contract_update", params: { id: this.userId } });
     },
 
     //hanlder filter
