@@ -167,10 +167,6 @@ export default {
                         this.totalPages = Math.ceil(this.count / this.pageSize);
                     }
 
-                    console.log("count" + this.count);
-                    console.log("pageSize" + this.pageSize);
-                    console.log("totalPages" + this.totalPages);
-
                     const processedData = data.data.map((item) => ({
                         //create new object from the original objct
                         ...item,
@@ -180,9 +176,9 @@ export default {
                     }));
 
                     if (this.user.role == 'manager' || this.user.role == "admin") {
-                        this.managerTableInfo.data = processedData.reverse();
+                        this.managerTableInfo.data = processedData;
                     } else if (this.user.role == 'employee') {
-                        this.employeeTableInfo.data = processedData.reverse();
+                        this.employeeTableInfo.data = processedData;
                     }
                 } else {
                     console.log(response);

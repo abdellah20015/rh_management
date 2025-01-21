@@ -25,11 +25,11 @@
             </button>
             <transition name="fade-slide">
               <div v-if="isNotificationDropdownOpen"
-                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg py-2 z-20 h-96 overflow-y-auto">
+                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg  z-20 h-96 overflow-y-auto">
                 <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
                 <div v-else>
                   <div class="mb-3 mt-1 mx-4">
-                    <p class="text-sm font-semibold">notifications non lues : ( {{ notifications.filter(notification => notification.is_read == false ).length }} )</p>
+                    <p class="text-sm font-semibold py-2">notifications non lues : ( {{ notifications.filter(notification => notification.is_read == false ).length }} )</p>
                   </div>
                   <a @click="updateNotificationStatus(notification)" v-for="(notification, index) in notifications" :key="index"
                     href="#" class="block border-t border-gray-300 text-gray-700  hover:bg-gray-100">
@@ -60,6 +60,9 @@
                       </div>
                     </div>
                   </a>
+                </div>
+                <div class="flex justify-center">
+                  <a href="#" class="w-full text-center bg-slate-300 p-3 text-sm font-semibold" @click="addPagesize">charger plus</a>
                 </div>
               </div>
             </transition>
@@ -144,7 +147,7 @@ export default {
     async getNotifications() {
       const response = await utils.fetch_methode(services.notification.list, { query: { "user_id": this.user.id }, options: { "page": this.currentPage, "limit": this.pageSize } });
       const data = await response.json();
-      this.notifications = data.data.reverse();
+      this.notifications = data.data;
     },
 
     //update notification is_read statsu to true
@@ -162,6 +165,12 @@ export default {
       }catch(err){
         console.log(err);
       }
+    },
+
+    async addPagesize() {
+      this.pageSize += this.pageSize
+      console.log(this.pageSize);
+      this.getNotifications()
     },
 
     convertDate(date) {

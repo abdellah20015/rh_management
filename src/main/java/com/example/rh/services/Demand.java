@@ -61,6 +61,7 @@ public class Demand extends AbstractVerticle {
         }
 
         pipeline.add(new JsonObject().put("$skip" , skip))
+          .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
           .add(new JsonObject().put("$limit" , limit))
           .add(new JsonObject().put("$project", new JsonObject()
             .put("_id", 1)
