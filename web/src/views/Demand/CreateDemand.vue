@@ -201,7 +201,7 @@ export default {
                 console.log(query);
                 const response = utils.fetch_methode(services.demand.create, query)
                 if (response.ok) {
-                    console.log(response);
+                    console.log( (await response).json());
                 } else {
                     console.log(response);
 
