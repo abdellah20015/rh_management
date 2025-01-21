@@ -474,13 +474,11 @@ public void downloadFile(RoutingContext ctx) {
       vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
           if (res.succeeded()) {
               JsonObject response = (JsonObject) res.result().body();
-              byte[] content = response.getBinary("content");
               String filename = Paths.get(response.getString("filepath")).getFileName().toString();
-
               ctx.response()
                   .putHeader("Content-Type", "application/pdf")
                   .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                  .end(Buffer.buffer(content));
+                  .sendFile("uploads/" +filename);
           } else {
               String error = res.cause().getMessage();
               int statusCode = error.contains("non trouvé") ? 404 : 500;
@@ -813,7 +811,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
     JsonObject payload = new JsonObject()
                             .put("collection", Collections.USER)
                             .put("query", new JsonObject()
-                            .put("role", new JsonObject().put("$in", new JsonArray().add("manager").add("admin"))));
+                                .put("role", new JsonObject().put("$in", new JsonArray().add("manager").add("admin"))));
     vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
       if (reply.succeeded()) {
         ctx.response()
