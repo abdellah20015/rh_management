@@ -3,7 +3,7 @@
     <div class="w-11/12">
       <div class="flex items-center justify-between p-5 my-3">
         <p class="text-2xl font-semibold ">Listes des utilisateurs</p>
-        <router-link :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
+        <router-link v-if="authStore.user.permissions.includes('create_user')" :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
           Ajouter un utilisateur
         </router-link>
       </div>
@@ -46,19 +46,21 @@ export default {
         data: [],
         buttons: [
           {
-            button: `<button style='background-color: #3498db; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" />
+            button: `<button style='background-color: #3588B4; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" />
 </button>`,
             action: this.viewUser,
             disabled: false,
           },
           {
-            button: `<button style='background-color: #e74c3c; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
+            button: `<button style='background-color: #C1121F; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
             action: this.deleteUser,
             disabled: () =>
               !this.authStore.user.permissions.includes("delete_user"),
           },
           {
-            button: `<button style='background-color: #f39c12; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/available-updates.png" alt="Update Icon" /></button>`,
+            button: `<button style='background-color: #FFBE0B; padding: 7px; color: white; border-radius: 2px; border: none;'>
+                          <img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/pencil--v1.png" alt="Pencil Icon" />
+                    </button>`,
             action: this.updateUser,
             disabled: () =>
               !this.authStore.user.permissions.includes("update_user"),
@@ -94,21 +96,21 @@ export default {
           name: "Type de contrat",
           values: [
             {
-              title: "cdd",
-              value: "cdd",
-              key: "contractType",
+              title: "CDD",
+              value: "CDD",
+              key: "contractTypeTitle",
               selected: false,
             },
             {
-              title: "cdi",
-              value: "cdi",
-              key: "contractType",
+              title: "CDI",
+              value: "CDI",
+              key: "contractTypeTitle",
               selected: false,
             },
             {
               title: "Pas de contrat",
               value: "Pas de contrat",
-              key: "contractType",
+              key: "contractTypeTitle",
               selected: false,
             },
           ],
@@ -171,7 +173,7 @@ export default {
       this.fetchUsers();
     },
     viewUser(user) {
-      this.$router.push({ name: "profile_user", params: { id: user._id } });
+      this.$router.push({ name: "details_user" , params : {id : user._id} });
     },
     async deleteUser(user) {
       const response = await utils.fetch_methode(services.user.delete, {
@@ -203,11 +205,11 @@ export default {
           groupedFilters[fieldName].push(value);
         });
 
-        const filteredData = currentData.filter((demande) => {
+        const filteredData = currentData.filter((user) => {
           return Object.keys(groupedFilters).every((fieldName) => {
             return groupedFilters[fieldName].some(
               (filterValue) =>
-                String(demande[fieldName]).toLowerCase() ===
+                String(user[fieldName]).toLowerCase() ===
                 String(filterValue).toLowerCase()
             );
           });

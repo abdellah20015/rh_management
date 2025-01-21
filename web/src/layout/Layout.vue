@@ -25,7 +25,7 @@
             </button>
             <transition name="fade-slide">
               <div v-if="isNotificationDropdownOpen"
-                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg  z-20 h-96 overflow-y-auto">
+                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg  z-20 h-96 overflow-y-auto flex flex-col justify-between">
                 <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
                 <div v-else>
                   <div class="mb-3 mt-1 mx-4">

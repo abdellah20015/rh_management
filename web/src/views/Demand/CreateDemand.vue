@@ -199,13 +199,16 @@ export default {
             }
             // console.log(query);
             try {
+                console.log(query);
                 const response = utils.fetch_methode(services.demand.create, query)
                 console.log((await response).status);
+                
                 if ((await response).status == 201) {
-                    utils.successAlert("Votre demande a été créée")
-                    router.push({ "name" : "list_demand"})
+                    utils.successAlert("votre demande a été créée")
+                    router.push({ "name" : "list_demand" })
                 } else {
-                    utils.errorAlert("Erreur dans la création de la demande")
+                    console.log(response);
+
                 }
             } catch (err) {
                 console.log(err);
