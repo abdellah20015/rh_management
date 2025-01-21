@@ -41,7 +41,7 @@ export default {
         type: "date",
         name: "end_date",
         label: "Date de fin (Pour CDD)",
-        hidden: (formData) => formData.type !== "cdd", 
+        hidden: (formData) => formData.type !== "cdd",
         },
         {
           type: "text",
@@ -55,7 +55,7 @@ export default {
           label: "Solde congés",
           placeholder: "Entrez le solde de congés",
         },
- 
+
       ],
       auth : useAuthStore(),
       user_id : null
@@ -75,7 +75,7 @@ export default {
     async handleContractSubmission(formData) {
       try {
         if (!this.validateFormData(formData)) {
-          alert("Veuillez remplir tous les champs obligatoires");
+          utils.errorAlert("Veuillez remplir tous les champs obligatoires")
           return;
         }
 
@@ -105,7 +105,6 @@ export default {
       } catch (error) {
        utils.errorAlert("Error: Contract creation failed. Please try again.");
         console.error("Erreur lors de la création du contrat:", error);
-      
       }
     },
   },
