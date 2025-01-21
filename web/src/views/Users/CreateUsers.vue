@@ -1,15 +1,25 @@
 <template>
-  <div class="p-6 max-w-4xl mx-auto">
-
-    <div class="flex justify-center mb-8">
-      <button @click="activeTab = 'form'"
-        :class="`px-4 py-2 ${activeTab === 'form' ? 'bg-black text-white' : 'bg-white text-black border border-black'}`">
-        Création manuelle
-      </button>
-      <button @click="activeTab = 'import'"
-        :class="`px-4 py-2 ${activeTab === 'import' ? 'bg-black text-white' : 'bg-white text-black border border-black'}`">
-        Import Excel
-      </button>
+  <div class="p-2 w-10/12 mx-auto">
+    <div class="my-5">
+      <RouterLink :to="{ name: 'list_user' }"
+        class="w-20 flex items-center justify-center bg-black text-center text-white rounded py-1">
+        <img width="30" height="30" src="https://img.icons8.com/ios-filled/50/FFFFFF/long-arrow-left.png"
+          alt="long-arrow-left" />
+      </RouterLink>
+    </div>
+    <div class="w-full flex justify-center mb-10">
+      <div class="flex justify-evenly bg-gray-200 border-2 border-gray-300 w-full p-3 rounded-md h-12 items-center">
+        <a href="#" @click="chooseDemand('form')"
+          class="w-80 text-center py-1 items-center rounded-md hover:bg-black hover:text-white transition-all delay-75 ease-in-out"
+          :class="{ 'bg-black text-white border border-gray-500 ': activeTab === 'form' }">
+          <p>Création manuelle</p>
+        </a>
+        <a href="#" @click="chooseDemand('import')"
+          class="w-80 text-center py-1 items-center rounded-md hover:bg-black hover:text-white transition-all delay-75 ease-in-out"
+          :class="{ 'bg-black text-white border border-gray-500 ': activeTab === 'import' }">
+          <p>Import Excel</p>
+        </a>
+      </div>
     </div>
 
     <!-- Form Creation -->
@@ -44,10 +54,16 @@
         <!-- File History -->
         <div class="mt-8">
           <h3 class="text-xl font-semibold mb-4">Historique des imports</h3>
-          <TableFilterComponent :filterStructure="filterStructure" @searchHandler="searchHandler"
-            @filterHandler="handleFilter" @resertFilterHandler="handleResetFilter" />
-          <TableComponent :tableInfo="tableInfo" :currentPage="currentPage" :totalPages="totalPages"
-            :pageSize="itemsPerPage" @page-changed="changePage" />
+          <div class="w-full flex justify-center">
+            <div class="w-[1100px] ">
+              <TableFilterComponent :filterStructure="filterStructure" @searchHandler="searchHandler"
+                @filterHandler="handleFilter" @resertFilterHandler="handleResetFilter" />
+            </div>
+          </div>
+          <div class="w-full">
+            <TableComponent :tableInfo="tableInfo" :currentPage="currentPage" :totalPages="totalPages"
+              :pageSize="itemsPerPage" @page-changed="changePage" />
+          </div>
         </div>
 
       </div>
@@ -78,7 +94,8 @@ export default {
       fileHistory: [],
       currentPage: 1,
       totalPages: 1,
-      itemsPerPage: 10,
+      itemsPerPage: 5,
+      count : 0,
       tableInfo: {
         headers: [
           { title: 'Nom du fichier', key: 'file_name' },
@@ -217,6 +234,17 @@ export default {
 
         if (response.ok) {
           const data = await response.json();
+          console.log(data);
+          
+
+          //pagination
+          this.count = data.files.count;
+          this.count += (this.currentPage - 1) * this.itemsPerPage;
+          console.log(data.files.count);
+
+          if (this.count > this.pageSize) {
+            this.totalPages = Math.ceil(this.count / this.itemsPerPage);
+          }
 
           if (data && data.files && data.files.data && Array.isArray(data.files.data)) {
             this.tableInfo.data = data.files.data.map(file => ({
@@ -239,10 +267,10 @@ export default {
 
 
     searchHandler(searchValue) {
-     if (searchValue == "") {
-        this.fetchDemands()
+      if (searchValue == "") {
+        this.loadFileHistory()
       }
-     const currentData = this.tableInfo.data;
+      const currentData = this.tableInfo.data;
 
       if (!searchValue) {
         return currentData;
@@ -254,13 +282,23 @@ export default {
         );
       });
 
-        this.tableInfo.data = searchedData;
+      this.tableInfo.data = searchedData;
     },
 
     changePage(newPage) {
       this.currentPage = newPage;
       this.loadFileHistory();
-    }
+    },
+
+    chooseDemand(type) {
+      if (type == "form") {
+        this.activeTab = "form";
+      } else if (type == "import") {
+        this.activeTab = "import";
+      }
+      console.log(this.demandType);
+
+    },
 
   },
 

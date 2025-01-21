@@ -3,22 +3,22 @@
         <div class="w-11/12">
             <div class="flex items-center justify-between p-5 my-3">
                 <p class="text-2xl font-semibold">Listes des demands</p>
-                <RouterLink :to="{ name: 'create_demand' }"  v-if="!this.user.role == 'admin'"  class="w-48 bg-black text-center text-white rounded p-2">
+                <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
+                    class="w-48 bg-black text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
             <div class="flex items-center justify-between p-5 ">
                 <TableFilterComponent :filterStructure="filterStructure" @filterHandler="filterHandler"
-                    @searchHandler="searchHandler"
-                    @resertFilterHandler="resertFilterHandler">
+                    @searchHandler="searchHandler" @resertFilterHandler="resertFilterHandler">
                 </TableFilterComponent>
             </div>
             <div v-if="user.permissions.includes('update_demand')">
                 <TableComponent :tableInfo="managerTableInfo" :pageSize="pageSize" :currentPage="currentPage"
-                    :totalPages="totalPages"></TableComponent>
+                    :totalPages="totalPages" @page-changed="handlePageChange"></TableComponent>
             </div>
             <div v-if="!user.permissions.includes('update_demand')">
                 <TableComponent :tableInfo="employeeTableInfo" :pageSize="pageSize" :currentPage="currentPage"
-                    :totalPages="totalPages"></TableComponent>
+                    :totalPages="totalPages" @page-changed="handlePageChange"></TableComponent>
             </div>
         </div>
     </div>
@@ -75,16 +75,16 @@ export default {
                 ],
                 data: [],
                 buttons: [
-                    {
-                        button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
-                        action: this.approveDemand,
-                        disabled: (demand) => demand.status === "approved"
-                    },
-                    {
-                        button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
-                        action: this.rejecetDemand,
-                        disabled: (demand) => demand.status === "rejected"
-                    },
+                    // {
+                    //     button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+                    //     action: this.approveDemand,
+                    //     disabled: (demand) => demand.status === "approved"
+                    // },
+                    // {
+                    //     button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+                    //     action: this.rejecetDemand,
+                    //     disabled: (demand) => demand.status === "rejected"
+                    // },
                     {
                         button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
@@ -145,6 +145,7 @@ export default {
 
             pageSize: 10,
             currentPage: 1,
+            count: 0,
             totalPages: 1,
             user: useAuthStore().user,
         };
@@ -156,8 +157,22 @@ export default {
                 const response = await utils.fetch_methode(services.demand.list, { query: {}, options: { "page": this.currentPage, "limit": this.pageSize } })
                 const data = await response.json();
                 if (response.ok) {
+
+                    //pagination
+                    this.count = data.count;
+                    this.count += (this.currentPage - 1) * this.pageSize;
+                    console.log(this.count);
+
+                    if (this.count > this.pageSize) {
+                        this.totalPages = Math.ceil(this.count / this.pageSize);
+                    }
+
+                    console.log("count" + this.count);
+                    console.log("pageSize" + this.pageSize);
+                    console.log("totalPages" + this.totalPages);
+
                     const processedData = data.data.map((item) => ({
-                        //create now object from the original objct
+                        //create new object from the original objct
                         ...item,
                         //chaneg type value to new value
                         typeTitle: utils.formatString(item.type),
@@ -277,7 +292,7 @@ export default {
         searchHandler(searchValue) {
 
             //get demande if value empty
-            if(searchValue == "") {
+            if (searchValue == "") {
                 this.fetchDemands()
             }
 
@@ -305,7 +320,12 @@ export default {
         //resert filter
         resertFilterHandler() {
             this.fetchDemands();
-        }
+        },
+
+        handlePageChange(newPage) {
+            this.currentPage = newPage;
+            this.fetchDemands();
+        },
 
     },
 

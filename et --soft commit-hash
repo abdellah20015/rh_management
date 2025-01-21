@@ -1,0 +1,245 @@
+[33mcommit 65e880a66eee6e5aea5e30293f29d623041e8839[m[33m ([m[1;36mHEAD -> [m[1;32myoussef[m[33m, [m[1;31morigin/main[m[33m)[m
+Merge: 31bd458 f11bb94
+Author: ilyass <110500633+ilyass-b@users.noreply.github.com>
+Date:   Sun Jan 19 21:52:40 2025 +0100
+
+    Merge pull request #48 from youssefamerzag/ilyass
+    
+    sweet alert
+
+[33mcommit f11bb94d4bec88c5c5c7826b33b0420cd69a9e91[m
+Author: ilyass-b <ilyass12345om@gmail.com>
+Date:   Sun Jan 19 21:50:54 2025 +0100
+
+    sweet alert ( npm install sweetalert2
+    ) create success and error alert in utils.js and add alert to  create/update contract reset_password login update user
+
+[33mcommit 31bd45863614f82f4f330f6133ab9de0d329530b[m
+Merge: 5dc3d3c d655723
+Author: ilyass <110500633+ilyass-b@users.noreply.github.com>
+Date:   Sun Jan 19 21:14:24 2025 +0100
+
+    Merge pull request #47 from youssefamerzag/ilyass
+    
+    Ilyass
+
+[33mcommit d655723d6ad467a5751f65154bc1768ff6c3ad7d[m
+Merge: 996795c 5dc3d3c
+Author: ilyass-b <ilyass12345om@gmail.com>
+Date:   Sun Jan 19 21:11:02 2025 +0100
+
+    create/update contract fix some change in openapi.json and pagination + filtre  fix in user list
+
+[33mcommit 996795c279d781068b4a3529c6728ab491e02fb5[m
+Author: ilyass-b <ilyass12345om@gmail.com>
+Date:   Sun Jan 19 18:44:42 2025 +0100
+
+    formcomponent fix
+
+[33mcommit 5dc3d3c83be0cf1d4e62ec5256ac5f7d60f66d44[m
+Merge: 5b571b4 a58e3a7
+Author: Youssef Amerzag <91285233+youssefamerzag@users.noreply.github.com>
+Date:   Sun Jan 19 18:41:40 2025 +0100
+
+    Merge pull request #46 from youssefamerzag/youssef
+    
+    remove /upload from path in donwloadFile, fix user details and profil…
+
+[33mcommit a58e3a795b2ac0d6df9779f3294c58e942a44d2a[m[33m ([m[1;31morigin/youssef[m[33m)[m
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Sun Jan 19 18:40:08 2025 +0100
+
+    remove /upload from path in donwloadFile, fix user details and profile logic, and add dynamic table to user details
+
+[33mcommit 5b571b42342577c2cc9ccb183df3e17036e3dc38[m
+Merge: 4df0759 7e55e6b
+Author: Abdellah Agnaou <128433447+abdellah20015@users.noreply.github.com>
+Date:   Sun Jan 19 13:15:39 2025 +0100
+
+    Merge pull request #45 from youssefamerzag/abdellah
+    
+    Abdellah
+
+[33mcommit 7e55e6b2ab7f0b82f25aac78b14e5ac30b617fbc[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sun Jan 19 13:14:08 2025 +0100
+
+    update CreateUsers, UserDetails
+
+[33mcommit 9441701d2dd77bfa862d5babcb287ac53de19901[m
+Merge: 87ec079 4df0759
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sun Jan 19 00:13:47 2025 +0100
+
+    Merge branch 'main' into abdellah
+
+[33mcommit 87ec0799771d94cd55ed6ab226ee418ae70cde6d[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sun Jan 19 00:12:47 2025 +0100
+
+    Update UserDetail
+
+[33mcommit cb4babed3619d0a3db60073b4ca04d2c66085860[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sun Jan 19 00:11:18 2025 +0100
+
+    Update UserDetail
+
+[33mcommit 4df0759b3e71379b75801b87e0018777cdff8f84[m
+Merge: 0541636 9565243
+Author: Youssef Amerzag <91285233+youssefamerzag@users.noreply.github.com>
+Date:   Sat Jan 18 22:50:10 2025 +0100
+
+    Merge pull request #44 from youssefamerzag/youssef
+    
+    add update notification status, fix layout dropdown and add table fil…
+
+[33mcommit 9565243c924a266c979ce2da671ac6161e804d34[m
+Merge: bfdc9e4 0541636
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Sat Jan 18 22:44:28 2025 +0100
+
+    marge main with youssef
+
+[33mcommit bfdc9e43e2327d70e2bf60d42987c9c91ff87a47[m
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Sat Jan 18 22:29:28 2025 +0100
+
+    add update notification status, fix layout dropdown and add table filter dynamic component
+
+[33mcommit 05416366b015c2496a96d4661a927991e1d1d326[m[33m ([m[1;32mmain[m[33m)[m
+Merge: aca4d44 9869eed
+Author: Abdellah Agnaou <128433447+abdellah20015@users.noreply.github.com>
+Date:   Sat Jan 18 20:06:54 2025 +0100
+
+    Merge pull request #43 from youssefamerzag/abdellah
+    
+    Abdellah
+
+[33mcommit 9869eed8276c9507c413835106497bb6cb557ad0[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 20:02:29 2025 +0100
+
+    update body filepath to download
+
+[33mcommit cef438e4b57f82ef9f5611b656d0ba40c57cfaa2[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 19:38:49 2025 +0100
+
+    add downloadfile ctx
+
+[33mcommit aca4d4489948819f1674b2bbf548ddf74906bc4e[m
+Merge: 87e8c78 121c738
+Author: Abdellah Agnaou <128433447+abdellah20015@users.noreply.github.com>
+Date:   Sat Jan 18 19:42:10 2025 +0100
+
+    Merge pull request #42 from youssefamerzag/abdellah
+    
+    Merge pull request #41 from youssefamerzag/main
+
+[33mcommit 121c738957b53591aaa31cd7a4aab31ee029047e[m
+Merge: fa4729d 87e8c78
+Author: Abdellah Agnaou <128433447+abdellah20015@users.noreply.github.com>
+Date:   Sat Jan 18 19:40:34 2025 +0100
+
+    Merge pull request #41 from youssefamerzag/main
+    
+    Merge pull request #40 from youssefamerzag/abdellah
+
+[33mcommit 87e8c78a840894164e190eaedad752453ff4b06f[m
+Merge: 12f6adf fa4729d
+Author: Abdellah Agnaou <128433447+abdellah20015@users.noreply.github.com>
+Date:   Sat Jan 18 19:36:22 2025 +0100
+
+    Merge pull request #40 from youssefamerzag/abdellah
+    
+    Abdellah
+
+[33mcommit fa4729de83a6ec3bc6bb0659bb62d30a2e077952[m
+Merge: b7e76e7 12f6adf
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 19:35:11 2025 +0100
+
+    update MainVerticle, FormDynamic....
+
+[33mcommit b7e76e75d12223dda9a2b407385a89f135d29129[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 19:27:53 2025 +0100
+
+    add Contract vue
+
+[33mcommit 12f6adfff4467da8c941e91d06c036085644c668[m
+Merge: 185aef7 1579db4
+Author: ilyass <110500633+ilyass-b@users.noreply.github.com>
+Date:   Sat Jan 18 15:12:25 2025 +0100
+
+    Merge pull request #39 from youssefamerzag/ilyass
+    
+    Ilyass
+
+[33mcommit 1579db4b184f62a2cdeee540b2a853c6718e40bf[m
+Merge: 0181100 185aef7
+Author: ilyass-b <ilyass12345om@gmail.com>
+Date:   Sat Jan 18 15:11:20 2025 +0100
+
+    updatevieww and formcomponent fix + new methode in mainverticle
+
+[33mcommit 98c401793b450aaddefee6bd1b182162f3105c9e[m
+Merge: 5dcb7e7 185aef7
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 12:51:31 2025 +0100
+
+    up
+
+[33mcommit 01811005e1b2c9a4f9ecfa8994c84340d2f975f4[m
+Author: ilyass-b <ilyass12345om@gmail.com>
+Date:   Sat Jan 18 12:50:22 2025 +0100
+
+    update formcomponent + create updateview.vue
+
+[33mcommit 5dcb7e7f977dc0e45d47a8dc67e23e8a840d7c80[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Sat Jan 18 12:40:54 2025 +0100
+
+    update, layout, openapi,Contract
+
+[33mcommit 185aef762e96564a711221f382abc01b7ca5d285[m
+Merge: 510fd01 c4ffafc
+Author: Youssef Amerzag <91285233+youssefamerzag@users.noreply.github.com>
+Date:   Fri Jan 17 23:03:13 2025 +0100
+
+    Merge pull request #38 from youssefamerzag/youssef
+    
+    add create demande forms and make it works, fix table values, design …
+
+[33mcommit c4ffafc75ba06386ec4af3b0fbef633daca14966[m
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Fri Jan 17 23:02:11 2025 +0100
+
+    add create demande forms and make it works, fix table values, design notification and fix footer, add formatString method to utiles
+
+[33mcommit ce831a461cccc1a58cf179e04e5dae657bfefc1c[m
+Author: abdellah20015 <abdellahagnaou92@gmail.com>
+Date:   Fri Jan 17 16:10:46 2025 +0100
+
+    update MainVerticle
+
+[33mcommit 510fd01327a9fcb8334f23ea83d03b93122f1cfb[m
+Merge: fc44cec 2c4ee97
+Author: Youssef Amerzag <91285233+youssefamerzag@users.noreply.github.com>
+Date:   Fri Jan 17 16:06:34 2025 +0100
+
+    Merge pull request #37 from youssefamerzag/youssef
+    
+    Youssef
+
+[33mcommit 2c4ee97cbc73beb31a9a48a7db2013c75c269805[m
+Merge: cc82a98 fc44cec
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Fri Jan 17 15:54:37 2025 +0100
+
+    add notifications and logout to navbar dropdonw and add list des demands and add convertDate method to utils
+
+[33mcommit cc82a988e7affeec3d2b610f806f5956b571f3cc[m
+Author: youssefamerzag <amerzag.youssef4@gmail.com>
+Date:   Thu Jan 16 14:39:02 2025 +0100
