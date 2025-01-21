@@ -813,7 +813,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
     JsonObject payload = new JsonObject()
                             .put("collection", Collections.USER)
                             .put("query", new JsonObject()
-                                .put("role", new JsonObject().put("$in", new JsonArray().add("manager").add("admin"))));
+                            .put("role", new JsonObject().put("$in", new JsonArray().add("manager").add("admin"))));
     vertx.eventBus().request(Services.DB_FIND, payload , reply ->{
       if (reply.succeeded()) {
         ctx.response()

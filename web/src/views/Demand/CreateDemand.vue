@@ -1,15 +1,15 @@
 <template>
     <div class="flex justify-center">
         <div class="w-11/12">
-            <div class="mx-5 my-4">
-                <RouterLink :to="{ name: 'list_demand' }"
-                    class="w-20 flex items-center justify-center bg-black text-center text-white rounded py-1">
-                    <img width="30" height="30" src="https://img.icons8.com/ios-filled/50/FFFFFF/long-arrow-left.png"
-                        alt="long-arrow-left" />
-                </RouterLink>
-            </div>
-            <div class="flex items-center justify-between px-5 py-2 my-3">
-                <p class="text-2xl font-semibold">Listes des demands</p>
+            <div class="mx-10">
+                <div class="mx-5 my-5">
+                    <RouterLink :to="{ name: 'list_demand' }"
+                        class="w-20 flex items-center justify-center bg-black text-center text-white rounded py-1">
+                        <img width="30" height="30"
+                            src="https://img.icons8.com/ios-filled/50/FFFFFF/long-arrow-left.png"
+                            alt="long-arrow-left" />
+                    </RouterLink>
+                </div>
             </div>
             <div class="w-full flex justify-center mb-10">
                 <div

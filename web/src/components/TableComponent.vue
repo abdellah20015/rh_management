@@ -49,7 +49,7 @@
           Page {{ currentPage }} sur {{ totalPages }}
         </span>
 
-        <button @click="changePage(currentPage + 1)"
+        <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)"
           class="px-4 py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition duration-300">
           Suivant
         </button>
@@ -85,7 +85,11 @@ export default {
       this.$emit("page-changed", newPage);
     },
     convertDate(date) {
-      return utils.convertDate(date);
+      if (!typeof data == "string") {
+        return utils.formatDate(date);
+      }else {
+        return date;
+      }
     },
     isButtonDisabled(button, row) {
       return typeof button.disabled === 'function' ? button.disabled(row) : button.disabled;

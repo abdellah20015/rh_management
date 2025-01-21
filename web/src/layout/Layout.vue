@@ -41,7 +41,7 @@
                       </div>
                       <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
                         <p class="text-sm font-semibold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="user && user.role == 'manager'">par {{
+                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
                           notification.user_username }}</p>
                         <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
                       </div>
@@ -54,7 +54,7 @@
                       </div>
                       <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
                         <p class="text-sm font-bold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="user && user.role == 'manager'">par {{
+                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
                           notification.user_username }}</p>
                         <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
                       </div>

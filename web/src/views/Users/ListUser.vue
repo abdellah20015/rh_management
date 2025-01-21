@@ -1,32 +1,20 @@
 <template>
   <div class="flex justify-center">
     <div class="w-11/12">
-      <div class="flex items-center justify-between p-5">
-        <p class="text-2xl font-semibold">Listes des utilisateurs</p>
-        <router-link
-          :to="{ name: 'create_user' }"
-          class="w-48 bg-black text-white rounded p-2"
-        >
+      <div class="flex items-center justify-between p-5 my-3">
+        <p class="text-2xl font-semibold ">Listes des utilisateurs</p>
+        <router-link :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
           Ajouter un utilisateur
         </router-link>
       </div>
       <div class="flex items-center justify-between p-5">
-        <TableFilterComponent
-          :filterStructure="filterStructure"
-          @filterHandler="filterHandler"
-          @searchHandler="searchHandler"
-          @resertFilterHandler="resertFilterHandler"
-        >
+        <TableFilterComponent :filterStructure="filterStructure" @filterHandler="filterHandler"
+          @searchHandler="searchHandler" @resertFilterHandler="resertFilterHandler">
         </TableFilterComponent>
       </div>
       <div>
-        <TableComponent
-          :tableInfo="tableInfo"
-          :pageSize="pageSize"
-          :currentPage="currentPage"
-          :totalPages="totalPages"
-          @page-changed="handlePageChange"
-        />
+        <TableComponent :tableInfo="tableInfo" :pageSize="pageSize" :currentPage="currentPage" :totalPages="totalPages"
+          @page-changed="handlePageChange" />
       </div>
     </div>
   </div>
@@ -130,6 +118,7 @@ export default {
       ],
       pageSize: 10,
       currentPage: 1,
+      count: 0,
       totalPages: 1,
     };
   },
@@ -150,15 +139,25 @@ export default {
 
         const response = await utils.fetch_methode(services.user.list, payload);
         const data = await response.json();
+        console.log(data);
 
         if (response.ok) {
+
+          //pagination
+          this.count = data.count;
+          this.count += (this.currentPage - 1) * this.pageSize;
+          console.log(this.count);
+          
+          if (this.count > this.pageSize) {
+            this.totalPages = Math.ceil(this.count / this.pageSize);
+          }
+
           this.tableInfo.data = data.data.map((user) => ({
             ...user,
-              contractTypeTitle : user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
-              userStatusTitle : user.status == true ? "Active" : "Désactivé"
+            contractTypeTitle: user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
+            userStatusTitle: user.status == true ? "Active" : "Désactivé"
           }));
 
-          this.totalPages = data.totalPages || 1;
         } else {
           console.error(data);
         }
