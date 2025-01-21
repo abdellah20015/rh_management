@@ -50,7 +50,7 @@ const successAlert = (message) => {
         toast: true,
         position: 'top-end',
         showConfirmButton: false,
-        timer: 1000,
+        timer: 3000,
         timerProgressBar: true,
         customClass: {
             popup: 'small-toast'

@@ -38,7 +38,7 @@ export default {
         {
           name: "role",
           type: "select",
-          label: "role",
+          label: "role :",
           options: [
             { label: "Admin", value: "admin" },
             { label: "Manager", value: "manager" },
@@ -48,13 +48,13 @@ export default {
         {
           name: "manager_id",
           type: "select",
-          label: "manager",
+          label: "manager :",
           options: [],
         },
         {
           name: "permissions",
           type: "select",
-          label: "permissions",
+          label: "permissions :",
           multiple: true,
           options: [
             { label: "create user", value: "create_user" },

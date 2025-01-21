@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/store'
+import utils from '@/shared/utils';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,16 +18,25 @@ const router = createRouter({
         {
           path: '/private/user/list',
           name: 'list_user',
+          meta : {
+            permission : "view_users"
+          },
           component: ()=> import('@/views/Users/ListUser.vue'),
         },
         {
           path: '/private/user/create',
           name: 'create_user',
+          meta : {
+            permission : "create_user"
+          },
           component: ()=> import('@/views/Users/CreateUsers.vue'),
         },
         {
           path: '/private/user/update/:id',
           name: 'update_user',
+          meta : {
+            permission : "update_user"
+          },
           component: ()=> import('@/views/Users/UpdateUser.vue'),
         },
         {
@@ -37,6 +47,9 @@ const router = createRouter({
         {
           path: '/private/user/details/:id',
           name: 'details_user',
+          meta : {
+            permission : "view_users"
+          },
           component: ()=> import('@/views/Users/UserDetails.vue'),
         },
         {
@@ -48,11 +61,17 @@ const router = createRouter({
         {
           path: '/private/user/contract/update/:id',
           name: 'contract_update',
+          meta : {
+            permission : "update_contract"
+          },
           component: ()=> import('@/views/Contract/UpdateContract.vue'),
         },
         {
           path: '/private/user/contract/create/:id',
           name: 'contract_create',
+          meta : {
+            permission : "create_contract"
+          },
           component: ()=> import('@/views/Contract/CreateContract.vue'),
         },
         // demande
@@ -73,7 +92,12 @@ const router = createRouter({
           component: ()=> import('@/views/Notification/Notification.vue'),
         },
       ]
-    }
+    },
+    {
+      path: '/no_permission',
+      name: 'no_permmission',
+      component: ()=> import('@/views/static/No_permission.vue'),
+    },
 
   ],
 })
@@ -92,6 +116,7 @@ router.beforeEach(async (to, from, next) => {
 
   // Gestion des utilisateurs désactivés
   if (auth.user?.status === false && to.name !== "login") {
+    utils.errorAlert(" Votre compte a été désactivé. Vous ne pouvez pas accéder à la plateforme. ")
     return next({ name: "login" });
   }
 
@@ -99,6 +124,11 @@ router.beforeEach(async (to, from, next) => {
   if (auth.user?.first_login === true && to.name !== "reset_password") {
     return next({ name: "reset_password" });
   }
+
+  if (to.meta.permission && (!auth?.user.permissions?.includes(to.meta.permission))) {
+    return next({ name : "no_permmission"}); 
+  }
+  
 
   next();
 });

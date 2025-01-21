@@ -60,7 +60,7 @@ export default {
                     {
                         button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
-                        disabled: false
+                         disabled: (demand) => demand.status === "rejected"
                     }
                 ],
             },

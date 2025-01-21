@@ -178,6 +178,7 @@ export default {
         const response = await utils.fetch_methode(services.user.create, formData);
         if (response.ok) {
           utils.successAlert('Utilisateur créé avec succès');
+          this.$router.push({name : "list_user"})
         } else {
           const error = await response.json();
           utils.errorAlert(error.message || 'Erreur lors de la création de l\'utilisateur');
