@@ -236,6 +236,17 @@ export default {
             console.log(query)
             try {
                 const response = await utils.fetch_methode(services.file.download, query)
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                const filename = demand.file_path.split('/').pop();
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
                 if (response.ok) {
                     console.log(response);
                 } else {

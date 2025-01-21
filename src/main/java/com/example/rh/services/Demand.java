@@ -135,10 +135,10 @@ public class Demand extends AbstractVerticle {
             Integer leave_balance = contractData.getInteger(Fields.CONTRACT_LEAVE_BALANCE);
             JsonObject details_ = body.getJsonObject(Fields.DEMAND_DETAILS);
             Integer leave_days = details_.getInteger("days");
-            if ( type.equals("demande_conge")) {
-              if (leave_balance <  leave_days) {
+            if (type.equals("demande_conge") && leave_balance < leave_days) {
+              // if (leave_balance <  leave_days) {
                 message.reply("insufficient leave balance");
-              }
+              // }
             }
             else{
               vertx.eventBus().request(Services.DB_INSERT, msg, res -> {
