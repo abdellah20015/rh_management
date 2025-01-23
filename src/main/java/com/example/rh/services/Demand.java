@@ -137,7 +137,7 @@ public class Demand extends AbstractVerticle {
             Integer leave_days = details_.getInteger("days");
             if (type.equals("demande_conge") && leave_balance < leave_days) {
               // if (leave_balance <  leave_days) {
-                message.reply("insufficient leave balance");
+                message.reply(new JsonObject().put("status", "error_"));
               // }
             }
             else{
