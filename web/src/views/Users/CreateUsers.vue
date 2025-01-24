@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import Swal from 'sweetalert2';
+
 import FormComponent from '@/components/FormComponent.vue';
 import TableComponent from '@/components/TableComponent.vue';
 import TableFilterComponent from '@/components/TableFilterComponent.vue';
@@ -236,7 +236,7 @@ export default {
         if (response.ok) {
           const data = await response.json();
           console.log(data);
-          
+
 
           //pagination
           this.count = data.files.count;

@@ -28,57 +28,74 @@ public class AuthVerticle extends AbstractVerticle {
     private int index = 0;
     private int errLine = 0;
     private int successLine = 0;
+
     @Override
-    public void start(Promise<Void> startPromise){
+    public void start(Promise<Void> startPromise) {
         // Create a mongo client
         mongoClient = Conf.createMongoClient(vertx);
 
         // Create a mongo authentication options object
         options = new MongoAuthenticationOptions()
-                        .setCollectionName(Collections.USER)
-                        .setUsernameField(Fields.USER_USERNAME)
-                        .setPasswordField(Fields.USER_PASSWORD);
+                .setCollectionName(Collections.USER)
+                .setUsernameField(Fields.USER_USERNAME)
+                .setPasswordField(Fields.USER_PASSWORD);
         // Create a mongo authentication object with the mongo client and the options
-        mongoAuth = MongoAuthentication.create(mongoClient , options);
+        mongoAuth = MongoAuthentication.create(mongoClient, options);
         // Create a mongo user util object with the mongo client
         mongoUserUtil = MongoUserUtil.create(mongoClient);
 
         vertx.eventBus().consumer(Services.AUTH_LOGIN, this::login);
         vertx.eventBus().consumer(Services.USER_CREATE, this::createUser);
-        vertx.eventBus().consumer(Services.AUTH_RESET_PASSWORD , this::resetPasswordHandler);
-        vertx.eventBus().consumer(Services.USER_IMPORT,this::excelCreateHandler);
+        vertx.eventBus().consumer(Services.AUTH_RESET_PASSWORD, this::resetPasswordHandler);
+        vertx.eventBus().consumer(Services.USER_IMPORT, this::excelCreateHandler);
 
         startPromise.complete();
     }
 
     /**
      * Login handler
+     * 
      * @author ilyass
      * @param message
-     * authentificate the user
+     *                authentificate the user
      */
-    private void login (Message<JsonObject> message){
+    private void login(Message<JsonObject> message) {
         try {
             JsonObject body = message.body();
             String username = body.getString(Fields.USER_USERNAME);
             String password = body.getString(Fields.USER_PASSWORD);
-            UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
-            mongoAuth.authenticate(credentials, res -> {
-                if (res.succeeded()) {
-                    JsonObject user = new JsonObject().put("user",
-                    new JsonObject()
-                    .put("username", username)
-                    .put("id", res.result().principal().getString("_id"))
-                    .put("role", res.result().principal().getString("role"))
-                    .put("status", res.result().principal().getBoolean("status"))
-                    .put("first_login", res.result().principal().getBoolean("first_login"))
-                    .put("permissions", res.result().principal().getJsonArray("permissions"))
-                    );
-                    message.reply(user);
-                } else {
-                    message.fail(401, res.cause().getMessage());
+
+            JsonObject query = new JsonObject().put(Fields.USER_USERNAME, username);
+            JsonObject payload = new JsonObject().put("collection", Collections.USER).put("query", query);
+
+            vertx.eventBus().request(Services.DB_FIND_ONE, payload, reply -> {
+                if (reply.succeeded() && reply.result() != null) {
+                    JsonObject user_find = (JsonObject) reply.result().body();
+                    Boolean status = user_find.getBoolean(Fields.USER_STATUS);
+                    if (status) {
+                        UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
+                        mongoAuth.authenticate(credentials, res -> {
+                            if (res.succeeded()) {
+                                JsonObject user = new JsonObject().put("user",
+                                        new JsonObject()
+                                                .put("username", username)
+                                                .put("id", res.result().principal().getString("_id"))
+                                                .put("role", res.result().principal().getString("role"))
+                                                .put("status", res.result().principal().getBoolean("status"))
+                                                .put("first_login", res.result().principal().getBoolean("first_login"))
+                                                .put("permissions",
+                                                        res.result().principal().getJsonArray("permissions")));
+                                message.reply(user);
+                            } else {
+                                message.fail(401, res.cause().getMessage());
+                            }
+                        });
+                    } else {
+                        message.fail(401, "User is disabled");
+                    }
                 }
             });
+
         } catch (Exception e) {
             message.fail(500, "Internal server error: " + e.getMessage());
         }
@@ -86,67 +103,67 @@ public class AuthVerticle extends AbstractVerticle {
 
     /**
      * Create user handler
+     * 
      * @author ilyass
      * @param message
-     * create a new user
+     *                create a new user
      */
-    private void createUser (Message<JsonObject> message){
+    private void createUser(Message<JsonObject> message) {
         try {
             JsonObject body = message.body();
             String username = body.getString(Fields.USER_USERNAME);
             String password = body.getString(Fields.USER_PASSWORD);
             String role = body.getString(Fields.USER_ROLE, null);
             String manager_id = body.getString(Fields.USER_MANAGER_ID, null);
-            
+
             // Create default permissions based on role
             JsonArray permissions = new JsonArray();
             if (role != null) {
                 switch (role) {
                     case "admin":
                         permissions.add("create_user")
-                                 .add("update_user")
-                                 .add("delete_user")
-                                 .add("view_users")
-                                 .add("import_user")
-                                 .add("update_demand")
-                                 .add("update_contract")
-                                 .add("create_contract");
+                                .add("update_user")
+                                .add("delete_user")
+                                .add("view_users")
+                                .add("import_user")
+                                .add("update_demand")
+                                .add("update_contract")
+                                .add("create_contract");
                         break;
                     case "manager":
                         permissions.add("view_users")
-                                 .add("update_demand");
+                                .add("update_demand");
                         break;
                     default:
                         permissions.add(null);
                 }
             }
-    
+
             JsonObject query = new JsonObject().put(Fields.USER_USERNAME, username);
             JsonObject payload = new JsonObject()
-                .put("collection", Collections.USER)
-                .put("query", query);
-    
+                    .put("collection", Collections.USER)
+                    .put("query", query);
+
             vertx.eventBus().request(Services.DB_FIND_ONE, payload, reply -> {
-                if(reply.succeeded()) {
-                    if(reply.result().body() == null) {
+                if (reply.succeeded()) {
+                    if (reply.result().body() == null) {
                         mongoUserUtil.createUser(username, password, res -> {
                             if (res.succeeded()) {
                                 JsonObject payload2 = new JsonObject()
-                                    .put("collection", Collections.USER)
-                                    .put("id", res.result())
-                                    .put("update", new JsonObject()
-                                        .put(Fields.USER_ROLE, role)
-                                        .put(Fields.USER_MANAGER_ID, manager_id)
-                                        .put(Fields.USER_STATUS, false)
-                                        .put(Fields.USER_FIRST_LOGIN, true)
-                                        .put(Fields.USER_DATE_CREATION, System.currentTimeMillis())
-                                        .put(Fields.USER_PERMISSIONS, permissions));
-                                
+                                        .put("collection", Collections.USER)
+                                        .put("id", res.result())
+                                        .put("update", new JsonObject()
+                                                .put(Fields.USER_ROLE, role)
+                                                .put(Fields.USER_MANAGER_ID, manager_id)
+                                                .put(Fields.USER_STATUS, false)
+                                                .put(Fields.USER_FIRST_LOGIN, true)
+                                                .put(Fields.USER_DATE_CREATION, System.currentTimeMillis())
+                                                .put(Fields.USER_PERMISSIONS, permissions));
+
                                 vertx.eventBus().request(Services.DB_UPDATE, payload2, reply2 -> {
-                                    if(reply2.succeeded()) {
+                                    if (reply2.succeeded()) {
                                         message.reply(new JsonObject()
-                                            .put("message", "User " + username + " created successfully")
-                                        );
+                                                .put("message", "User " + username + " created successfully"));
                                     } else {
                                         message.fail(500, "Internal server error");
                                     }
@@ -166,10 +183,11 @@ public class AuthVerticle extends AbstractVerticle {
             message.fail(500, "Internal server error: " + e.getMessage());
         }
     }
+
     /**
      * @author ilyass
      * @param message
-     *  methode to resete password
+     *                methode to resete password
      */
     private void resetPasswordHandler(Message<JsonObject> message) {
         try {
@@ -184,27 +202,26 @@ public class AuthVerticle extends AbstractVerticle {
             vertx.eventBus().request(Services.DB_FIND_ONE, payload, reply -> {
                 if (reply.succeeded() && reply.result().body() != null) {
                     JsonObject user = (JsonObject) reply.result().body();
-                    UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, oldPassword);
-                    mongoAuth.authenticate(credentials, res -> {
-                        if (res.succeeded()) {
-                            String hashedPassword = mongoAuth.hash("pbkdf2", "salt", newPassword);
-                            JsonObject update = new JsonObject().put(Fields.USER_PASSWORD, hashedPassword).put(Fields.USER_FIRST_LOGIN, false);
-                            JsonObject updatePayload = new JsonObject()
+                    String user_password = user.getString(Fields.USER_PASSWORD);
+                    String old_Password_hash = mongoAuth.hash("pbkdf2", "salt", oldPassword);
+                    if (user_password.equals(old_Password_hash)) {
+                        String new_Password_hash = mongoAuth.hash("pbkdf2", "salt", newPassword);
+                        JsonObject update = new JsonObject().put(Fields.USER_PASSWORD, new_Password_hash)
+                                .put(Fields.USER_FIRST_LOGIN, false);
+                        JsonObject payload2 = new JsonObject()
                                 .put("collection", Collections.USER)
                                 .put("id", user.getString("_id"))
                                 .put("update", update);
-
-                            vertx.eventBus().request(Services.DB_UPDATE, updatePayload, updateRes -> {
-                                if (updateRes.succeeded()) {
-                                    message.reply(new JsonObject().put("message", "Password reset successfully"));
-                                } else {
-                                    message.fail(500, "Failed to update password: " + updateRes.cause().getMessage());
-                                }
-                            });
-                        } else {
-                            message.fail(400, "Old password is incorrect");
-                        }
-                    });
+                        vertx.eventBus().request(Services.DB_UPDATE, payload2, reply2 -> {
+                            if (reply2.succeeded()) {
+                                message.reply(new JsonObject().put("message", "Password updated successfully"));
+                            } else {
+                                message.fail(500, "Internal server error");
+                            }
+                        });
+                    } else {
+                        message.fail(400, "Old password is incorrect");
+                    }
                 } else {
                     message.fail(404, "User not found");
                 }
@@ -214,15 +231,12 @@ public class AuthVerticle extends AbstractVerticle {
         }
     }
 
-
-
     public static class SimpleUser {
         @ExcelProperty("username")
         private String username;
 
         @ExcelProperty("password")
         private String password;
-
 
         public String getUsername() {
             return username;
@@ -243,11 +257,12 @@ public class AuthVerticle extends AbstractVerticle {
 
     /**
      * Excel create handler
+     * 
      * @author ilyass
      * @param message
-     * Handles the creation of users from an Excel file
+     *                Handles the creation of users from an Excel file
      */
-    private void excelCreateHandler(Message<JsonObject> message){
+    private void excelCreateHandler(Message<JsonObject> message) {
         try {
             String path = message.body().getString("path");
             if (path == null || path.isEmpty()) {
@@ -265,10 +280,11 @@ public class AuthVerticle extends AbstractVerticle {
 
     /**
      * Process users recursively
+     * 
      * @author ilyass
      * @param users
      * @param message
-     * Processes the list of users recursively
+     *                Processes the list of users recursively
      */
     private void processUsersRecursively(List<SimpleUser> users, Message<JsonObject> message) {
         if (index < users.size()) {
@@ -284,8 +300,8 @@ public class AuthVerticle extends AbstractVerticle {
             }
 
             JsonObject body = new JsonObject()
-                                .put("username", username)
-                                .put("password", password);
+                    .put("username", username)
+                    .put("password", password);
 
             vertx.eventBus().request(Services.USER_CREATE, body, reply -> {
                 if (reply.succeeded()) {
@@ -300,13 +316,12 @@ public class AuthVerticle extends AbstractVerticle {
             });
         } else {
             message.reply(new JsonObject()
-                .put("statusCode", 200)
-                .put("status", "success")
-                .put("totalLines", index)
-                .put("successLines", successLine)
-                .put("errorLines", errLine)
-                .put("message", "Users registered successfully")
-            );
+                    .put("statusCode", 200)
+                    .put("status", "success")
+                    .put("totalLines", index)
+                    .put("successLines", successLine)
+                    .put("errorLines", errLine)
+                    .put("message", "Users registered successfully"));
         }
     }
 
