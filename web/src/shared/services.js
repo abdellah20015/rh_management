@@ -14,7 +14,8 @@ export default {
         manager: '/private/user/manager'
     },
     demand:{
-        list:'/private/demand/list',
+        listByManager:'/private/demand/manager/list',
+        listByUser:'/private/demand/user/list',
         update:'/private/demand/update',
         create:'/private/demand/create'
     },

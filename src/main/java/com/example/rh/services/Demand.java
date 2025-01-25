@@ -14,7 +14,8 @@ public class Demand extends AbstractVerticle {
   public void start() {
     try {
       //getListDemand service
-      vertx.eventBus().consumer(Services.DEMAND_LIST, this::getListDemandHandler);
+      vertx.eventBus().consumer(Services.DEMAND_LIST_MANAGER, this::getListDemandsByManager);
+      vertx.eventBus().consumer(Services.DEMAND_LIST_USER, this::getListDemandsByUser);
       vertx.eventBus().consumer(Services.DEMAND_CREATE, this::createDemandHandler);
       vertx.eventBus().consumer(Services.DEMAND_UPDATE, this::updateDemandHandler);
     } catch (Exception e) {
@@ -31,14 +32,13 @@ public class Demand extends AbstractVerticle {
    * respecting a query and options and return a JsonObject that contains count and docs of domands
    * </p>
    */
-  private void getListDemandHandler(Message message) {
+  private void getListDemandsByManager(Message message) {
     try {
       JsonObject body = (JsonObject) message.body();
       JsonObject query = body.getJsonObject("query");
+      JsonObject filter = query.getJsonObject("filter");
+      String search = query.getString("search");
       JsonObject user = body.getJsonObject("user");
-
-      System.out.println(user);
-
       JsonObject option = body.getJsonObject("options");
       int page = option.getInteger("page");
       int limit = option.getInteger("limit");
@@ -50,30 +50,42 @@ public class Demand extends AbstractVerticle {
           .put("localField", "user_id")
           .put("foreignField", "_id")
           .put("as", "user")))
-        .add(new JsonObject().put("$unwind", "$user"));
+        .add(new JsonObject().put("$unwind", "$user"))
+        .add(new JsonObject().put("$match", new JsonObject()
+          .put("user.manager_id", user.getString("id"))));
 
-        if(user.getString("role").equals("manager") || user.getString("role").equals("admin")){
-          pipeline.add(new JsonObject().put("$match", new JsonObject()
-            .put("user.manager_id", user.getString("id"))));
-        }else if(user.getString("role").equals("employee")){
-          pipeline.add(new JsonObject().put("$match", new JsonObject()
-              .put("user._id", user.getString("id"))));
+      if(search != null){
+        pipeline.add(new JsonObject().put("$match", new JsonObject()
+          .put("type", new JsonObject()
+            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+            .put("$options", "i"))));
+      }
+
+      if(!filter.isEmpty()){
+        if(filter.containsKey("type") && !filter.getJsonArray("type").isEmpty()){
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("type", new JsonObject()
+              .put("$in", filter.getJsonArray("type")))));
         }
+        if(filter.containsKey("status") && !filter.getJsonArray("status").isEmpty()){
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("status", new JsonObject()
+              .put("$in", filter.getJsonArray("status")))));
+        }
+      }
 
-        pipeline.add(new JsonObject().put("$skip" , skip))
-          .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
-          .add(new JsonObject().put("$limit" , limit))
-          .add(new JsonObject().put("$project", new JsonObject()
-            .put("_id", 1)
-            .put("user_id", 1)
-            .put("type", 1)
-            .put("details", 1)
-            .put("status", 1)
-            .put("file_path", 1)
-            .put("created_date", 1)
-            .put("username", "$user.username")));
-
-      System.out.println("message " + pipeline);
+      pipeline.add(new JsonObject().put("$skip" , skip))
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
+        .add(new JsonObject().put("$limit" , limit))
+        .add(new JsonObject().put("$project", new JsonObject()
+          .put("_id", 1)
+          .put("user_id", 1)
+          .put("type", 1)
+          .put("details", 1)
+          .put("status", 1)
+          .put("file_path", 1)
+          .put("created_date", 1)
+          .put("username", "$user.username")));
 
       JsonObject msg = new JsonObject()
         .put("collection" , Collections.DEMANDS)
@@ -83,7 +95,85 @@ public class Demand extends AbstractVerticle {
       vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
         if (res.failed()) {
           message.fail(500, res.cause().getMessage());
-          System.out.println(res.cause().getMessage());
+        } else {
+          message.reply(res.result().body());
+        }
+      });
+    } catch (Exception e) {
+      message.fail(500, "Internal server error: " + e.getMessage());
+    }
+  }
+
+  private void getListDemandsByUser(Message message) {
+    try {
+      JsonObject body = (JsonObject) message.body();
+      JsonObject query = body.getJsonObject("query");
+      JsonObject filter = query.getJsonObject("filter");
+      String search = query.getString("search");
+      JsonObject user = body.getJsonObject("user");
+      String user_id = "";
+      if(query.getString("user_id") != null){
+        user_id = query.getString("user_id");
+        System.out.println(user_id + "this is user id from body");
+      }else {
+        user_id = user.getString("id");
+      }
+      JsonObject option = body.getJsonObject("options");
+      int page = option.getInteger("page");
+      int limit = option.getInteger("limit");
+      int skip = (page - 1) * limit;
+
+      JsonArray pipeline = new JsonArray()
+        .add(new JsonObject().put("$lookup", new JsonObject()
+          .put("from", "user")
+          .put("localField", "user_id")
+          .put("foreignField", "_id")
+          .put("as", "user")))
+        .add(new JsonObject().put("$unwind", "$user"))
+        .add(new JsonObject().put("$match", new JsonObject()
+          .put("user._id", user_id)));
+
+      if(search != null){
+        pipeline.add(new JsonObject().put("$match", new JsonObject()
+          .put("type", new JsonObject()
+            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+            .put("$options", "i"))));
+      }
+
+      if(!filter.isEmpty()){
+        if(filter.containsKey("type") && !filter.getJsonArray("type").isEmpty()){
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("type", new JsonObject()
+              .put("$in", filter.getJsonArray("type")))));
+        }
+        if(filter.containsKey("status") && !filter.getJsonArray("status").isEmpty()){
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("status", new JsonObject()
+              .put("$in", filter.getJsonArray("status")))));
+        }
+      }
+
+      pipeline.add(new JsonObject().put("$skip" , skip))
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
+        .add(new JsonObject().put("$limit" , limit))
+        .add(new JsonObject().put("$project", new JsonObject()
+          .put("_id", 1)
+          .put("user_id", 1)
+          .put("type", 1)
+          .put("details", 1)
+          .put("status", 1)
+          .put("file_path", 1)
+          .put("created_date", 1)
+          .put("username", "$user.username")));
+
+      JsonObject msg = new JsonObject()
+        .put("collection" , Collections.DEMANDS)
+        .put("pipeline", pipeline)
+        .put("options" , new JsonObject());
+
+      vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
+        if (res.failed()) {
+          message.fail(500, res.cause().getMessage());
         } else {
           message.reply(res.result().body());
         }
@@ -349,6 +439,7 @@ public class Demand extends AbstractVerticle {
                   }
                 });
             }
+
             JsonObject notification_data = new JsonObject()
               .put(Fields.NOTIFICATION_DEMAND_ID , demand_id)
               .put(Fields.NOTIFICATION_USER_ID, user_id)

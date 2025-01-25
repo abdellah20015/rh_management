@@ -74,6 +74,9 @@ public class Notifications extends AbstractVerticle {
 
       vertx.eventBus().request(Services.DB_INSERT, msg, insertRes -> {
         message.reply(insertRes.result().body());
+        JsonObject notificationData = (JsonObject) insertRes.result().body();
+        System.out.println("insert body" + notificationData.getString("data"));
+        vertx.eventBus().request(Services.NOTIFICATION_SEND, insertRes.result().body());
       });
 
     }catch(Exception e) {
