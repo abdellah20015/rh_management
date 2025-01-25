@@ -1,88 +1,120 @@
 <template>
-  <div class="flex flex-col min-h-screen">
-    <!-- Navbar -->
-    <nav class="bg-black p-3">
-      <div class="container mx-auto flex justify-between items-center">
-        <div class="text-white text-2xl font-bold">
-          <RouterLink :to="{ name : 'list_demand' }"> RH</RouterLink>
-        </div>
-        <div class="flex justify-evenly w-1/3">
-          <RouterLink :to="{ name : 'list_user' }" v-if="user.permissions.includes('view_users')" href="./users.html" class="text-white hover:text-gray-300">Les Utilisateurs</RouterLink>
-          <RouterLink :to="{ name : 'list_demand' }"  href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
-        </div>
+  <div class="flex flex-col min-h-screen bg-gray-50">
+    <!-- Enterprise Navbar -->
+    <nav class="bg-white shadow-md border-b border-gray-200">
+      <div class="container mx-auto px-4 py-3 flex justify-between items-center">
         <div class="flex items-center space-x-4">
-          <!-- Notification Dropdown -->
+          <!-- <img src="/logo.png" alt="Company Logo" class="h-8 w-auto"/> -->
+          <div class="hidden md:flex space-x-4">
+            <RouterLink v-if="user.permissions.includes('view_users')" :to="{ name: 'list_user' }"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              Utilisateurs
+            </RouterLink>
+            <RouterLink v-if="user.role != 'employee'"  :to="{ name: 'TeamDemands' }"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              Users Demandes
+            </RouterLink>
+            <RouterLink :to="{ name: 'userDemands' }"
+              class="text-gray-700 hover:text-blue-600 font-medium transition-colors">
+              Demandes
+            </RouterLink>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <!-- Notification Center -->
           <div class="relative">
-            <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleNotificationDropdown">
-              <div>
-                <img v-if="notifications.filter((notification) => notification.is_read == false).length > 0" class="-mb-2" width="10" height="10" src="https://img.icons8.com/ios-filled/50/FA5252/filled-circle.png" alt="filled-circle"/>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
+            <button @click="toggleNotificationDropdown"
+              class="text-gray-500 hover:text-blue-600 focus:outline-none relative">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              <span v-if="unreadNotificationsCount"
+                class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5">
+                {{ unreadNotificationsCount }}
+              </span>
             </button>
-            <transition name="fade-slide">
+
+            <transition name="dropdown">
               <div v-if="isNotificationDropdownOpen"
-                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg  z-20 h-96 overflow-y-auto flex flex-col justify-between">
-                <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
-                <div v-else>
-                  <div class="mb-3 mt-1 mx-4">
-                    <p class="text-sm font-semibold py-2">notifications non lues : ( {{ notifications.filter(notification => notification.is_read == false ).length }} )</p>
-                  </div>
-                  <a @click="updateNotificationStatus(notification)" v-for="(notification, index) in notifications" :key="index"
-                    href="#" class="block border-t border-gray-300 text-gray-700  hover:bg-gray-100">
-                    <div v-if="notification.is_read" class="p-4 flex items-center gap-5">
-                      <div>
-                        <img width="20" height="20"
-                          src="https://img.icons8.com/external-vitaliy-gorbachev-fill-vitaly-gorbachev/60/1A1A1A/external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev.png"
-                          alt="external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev" />
-                      </div>
-                      <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
-                        <p class="text-sm font-semibold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
-                          notification.user_username }}</p>
-                        <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
-                      </div>
-                    </div>
-                    <div v-else class="bg-slate-200 p-4 flex items-center gap-5">
-                      <div>
-                        <img width="20" height="20"
-                          src="https://img.icons8.com/external-creatype-glyph-colourcreatype/64/1A1A1A/external-app-web-application-v1-creatype-glyph-colourcreatype-31.png"
-                          alt="external-app-web-application-v1-creatype-glyph-colourcreatype-31" />
-                      </div>
-                      <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
-                        <p class="text-sm font-bold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
-                          notification.user_username }}</p>
-                        <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
-                      </div>
-                    </div>
-                  </a>
+                class="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div class="p-4 border-b border-gray-200 flex justify-between items-center">
+                  <h3 class="text-sm font-semibold text-gray-700">Notifications</h3>
+                  <button @click="markAllAsRead" class="text-xs text-blue-600 hover:underline">
+                    Mark all as read
+                  </button>
                 </div>
-                <div class="flex justify-center">
-                  <a href="#" class="w-full text-center bg-slate-300 p-3 text-sm font-semibold" @click="addPagesize">charger plus</a>
+
+                <div class="max-h-80 overflow-y-auto">
+                  <div v-if="notifications.length === 0" class="p-4 text-center text-gray-500">
+                    No new notifications
+                  </div>
+                  <div v-for="notification in notifications" :key="notification._id"
+                    @click="handleNotification(notification)"
+                    class="px-4 py-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                    :class="{ 'bg-blue-50': !notification.is_read }">
+                    <div class="flex items-start space-x-3">
+                      <div class="flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center"
+                          :class="notification.is_read ? 'bg-gray-200' : 'bg-blue-100'">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20"
+                            fill="currentColor" :class="notification.is_read ? 'text-gray-500' : 'text-blue-600'">
+                            <path
+                              d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                          </svg>
+                        </div>
+                      </div>
+                      <div class="flex-1">
+                        <p class="text-sm font-medium text-gray-900">
+                          {{ notification.message }}
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">
+                          {{ convertDate(notification.created_date) }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-if="notifications.length > 0" class="p-2 border-t border-gray-200 text-center">
+                  <button @click="loadMoreNotifications" class="text-sm text-blue-600 hover:underline">
+                    Load more notifications
+                  </button>
                 </div>
               </div>
             </transition>
           </div>
 
-          <!-- Profile Dropdown -->
+          <!-- User Profile Dropdown -->
           <div class="relative">
-            <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleProfileDropdown">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5.121 17.804A4.992 4.992 0 0112 15c1.657 0 3.156.672 4.121 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v7m0 0H9m3 0h3" />
-              </svg>
+            <button @click="toggleProfileDropdown"
+              class="flex items-center space-x-2 text-gray-700 hover:bg-gray-100 p-1 rounded-full transition-colors">
+              <img :src="user.avatar || '/default-avatar.png'" alt="Profile"
+                class="h-8 w-8 rounded-full object-cover" />
+              <span class="hidden md:block text-sm font-medium">
+                {{ user.name }}
+              </span>
             </button>
-            <transition name="fade-slide">
+
+            <transition name="dropdown">
               <div v-if="isProfileDropdownOpen"
-                class="absolute right-0 mt-2 w-48 bg-white border border-gray-400 rounded-md shadow-lg py-2 z-20">
-                <a @click="profile()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                <a @click="logout()" href="#" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
+                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
+                <div class="px-4 py-3 border-b border-gray-200">
+                  <p class="text-sm font-semibold text-gray-900">{{ user.name }}</p>
+                  <p class="text-xs text-gray-500">{{ user.email }}</p>
+                </div>
+                <div class="py-1">
+                  <button @click="profile"
+                    class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 transition-colors">
+                    Profile
+                  </button>
+                  <button @click="logout"
+                    class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                    Sign out
+                  </button>
+                </div>
               </div>
             </transition>
           </div>
@@ -90,15 +122,17 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="bg-gray-50 flex-grow" @click="closeDropDowns()">
+    <!-- Main Content Area -->
+    <main class="flex-grow container mx-auto px-4 py-6" @click="closeDropdowns">
       <RouterView />
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-black text-white py-3 mt-4">
-      <div class="container mx-auto text-center">
-        <p class="text-sm font-bold">&copy;2025 RH. All Rights Reserved.</p>
+    <!-- Enterprise Footer -->
+    <footer class="bg-white border-t border-gray-200 py-6">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-sm text-gray-600">
+          &copy; 2025 Enterprise Resource Management. All Rights Reserved.
+        </p>
       </div>
     </footer>
   </div>
@@ -121,13 +155,14 @@ export default {
       pageSize: 10,
       currentPage: 1,
       totalPages: 1,
+      connection: null
     };
   },
   computed: {
-      authStore() {
-        return useAuthStore();
-      },
+    authStore() {
+      return useAuthStore();
     },
+  },
   methods: {
     //handler profile dropdown
     toggleProfileDropdown() {
@@ -152,17 +187,17 @@ export default {
 
     //update notification is_read statsu to true
     async updateNotificationStatus(notification) {
-      const query = { notification_id : notification._id }
+      const query = { notification_id: notification._id }
       try {
         const response = await utils.fetch_methode(services.notification.updateStatus, query);
-        if(response.ok) {
+        if (response.ok) {
           console.log(response);
           this.getNotifications()
           router.push({ "name": "list_demand" })
-        }else {
+        } else {
           console.log(response);
         }
-      }catch(err){
+      } catch (err) {
         console.log(err);
       }
     },
@@ -192,12 +227,31 @@ export default {
     },
 
     profile() {
-      this.$router.push({ name: "profile_user" , params : {id : this.authStore.user.id} }).then(() => {
+      this.$router.push({ name: "profile_user", params: { id: this.authStore.user.id } }).then(() => {
         window.location.reload();
       });
+    },
 
-    }
   },
+  created() {
+    this.connection = new WebSocket("ws://localhost:8888/notification");
+
+    this.connection.onopen = (event) => {
+      console.log(event);
+      console.log("Successfully connected to the echo websocket server...")
+    }
+
+    this.connection.onmessage = (event) => {
+      console.log(event.data);
+    }
+
+    this.connection.onclose = () => {
+      console.log("WebSocket connection closed. Reconnecting...");
+      setTimeout(() => this.wsConnection(), 1000); // Attempt to reconnect after 1 second
+    };
+
+  },
+
   mounted() {
     this.getNotifications();
     console.log(this.user.permissions);

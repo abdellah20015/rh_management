@@ -94,6 +94,7 @@ export default {
         },
 
         resertFilter() {
+            this.searchValues.filterValues = [];
             this.$emit("resertFilterHandler");
             this.filterStructure.forEach((filterGroup) => {
                 filterGroup.values.forEach((value) => {

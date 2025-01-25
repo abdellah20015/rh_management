@@ -77,8 +77,13 @@ const router = createRouter({
         // demande
         {
           path: '/private/user/demand/list',
-          name: 'list_demand',
-          component: ()=> import('@/views/Demand/DemandsList.vue'),
+          name: 'userDemands',
+          component: ()=> import('@/views/Demand/UserDemandsList.vue'),
+        },
+        {
+          path: '/private/user/demand/list',
+          name: 'TeamDemands',
+          component: ()=> import('@/views/Demand/TeamDemands.vue'),
         },
         {
           path: '/private/user/demand/create',

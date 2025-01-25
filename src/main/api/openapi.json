@@ -617,10 +617,10 @@
               }
           }
       },
-      "/private/demand/list": {
+      "/private/demand/manager/list": {
           "post": {
-              "summary": "Liste des demandes",
-              "operationId": "listDemands",
+              "summary": "Liste des demandes by manager",
+              "operationId": "listDemandsByManager",
               "requestBody": {
                   "content": {
                       "application/json": {
@@ -653,6 +653,43 @@
                   }
               }
           }
+      },
+      "/private/demand/user/list": {
+        "post": {
+          "summary": "Liste des demandes by user",
+          "operationId": "listDemandsByUser",
+          "requestBody": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "query": {
+                      "type": "object"
+                    },
+                    "options": {
+                      "$ref": "#/components/schemas/Pagination"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "tags": [
+            "Demand"
+          ],
+          "responses": {
+            "200": {
+              "description": "Liste des demandes récupérée avec succès"
+            },
+            "403": {
+              "description": "Accès non autorisé"
+            },
+            "500": {
+              "description": "Erreur serveur"
+            }
+          }
+        }
       },
       "/private/demand/update": {
           "post": {
