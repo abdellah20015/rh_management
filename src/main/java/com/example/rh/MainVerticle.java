@@ -120,6 +120,8 @@ public class MainVerticle extends AbstractVerticle {
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
+      // path : /private//user/stats
+      routerBuilder.getRoute("getStats").addHandler(this::usersCount);
 
       // Contracts
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
@@ -799,6 +801,67 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .setStatusCode(500)
         .putHeader("content-type", "application/json")
         .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
+    }
+  }
+  /** 
+   * users counts
+   * @author ilyass
+   * methode to count users 
+   */
+  public void usersCount(RoutingContext ctx){
+    try {
+      JsonObject match = new JsonObject();
+      if (!ctx.user().principal().getString("role").equals("admin")) {
+          match.put("manager_id", ctx.user().principal().getString("id"));
+      }
+      
+      JsonObject aggregate = new JsonObject()
+          .put("collection", Collections.USER)
+          .put("pipeline", new JsonArray()
+              .add(new JsonObject().put("$match", match))
+              .add(new JsonObject().put("$facet", new JsonObject()
+                  .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
+                  .put("active", new JsonArray()
+                      .add(new JsonObject().put("$match", new JsonObject().put("status", true)))
+                      .add(new JsonObject().put("$count", "active"))
+                  )
+                  .put("inactive", new JsonArray()
+                      .add(new JsonObject().put("$match", new JsonObject().put("status", false)))
+                      .add(new JsonObject().put("$count", "inactive"))
+                  )
+              ))
+          )
+          .put("options", new JsonObject());
+  
+      vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
+        if (reply.succeeded()) {
+          JsonObject result = (JsonObject) reply.result().body();
+          JsonObject data = result.getJsonArray("data").getJsonObject(0);
+          JsonObject counts = new JsonObject();
+          JsonArray total = data.getJsonArray("total");
+          JsonArray active = data.getJsonArray("active");
+          JsonArray inactive = data.getJsonArray("inactive");
+  
+          counts.put("total_users",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
+          counts.put("active",(active != null && !active.isEmpty()) ? active.getJsonObject(0).getInteger("active") : 0);
+          counts.put("inactive", (inactive != null && !inactive.isEmpty()) ?  inactive.getJsonObject(0).getInteger("inactive"): 0);
+          // JsonObject 
+          ctx.response()
+              .setStatusCode(200)
+              .putHeader("content-type", "application/json")
+              .end(counts.encode());
+        } else {
+          ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+        }
+      });
+    } catch (Exception e) {
+      ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
     }
   }
 

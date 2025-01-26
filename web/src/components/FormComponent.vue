@@ -1,96 +1,222 @@
+
 <template>
-  <form @submit.prevent="handleSubmit" class="bg-white p-8 rounded shadow-lg w-full max-w-md mx-auto space-y-6">
-    <h2 class="text-2xl font-bold text-gray-800 text-center mb-4">{{ title }}</h2>
+  <div class="flex justify-center items-center min-h-screen bg-transparent p-4">
+    <div class="w-full max-w-2xl">
+      <form
+      @submit.prevent="handleSubmit"
+      class="bg-white rounded-lg shadow-2xl p-8 "
+      >
+      <h2 class="text-3xl font-extrabold text-center text-gray-900 mb-6">
+        {{ title }}
+      </h2>
+        <div 
+          :class="[
+            fields.length > 5
+              ? 'grid grid-cols-2 gap-6' 
+              : 'space-y-6 w- '
+          ]"
+        >
+          <div 
+            v-for="field in fields" 
+            :key="field.name" 
+            class="space-y-4"
+          >
+            <!-- Text, Email, Password, Number Input -->
+            <div v-if="['text', 'email', 'password'].includes(field.type)">
+              <label
+                :for="field.name"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {{ field.label }}
+              </label>
+              <InputText
+                :id="field.name"
+                :type="field.type"
+                :name="field.name"
+                :placeholder="field.placeholder"
+                v-model="formData[field.name]"
+                class="w-full"
+                :pt="{
+                  root: { 
+                    class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                  }
+                }"
+              />
+            </div>
 
-    <div v-for="field in fields" :key="field.name" class="space-y-2">
-      
-      <!-- Champ de type input -->
-      <div v-if="['text', 'email', 'password' , 'number'].includes(field.type)" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
-        <input
-          :type="field.type"
-          :name="field.name"
-          :placeholder="field.placeholder"
-          v-model="formData[field.name]"
-          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-        />
-      </div>
+            <div v-if="field.type == 'number'">
+              <label
+                :for="field.name"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {{ field.label }}
+              </label>
+              <InputNumber
+                v-model="formData[field.name]"
+                :id="field.name"
+                :placeholder="field.placeholder"
+                :inputId="field.name"
+                class="w-full"
+                :pt="{
+                  root: { 
+                    // class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                  }
+                }"
+              />
+            </div>
 
-    <!-- Champ de type date -->
-    <div v-if="field.type === 'date'  && !isFieldHidden(field)" class="mb-6">
+            <!-- Other input types remain the same as in previous version -->
+            <!-- Date Input -->
+            <div v-if="field.type === 'date'  && !isFieldHidden(field)" class="mb-6">
       <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
       <input
         :type="field.type"
         :name="field.name"
         v-model="formData[field.name]"
         class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-      />
-    </div>
+      /> </div>
 
+            <!-- Select Input -->
+            <div v-if="field.type === 'select'">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{ field.label }}
+              </label>
+              <MultiSelect
+                v-if="field.multiple"
+                :options="field.options"
+                optionLabel="label"
+                optionValue="value"
+                v-model="formData[field.name]"
+                :placeholder="field.label"
+                filter
+                class="w-full"
+                :pt="{
+                  root: {
+                    class: 'w-full border border-gray-300 rounded-md',
+                  },
+                }"
+              />
+              <Select
+                v-model="formData[field.name]"
+                :options="field.options"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Select a City"
+                class="w-full"
+                :pt="{
+                  root: {
+                    class: 'w-full border border-gray-300 rounded-md',
+                  },
+                }"
+              />
+            </div>
 
-      <!-- Champ de type select -->
-      <div v-if="field.type === 'select'" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
-        <select
-          :name="field.name"
-          v-model="formData[field.name]"
-          :multiple="field.multiple"
-          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-        >
-          <option value="" disabled  >{{ field.label }}</option>
-          
-          <!-- Options dynamiques -->
-          <option v-for="option in field.options" :key="option.value" :value="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
+            <!-- Radio Input -->
+            <div v-if="field.type === 'radio'" class="space-y-2">
+              <label class="block text-sm font-medium text-gray-700 mb-2">
+                {{ field.label }}
+              </label>
+              <div class="flex space-x-4">
+                <div
+                  v-for="option in field.options"
+                  :key="option.value"
+                  class="flex items-center"
+                >
+                  <RadioButton
+                    :name="field.name"
+                    :value="option.value"
+                    v-model="formData[field.name]"
+                    :pt="{
+                      box: {
+                        class: 'border-2 border-gray-300 rounded-full w-4 h-4',
+                      },
+                    }"
+                  />
+                  <label class="ml-2 text-sm text-gray-700">
+                    {{ option.label }}
+                  </label>
+                </div>
+              </div>
+            </div>
 
-      <!-- Autres types de champ -->
-      <div v-if="field.type === 'radio'" class="mb-6 flex flex-col space-y-2">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold">{{ field.label }}</label>
-        <div v-for="option in field.options" :key="option.value" class="flex items-center">
-          <input
-            type="radio"
-            :name="field.name"
-            :value="option.value"
-            v-model="formData[field.name]"
-            class="mr-2"
-          />
-          <label class="text-gray-700 text-sm">{{ option.label }}</label>
+            <!-- Textarea Input -->
+            <div v-if="field.type === 'textarea'">
+              <label
+                :for="field.name"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                {{ field.label }}
+              </label>
+              <Textarea
+                :name="field.name"
+                v-model="formData[field.name]"
+                :placeholder="field.placeholder"
+                class="w-full"
+                :pt="{
+                  root: {
+                    class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                  },
+                }"
+              />
+            </div>
+
+            <!-- Checkbox Input -->
+            <div v-if="field.type === 'checkbox'" class="flex items-center">
+              <Checkbox
+                :name="field.name"
+                v-model="formData[field.name]"
+                :binary="true"
+                :pt="{
+                  box: {
+                    class: 'border-2 border-gray-300 rounded w-4 h-4',
+                  },
+                }"
+              />
+              <label :for="field.name" class="ml-2 text-sm text-gray-700">
+                {{ field.label }}
+              </label>
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div v-if="field.type === 'textarea'" class="mb-6">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
-        <textarea
-          :name="field.name"
-          v-model="formData[field.name]"
-          :placeholder="field.placeholder"
-          class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-        ></textarea>
-      </div>
-
-      <div v-if="field.type === 'checkbox'" class="mb-6 flex items-center">
-        <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
-        <input type="checkbox" :name="field.name" v-model="formData[field.name]" class="mr-2" />
-        <label class="text-gray-700 text-sm">{{ field.label }}</label>
-      </div>
+        <div class="pt-6 w-full">
+          <Button
+            type="submit"
+            severity="secondary"
+            class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-md 
+                   hover:from-blue-700 hover:to-blue-900 
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                   transform hover:scale-[1.02] transition-all duration-300 ease-in-out"
+          >
+            {{ btn_text }}
+          </Button>
+        </div>
+      </form>
     </div>
-
-    <div class="flex items-center justify-between">
-      <button
-        class="bg-black hover:bg-gray-800 text-white font-bold py-2 px-6 rounded focus:outline-none focus:ring-2 focus:ring-black transition duration-300"
-        type="submit"
-      >
-        {{ btn_text }}
-      </button>
-    </div>
-  </form>
+  </div>
 </template>
-
 <script>
+import InputText from "primevue/inputtext";
+// import Calendar from "primevue/calendar";
+import MultiSelect from "primevue/multiselect";
+import Select from 'primevue/select';
+import RadioButton from "primevue/radiobutton";
+import Textarea from "primevue/textarea";
+import Checkbox from "primevue/checkbox";
+import Button from "primevue/button";
+import InputNumber from 'primevue/inputnumber';
 export default {
+  components: {
+    InputText,
+    // Calendar,
+    MultiSelect,
+    Select,
+    RadioButton,
+    Textarea,
+    Checkbox,
+    Button,
+    InputNumber
+  },
   name: "FormComponent",
   props: {
     fields: {
@@ -121,38 +247,45 @@ export default {
         this.formData = { ...newVal };
       },
     },
-    'formData.type': {
-    handler(newVal) {
-      this.fields.forEach((field) => {
-        const isHidden = field.hidden && typeof field.hidden === 'function' && field.hidden(this.formData);
-        if (isHidden && this.formData.hasOwnProperty(field.name)) {
-          delete this.formData[field.name];
-        } else if (!isHidden && !this.formData.hasOwnProperty(field.name)) {
-          this.formData[field.name] = '';
-        }
-      });
+    "formData.type": {
+      handler(newVal) {
+        this.fields.forEach((field) => {
+          const isHidden =
+            field.hidden &&
+            typeof field.hidden === "function" &&
+            field.hidden(this.formData);
+          if (isHidden && this.formData.hasOwnProperty(field.name)) {
+            delete this.formData[field.name];
+          } else if (!isHidden && !this.formData.hasOwnProperty(field.name)) {
+            this.formData[field.name] = "";
+          }
+        });
+      },
+      immediate: true,
     },
-    immediate: true
-  }
   },
   created() {
-  this.fields.forEach((field) => {
-    const isHidden = field.hidden && typeof field.hidden === 'function' && field.hidden(this.formData);
-    if (!isHidden) {
-      this.formData[field.name] = 
-        this.initialData[field.name] !== undefined
-          ? this.initialData[field.name]
-          : field.type === "checkbox"
-          ? false
-          : field.type === "select" && Array.isArray(this.initialData[field.name])
-          ? [...this.initialData[field.name]]
-          : "";
-    }
-  });
-},
+    this.fields.forEach((field) => {
+      const isHidden =
+        field.hidden &&
+        typeof field.hidden === "function" &&
+        field.hidden(this.formData);
+      if (!isHidden) {
+        this.formData[field.name] =
+          this.initialData[field.name] !== undefined
+            ? this.initialData[field.name]
+            : field.type === "checkbox"
+            ? false
+            : field.type === "select" &&
+              Array.isArray(this.initialData[field.name])
+            ? [...this.initialData[field.name]]
+            : "";
+      }
+    });
+  },
   methods: {
     isFieldHidden(field) {
-      if (field.hidden && typeof field.hidden === 'function') {
+      if (field.hidden && typeof field.hidden === "function") {
         return field.hidden(this.formData);
       }
       return false;

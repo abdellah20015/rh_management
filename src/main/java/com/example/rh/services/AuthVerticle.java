@@ -158,6 +158,11 @@ public class AuthVerticle extends AbstractVerticle {
                                                 .put(Fields.USER_STATUS, false)
                                                 .put(Fields.USER_FIRST_LOGIN, true)
                                                 .put(Fields.USER_DATE_CREATION, System.currentTimeMillis())
+                                                .put(Fields.USER_EMAIL, body.getString(Fields.USER_EMAIL ,null))
+                                                .put(Fields.USER_ADDRESS, body.getString(Fields.USER_ADDRESS ,null))
+                                                .put(Fields.USER_FIRSTNAME, body.getString(Fields.USER_FIRSTNAME ,null))
+                                                .put(Fields.USER_LASTNAME, body.getString(Fields.USER_LASTNAME ,null))
+                                                .put(Fields.USER_PHONE, body.getString(Fields.USER_PHONE ,null))
                                                 .put(Fields.USER_PERMISSIONS, permissions));
 
                                 vertx.eventBus().request(Services.DB_UPDATE, payload2, reply2 -> {
