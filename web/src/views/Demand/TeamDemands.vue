@@ -1,48 +1,61 @@
 <template>
     <div class="flex justify-center">
         <div class="w-11/12">
-            <div class="flex items-center justify-between p-5 my-3">
-                <p class="text-2xl font-semibold">Listes des demands (users)</p>
+            <div class="flex items-center justify-between  mt-5 mb-9    ">
+                <p class="text-3xl font-semibold">Listes des demands (users)</p>
                 <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
-                    class="w-48 bg-black text-center text-white rounded p-2">
+                    class="w-48 bg-[#006AFF] hover:bg-[#006AFF]/80 transition-all ease-in-out text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
             <div class="flex flex-col justify-between w-full">
                 <div class="w-full flex justify-between">
                     <div class="w-1/3">
-                        <input type="text" placeholder="Search" v-model="searchValue"
-                            class="p-2 border border-gray-300 w-2/3 mr-2 rounded ">
-                        <button @click="search" class="w-1/4 p-2 rounded bg-black text-white">Search</button>
+                        <div class="relative flex items-center ">
+                            <input type="text" placeholder="Search" v-model="searchValue"
+                                class="w-full p-2.5 rounded-[5px] pl-4 pr-32 border border-[#99C4FF]  focus:outline-none focus:ring-2 focus:ring-[#006AFF]/50 focus:border-[#006AFF] transition-all duration-200">
+                            <button @click="search"
+                                class="absolute rounded-r-[5px] right-0 h-full px-4 bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <span>Rechercher</span>
+                            </button>
+                        </div>
                     </div>
                     <div class="w-36">
                         <button @click="toggleFilterDropdown"
-                            class="w-full p-2 rounded bg-black text-white flex justify-evenly items-center">
-                            <p>Filter</p>
-                            <img width="25" height="25" src="https://img.icons8.com/sf-black/64/FFFFFF/expand-arrow.png"
-                                alt="expand-arrow" />
+                            class="w-full p-2.5 rounded-[5px]  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+                            <span>Filter</span>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                            </svg>
                         </button>
                     </div>
                 </div>
                 <div class="w-full flex justify-end">
-                    <div class="w-1/2 relative justify-end">
+                    <div class="w-1/3 relative justify-end">
                         <!-- Filter Dropdown with Transition -->
                         <transition name="dropdown">
                             <div v-if="showFilterDropdown"
                                 class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
                                 <div v-for="(filter, index) in filterStructure" :key="index">
-                                    <p class="text-sm font-semibold">{{ filter.name }} :</p>
+                                    <p class="text-sm font-semibold text-gray-600 p-1.5">{{ filter.name }}</p>
                                     <div class="flex justify-evenly p-3">
                                         <a href="#" @click.prevent="selectFilter(value)"
                                             v-for="(value, index) in filter.values" :key="index"
-                                            class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
-                                            :class="{ 'bg-black text-white': value.selected === true }">
+                                            class="rounded-full py-1.5 px-5 hover:bg-[#99CAFF] hover:text-white transition-all ease-in-out"
+                                            :class="{ 'bg-[#3b82f6] text-white': value.selected === true }">
                                             <p class="text-sm">{{ value.title }}</p>
                                         </a>
                                     </div>
                                 </div>
                                 <div class="flex gap-5 mt-3">
                                     <button @click="filter"
-                                        class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
+                                        class="w-1/2 p-2 rounded bg-[#3b82f6] text-white">Filtre</button>
                                     <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
                                         filtre</button>
                                 </div>
@@ -252,7 +265,7 @@ export default {
                 },
                 showCancelButton: true
             }).then((res) => {
-                if(res.isConfirmed){
+                if (res.isConfirmed) {
                     this.rejecetDemand(demand, res.value)
                 }
             });
@@ -262,7 +275,7 @@ export default {
         async approveDemand(demand) {
             try {
                 if (demand.status !== "approved") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "approved"});
+                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "approved" });
                     const data = await response.json();
 
                     if (response.ok) {
@@ -282,7 +295,7 @@ export default {
         async rejecetDemand(demand, message) {
             try {
                 if (demand.status !== "rejected") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected", reason : message });
+                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected", reason: message });
                     const data = await response.json();
 
                     if (response.ok) {
@@ -302,31 +315,31 @@ export default {
 
         //download demande pdf
         async downloadDemand(demand) {
-    const query = { filepath: demand.file_path }
-    try {
-        const response = await utils.fetch_methode(services.file.download, query);
+            const query = { filepath: demand.file_path }
+            try {
+                const response = await utils.fetch_methode(services.file.download, query);
 
 
-        if (demand.file_path.toLowerCase().endsWith('.pdf')) {
+                if (demand.file_path.toLowerCase().endsWith('.pdf')) {
 
-            window.open(URL.createObjectURL(await response.blob()), '_blank');
-        } else {
+                    window.open(URL.createObjectURL(await response.blob()), '_blank');
+                } else {
 
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = demand.file_path.split('/').pop();
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-        }
-    } catch (err) {
-        console.error("Erreur de téléchargement:", err);
-        utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
-    }
-},
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = demand.file_path.split('/').pop();
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                }
+            } catch (err) {
+                console.error("Erreur de téléchargement:", err);
+                utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
+            }
+        },
 
 
         filter() {

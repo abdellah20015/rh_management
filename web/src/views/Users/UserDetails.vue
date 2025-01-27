@@ -6,8 +6,9 @@
       <div class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center space-x-4 mb-6">
           <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img src="https://img.icons8.com/external-kmg-design-glyph-kmg-design/32/006aff/external-user-back-to-school-kmg-design-glyph-kmg-design.png" alt="Test Account"
-              class="h-11 w-11 text-gray-600" />
+            <img
+              src="https://img.icons8.com/external-kmg-design-glyph-kmg-design/32/006aff/external-user-back-to-school-kmg-design-glyph-kmg-design.png"
+              alt="Test Account" class="h-11 w-11 text-gray-600" />
 
           </div>
           <div>
@@ -129,8 +130,9 @@
 
         <div class="flex items-center space-x-4 mb-6">
           <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img src="https://img.icons8.com/external-kiranshastry-solid-kiranshastry/64/006aff/external-contract-law-and-crime-kiranshastry-solid-kiranshastry.png" alt="Contract"
-              class="h-11 w-11 text-gray-600" />
+            <img
+              src="https://img.icons8.com/external-kiranshastry-solid-kiranshastry/64/006aff/external-contract-law-and-crime-kiranshastry-solid-kiranshastry.png"
+              alt="Contract" class="h-11 w-11 text-gray-600" />
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Information de contrat</h2>
@@ -263,9 +265,7 @@
       </div>
 
 
-      <div  v-if="this.authStore.user.id != this.$route.params.id" class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
-
-
+      <!-- Demand Section -->
       <div v-if="this.authStore.user.id != this.$route.params.id"
         class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
 
@@ -280,11 +280,11 @@
           <div class="flex flex-col justify-between w-full">
             <div class="w-full flex justify-between">
               <div class="w-1/3">
-                <div class="relative flex items-center">
+                <div class="relative flex items-center ">
                   <input type="text" placeholder="Search" v-model="searchValue"
-                    class="w-full p-2.5 pl-4 pr-32 border border-[#99C4FF] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006AFF]/50 focus:border-[#006AFF] transition-all duration-200">
+                    class="w-full p-2.5 rounded-[5px] pl-4 pr-32 border border-[#99C4FF]  focus:outline-none focus:ring-2 focus:ring-[#006AFF]/50 focus:border-[#006AFF] transition-all duration-200">
                   <button @click="search"
-                    class="absolute right-0 h-full px-4 rounded-r-lg bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+                    class="absolute right-0  rounded-r-[5px] h-full px-4  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                       stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -296,7 +296,7 @@
               </div>
               <div class="w-36">
                 <button @click="toggleFilterDropdown"
-                  class="w-full p-2.5 rounded-lg bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+                  class="w-full p-2.5 rounded-[5px]  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
                   <span>Filter</span>
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
@@ -307,24 +307,24 @@
               </div>
             </div>
             <div class="w-full flex justify-end">
-              <div class="w-1/2 relative justify-end">
+              <div class="w-1/3 relative justify-end">
                 <!-- Filter Dropdown with Transition -->
                 <transition name="dropdown">
                   <div v-if="showFilterDropdown"
                     class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
                     <div v-for="(filter, index) in filterStructure" :key="index">
-                      <p class="text-sm font-semibold">{{ filter.name }} :</p>
+                      <p class="text-sm font-semibold text-gray-600 p-1.5">{{ filter.name }}</p>
                       <div class="flex justify-evenly p-3">
                         <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values"
                           :key="index"
-                          class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
-                          :class="{ 'bg-black text-white': value.selected === true }">
+                          class="rounded-full py-1.5 px-5 hover:bg-[#99CAFF] hover:text-white transition-all ease-in-out"
+                          :class="{ 'bg-[#3b82f6] text-white': value.selected === true }">
                           <p class="text-sm">{{ value.title }}</p>
                         </a>
                       </div>
                     </div>
                     <div class="flex gap-5 mt-3">
-                      <button @click="filter" class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
+                      <button @click="filter" class="w-1/2 p-2 rounded bg-[#3b82f6] text-white">Filtre</button>
                       <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
                         filtre</button>
                     </div>
@@ -341,7 +341,6 @@
         </div>
       </div>
     </div>
-  </div>
   </div>
 </template>
 

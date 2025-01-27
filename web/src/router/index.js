@@ -18,9 +18,6 @@ const router = createRouter({
         {
           path: '/private/statistics',
           name: 'statistics',
-          meta : {
-            permission : ""
-          },
           component: ()=> import('@/views/Statistics.vue'),
         },
         {

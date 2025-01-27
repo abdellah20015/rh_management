@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col min-h-screen bg-gray-50">
+  <div class="flex flex-col min-h-screen bg-[#f9fcff]">
     <!-- Enterprise Navbar -->
     <nav class="bg-white shadow-md border-b border-gray-200">
       <div class="container mx-auto px-4 py-3 flex justify-between items-center">

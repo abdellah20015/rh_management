@@ -214,7 +214,7 @@
             <!-- tables for employee -->
             <div class="grid grid-cols-2 gap-6" v-else>
                 <!-- Upcoming Contract Expirations -->
-                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-800">last Demands</h2>
@@ -232,7 +232,7 @@
                 </Card>
 
                 <!-- Recent Demands -->
-                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-800">last pending demands</h2>
