@@ -237,16 +237,16 @@ public class Demand extends AbstractVerticle {
             }
             else{
               // if ( type.equals("demande_conge") &&   leave_balance < leave_days){
-                System.out.println("in update leave balance");
-                Integer new_leave_balance = leave_balance - leave_days;
-                JsonObject update_leave_balance = new JsonObject()
-                .put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance);
-                
-                JsonObject payload = new JsonObject()
-                .put("collection", Collections.CONTRACTS)
-               .put("id",contractData.getString("_id") )
-                .put("update", update_leave_balance );
                 if (type.equals("demande_conge")) {
+                  System.out.println("in update leave balance");
+                  Integer new_leave_balance = leave_balance - leave_days;
+                  JsonObject update_leave_balance = new JsonObject()
+                  .put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance);
+                  
+                  JsonObject payload = new JsonObject()
+                  .put("collection", Collections.CONTRACTS)
+                 .put("id",contractData.getString("_id") )
+                  .put("update", update_leave_balance );
                   vertx.eventBus().request(Services.DB_UPDATE, payload, res -> {
                     if (res.succeeded()) {
                       System.out.println("leave balance updated");

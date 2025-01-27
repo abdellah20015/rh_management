@@ -92,7 +92,8 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(ctx -> { handlePermission(ctx, "update_demand"); }).addHandler(this::updateDemand);
-
+      // path : /private/demand/stats
+      routerBuilder.getRoute("getDemandStats").addHandler(this::getDemandStats);
       //notificaiton
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
       routerBuilder.getRoute("updateNotificationStatus").addHandler(this::updateNotificationStatus);
@@ -925,7 +926,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
   /** 
    * users counts
    * @author ilyass
-   * methode to count users 
+   * methode to get the stats of the users 
    */
   public void usersCount(RoutingContext ctx){
     try {
@@ -984,6 +985,91 @@ public void handlePermission(RoutingContext ctx, String permission) {
     }
   }
 
+  /**
+   * getDemandStats
+   * @param ctx
+   * methode to get the stats of the demand
+   */
+  public void getDemandStats(RoutingContext ctx){
+    try {
+      JsonObject match = new JsonObject();
+      if (ctx.user().principal().getString("role").equals("manager") || ctx.user().principal().getString("role").equals("admin")) {
+          match.put("user.manager_id", ctx.user().principal().getString("id"));
+      }
+      if (ctx.user().principal().getString("role").equals("employee")) {
+          match.put("user_id", ctx.user().principal().getString("id"));
+        
+      }
+      
+      JsonArray pipeline  = new JsonArray()
+       .add(new JsonObject().put("$lookup", new JsonObject()
+           .put("from", Collections.USER)  
+           .put("localField", "user_id") 
+           .put("foreignField", "_id")   
+           .put("as", "user")  
+       )
+       
+       )
+       .add(new JsonObject().put("$match", match)) 
+       .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
+       .add(new JsonObject().put("$facet", new JsonObject()
+           .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
+           .put("pending", new JsonArray()
+               .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
+               .add(new JsonObject().put("$count", "pending"))
+           )
+           .put("rejected", new JsonArray()
+               .add(new JsonObject().put("$match", new JsonObject().put("status", "rejected")))
+               .add(new JsonObject().put("$count", "rejected"))
+           )
+           .put("approved", new JsonArray()
+               .add(new JsonObject().put("$match", new JsonObject().put("status", "approved")))
+               .add(new JsonObject().put("$count", "approved"))
+           )
+       )) ;
+ 
+      JsonObject aggregate = new JsonObject()
+      .put("collection", Collections.DEMANDS) 
+      .put("pipeline", pipeline)
+      .put("options", new JsonObject());
+
+
+  vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
+        System.out.println(pipeline);
+        if (reply.succeeded()) {
+          JsonObject result = (JsonObject) reply.result().body();
+          System.out.println(result);
+          JsonObject data = result.getJsonArray("data").getJsonObject(0);
+          System.out.println(data);
+          JsonObject counts = new JsonObject();
+          JsonArray total = data.getJsonArray("total");
+          JsonArray approved = data.getJsonArray("approved");
+          JsonArray rejected = data.getJsonArray("rejected");
+          JsonArray pending = data.getJsonArray("pending");
+  
+          counts.put("total_demands",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
+          counts.put("approved",(approved != null && !approved.isEmpty()) ? approved.getJsonObject(0).getInteger("approved") : 0);
+          counts.put("rejected", (rejected != null && !rejected.isEmpty()) ?  rejected.getJsonObject(0).getInteger("rejected"): 0);
+          counts.put("pending", (pending != null && !pending.isEmpty()) ?  pending.getJsonObject(0).getInteger("pending"): 0);
+          // JsonObject 
+          ctx.response()
+              .setStatusCode(200)
+              .putHeader("content-type", "application/json")
+              .end(counts.encode());
+        } else {
+          ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+        }
+      });
+    } catch (Exception e) {
+      ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
+    }
+  }
    /**
    * List manager handler
    * @param ctx RoutingContext
