@@ -2,22 +2,57 @@
     <div class="flex justify-center">
         <div class="w-11/12">
             <div class="flex items-center justify-between p-5 my-3">
-                <p class="text-2xl font-semibold">Listes des demands</p>
+                <p class="text-2xl font-semibold">Listes des demands (users)</p>
                 <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
                     class="w-48 bg-black text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
             </div>
-            <div class="flex items-center justify-between p-5 ">
-                <TableFilterComponent :filterStructure="filterStructure" @filterHandler="filterHandler"
-                    @searchHandler="searchHandler" @resertFilterHandler="resertFilterHandler">
-                </TableFilterComponent>
+            <div class="flex flex-col justify-between w-full">
+                <div class="w-full flex justify-between">
+                    <div class="w-1/3">
+                        <input type="text" placeholder="Search" v-model="searchValue"
+                            class="p-2 border border-gray-300 w-2/3 mr-2 rounded ">
+                        <button @click="search" class="w-1/4 p-2 rounded bg-black text-white">Search</button>
+                    </div>
+                    <div class="w-36">
+                        <button @click="toggleFilterDropdown"
+                            class="w-full p-2 rounded bg-black text-white flex justify-evenly items-center">
+                            <p>Filter</p>
+                            <img width="25" height="25" src="https://img.icons8.com/sf-black/64/FFFFFF/expand-arrow.png"
+                                alt="expand-arrow" />
+                        </button>
+                    </div>
+                </div>
+                <div class="w-full flex justify-end">
+                    <div class="w-1/2 relative justify-end">
+                        <!-- Filter Dropdown with Transition -->
+                        <transition name="dropdown">
+                            <div v-if="showFilterDropdown"
+                                class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
+                                <div v-for="(filter, index) in filterStructure" :key="index">
+                                    <p class="text-sm font-semibold">{{ filter.name }} :</p>
+                                    <div class="flex justify-evenly p-3">
+                                        <a href="#" @click.prevent="selectFilter(value)"
+                                            v-for="(value, index) in filter.values" :key="index"
+                                            class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
+                                            :class="{ 'bg-black text-white': value.selected === true }">
+                                            <p class="text-sm">{{ value.title }}</p>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="flex gap-5 mt-3">
+                                    <button @click="filter"
+                                        class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
+                                    <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
+                                        filtre</button>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
+                </div>
             </div>
-            <div v-if="user.permissions.includes('update_demand')">
+            <div>
                 <TableComponent :tableInfo="managerTableInfo" :pageSize="pageSize" :currentPage="currentPage"
-                    :totalPages="totalPages" @page-changed="handlePageChange"></TableComponent>
-            </div>
-            <div v-if="!user.permissions.includes('update_demand')">
-                <TableComponent :tableInfo="employeeTableInfo" :pageSize="pageSize" :currentPage="currentPage"
                     :totalPages="totalPages" @page-changed="handlePageChange"></TableComponent>
             </div>
         </div>
@@ -33,7 +68,7 @@ import { useAuthStore } from '@/stores/store';
 
 
 export default {
-    name: 'DemandsList',
+    name: 'TeamDemands',
     data() {
         return {
             //manager table infos
@@ -148,20 +183,40 @@ export default {
             count: 0,
             totalPages: 1,
             user: useAuthStore().user,
+            searchValue: null,
+            filterData: {
+                type: [],
+                status: [],
+            },
+            showFilterDropdown: false
         };
     },
     methods: {
+
+        toggleFilterDropdown() {
+            this.showFilterDropdown = !this.showFilterDropdown;
+        },
+
         //fetch demand list
         async fetchDemands() {
             try {
-                const response = await utils.fetch_methode(services.demand.list, { query: {}, options: { "page": this.currentPage, "limit": this.pageSize } })
+                const response = await utils.fetch_methode(services.demand.listByManager, {
+                    query: {
+                        filter : {
+                            type : this.filterData.type,
+                            status : this.filterData.status,
+                        },
+                        search : this.searchValue
+                    },
+                    options: { "page": this.currentPage, "limit": this.pageSize }
+                })
                 const data = await response.json();
+                
                 if (response.ok) {
 
                     //pagination
                     this.count = data.count;
                     this.count += (this.currentPage - 1) * this.pageSize;
-                    console.log(this.count);
 
                     if (this.count > this.pageSize) {
                         this.totalPages = Math.ceil(this.count / this.pageSize);
@@ -258,76 +313,45 @@ export default {
     }
 },
 
-        //hanlder filter
-        filterHandler(filterData) {
-            const currentData = this.user.role === "manager"
-                ? this.managerTableInfo.data
-                : this.employeeTableInfo.data;
 
-            if (filterData.length > 0) {
-                // Group filters by field name
-                const groupedFilters = {};
-                filterData.forEach(filter => {
-                    const fieldName = Object.keys(filter)[0];
-                    const value = filter[fieldName];
+        filter() {
+            this.fetchDemands()
+        },
 
-                    if (!groupedFilters[fieldName]) {
-                        groupedFilters[fieldName] = [];
-                    }
-                    groupedFilters[fieldName].push(value);
-                });
+        selectFilter(selectedValue) {
+            selectedValue.selected = !selectedValue.selected
 
-                // Filter data based on grouped filters
-                const filteredData = currentData.filter((demande) => {
-                    return Object.keys(groupedFilters).every((fieldName) => {
-                        return groupedFilters[fieldName].some(filterValue =>
-                            String(demande[fieldName]).toLowerCase() === String(filterValue).toLowerCase()
-                        );
-                    });
-                });
+            const value = selectedValue.value
+            const key = selectedValue.key
 
-                // update table with filtred data
-                if (this.user.role === "manager") {
-                    this.managerTableInfo.data = filteredData;
-                } else {
-                    this.employeeTableInfo.data = filteredData;
-                }
+            if (key == "type") {
+                this.filterData.type.push(value)
             }
+
+            if (key == "status") {
+                this.filterData.status.push(value)
+            }
+
+            console.log(this.filterData);
+            
         },
 
 
         //search handle
-        searchHandler(searchValue) {
-
-            //get demande if value empty
-            if (searchValue == "") {
-                this.fetchDemands()
-            }
-
-            const currentData = this.user.role === "manager"
-                ? this.managerTableInfo.data
-                : this.employeeTableInfo.data;
-
-            if (!searchValue) {
-                return currentData;
-            }
-
-            const searchedData = currentData.filter((demande) => {
-                return Object.values(demande).some(value =>
-                    String(value).toLowerCase().includes(searchValue.toLowerCase())
-                );
-            });
-
-            if (this.user.role === "manager") {
-                this.managerTableInfo.data = searchedData;
-            } else {
-                this.employeeTableInfo.data = searchedData;
-            }
+        search() {
+            this.fetchDemands();
         },
 
         //resert filter
-        resertFilterHandler() {
-            this.fetchDemands();
+        resertFilter() {
+            this.filterData.status = [];
+            this.filterData.type = [];
+            this.filterStructure.forEach(filter => {
+                filter.values.forEach(value => {
+                    value.selected = false
+                });
+            });
+            this.fetchDemands()
         },
 
         handlePageChange(newPage) {
@@ -346,3 +370,17 @@ export default {
     }
 };
 </script>
+
+<style scoped>
+/* Transition for dropdown */
+.dropdown-enter-active,
+.dropdown-leave-active {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+    opacity: 0;
+    transform: translateY(-10px);
+}
+</style>

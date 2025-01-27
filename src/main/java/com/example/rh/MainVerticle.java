@@ -1,7 +1,9 @@
 package com.example.rh;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
@@ -10,6 +12,8 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.ServerWebSocket;
+import io.vertx.core.http.WebSocket;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -29,6 +33,7 @@ import io.vertx.openapi.contract.OpenAPIContract;
 
 public class MainVerticle extends AbstractVerticle {
   private static final Integer PORT = 8888;
+  Map<String, ServerWebSocket> userWebSockets = new HashMap<>();
 
   @Override
   public void start(Promise<Void> startPromise) throws Exception {
@@ -71,7 +76,9 @@ public class MainVerticle extends AbstractVerticle {
       });
       //demands
       // path: /private/demand/list
-      routerBuilder.getRoute("listDemands").addHandler(this::getListDemands);
+      routerBuilder.getRoute("listDemandsByManager").addHandler(this::getListDemandsByManager);
+      routerBuilder.getRoute("listDemandsByUser").addHandler(this::getListDemandsByUser);
+
       // path: /private/demand/create
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
@@ -122,13 +129,61 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("getfiles").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::getFiles);
       routerBuilder.getRoute("downloadFile").addHandler(this::downloadFile);
 
-
-
       // Create a router
       Router router = routerBuilder.createRouter();
 
       //  create a static handler for the uploads directory
       router.route("/uploads/*").handler(StaticHandler.create("uploads"));
+
+      //webSocket connection
+      router.route("/notification").handler(ctx -> {
+        if (ctx.user() != null) {
+          ctx.request().toWebSocket().onSuccess(ws -> {
+              JsonObject user = ctx.user().principal();
+              String userId = user.getString("id");  // Get the user ID from the authenticated user
+              userWebSockets.put(userId, ws);
+              System.out.println("\n user object ws : " + user + "\n");
+              System.out.println("websocket connected");
+
+
+
+              vertx.eventBus().consumer(Services.NOTIFICATION_SEND, msg -> {
+                JsonObject notificationObject = (JsonObject) msg.body();
+                JsonObject notificationData = notificationObject.getJsonObject("data");
+
+                System.out.println("\n user id ws : " + user.getString("id") + "\n");
+                System.out.println("\n user noti id ws : " + notificationData.getString("user_id") + "\n");
+
+
+                ServerWebSocket targetWs = userWebSockets.get(notificationData.getString("user_id"));
+                if (targetWs != null) {
+                  targetWs.writeTextMessage(notificationData.toString())
+                    .onSuccess(res -> System.out.println("Notification has been sent!"));
+                } else {
+                  System.out.println("No WebSocket connection found for user ID: " + notificationData.getString("user_id"));
+                }
+              });
+
+              // Close handler
+              ws.closeHandler(handle -> {
+                System.out.println("connection closed");
+                ctx.clearUser();
+              });
+
+              // Incoming message handler
+              ws.handler(buffer -> {
+                String message = buffer.toString();
+                System.out.println("Received WebSocket message: " + message);
+              });
+          }).onFailure(err -> {
+            System.err.println("Failed to upgrade to WebSocket: " + err.getMessage());
+            ctx.fail(err);
+          });
+        }else {
+          System.out.println("User not authenticated. Closing WebSocket.");
+          ctx.response().setStatusCode(401).end("Unauthorized");
+        }
+      });
 
       //  create http server and listen on port 8888
       vertx.createHttpServer().requestHandler(router).listen(PORT)
@@ -156,13 +211,46 @@ public class MainVerticle extends AbstractVerticle {
    * request body <JsonObject>
    * </p>
    */
-  private void getListDemands(RoutingContext ctx) {
+  private void getListDemandsByManager(RoutingContext ctx) {
     try {
       JsonObject body = ctx.getBodyAsJson();
       JsonObject user = ctx.user().principal();
       body.put("user" , user);
 
-      vertx.eventBus().request(Services.DEMAND_LIST, body, res -> {
+      vertx.eventBus().request(Services.DEMAND_LIST_MANAGER, body, res -> {
+        if (res.succeeded()) {
+          ctx.response()
+            .setStatusCode(200)
+            .putHeader("content-type", "application/json")
+            .end(res.result().body().toString());
+        }else {
+          ctx.response()
+            .setStatusCode(500)
+            .putHeader("content-type", "application/json")
+            .end(res.cause().getMessage());
+        }
+      });
+
+    }catch(Exception e) {
+      System.out.println("error " + e);
+    }
+  }
+
+  /**
+   * @param ctx RoutingContext
+   * @author Youssef
+   * <p>
+   * OpenAPI3 Route getListDemands
+   * request body <JsonObject>
+   * </p>
+   */
+  private void getListDemandsByUser(RoutingContext ctx) {
+    try {
+      JsonObject body = ctx.getBodyAsJson();
+      JsonObject user = ctx.user().principal();
+      body.put("user" , user);
+
+      vertx.eventBus().request(Services.DEMAND_LIST_USER, body, res -> {
         if (res.succeeded()) {
           ctx.response()
             .setStatusCode(200)
@@ -811,6 +899,8 @@ public void handlePermission(RoutingContext ctx, String permission) {
     try {
       JsonObject body = ctx.body().asJsonObject();
       JsonObject option = body.getJsonObject("query");
+      JsonObject filter = option.getJsonObject("filter");
+      String search = option.getString("search");
       int page = option.getInteger("page");
       int limit = option.getInteger("limit");
       int skip = (page - 1) * limit;
@@ -826,17 +916,44 @@ public void handlePermission(RoutingContext ctx, String permission) {
           .put("foreignField", "user_id")
           .put("as", "contracts");
 
+      JsonArray pipeline = new JsonArray()
+        .add(new JsonObject().put("$match", match))
+        .add(new JsonObject().put("$lookup", lookupContracts))
+        .add(new JsonObject().put("$unwind", new JsonObject()
+          .put("path" , "$contracts")
+          .put("preserveNullAndEmptyArrays", true)))
+        .add(new JsonObject().put("$sort", new JsonObject().put("date_creation", -1)));
+
+
+      if(search != null){
+        pipeline.add(new JsonObject().put("$match", new JsonObject()
+          .put("username", new JsonObject()
+            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+            .put("$options", "i"))));
+      }
+
+      if(!filter.isEmpty()){
+        if(filter.containsKey("role") && !filter.getJsonArray("role").isEmpty()){
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("role", new JsonObject()
+              .put("$in", filter.getJsonArray("role")))));
+        }
+        if(filter.containsKey("type") && !filter.getJsonArray("type").isEmpty()){
+          pipeline.add(new JsonObject().put("$unwind", "$contracts"))
+            .add(new JsonObject().put("$sort", new JsonObject().put("contracts.date_creation", -1)));
+          pipeline.add(new JsonObject().put("$match" , new JsonObject()
+            .put("contracts.type", new JsonObject()
+              .put("$in", filter.getJsonArray("type")))));
+        }
+      }
+
+      pipeline.add(new JsonObject().put("$skip", skip))
+        .add(new JsonObject().put("$limit", limit));
+
 
       JsonObject aggregate = new JsonObject()
           .put("collection", Collections.USER)
-          .put("pipeline", new JsonArray()
-              .add(new JsonObject().put("$match", match))
-              .add(new JsonObject().put("$lookup", lookupContracts))
-              .add(new JsonObject().put("$sort", new JsonObject().put("date_creation", -1)))
-              .add(new JsonObject().put("$skip", skip))
-              .add(new JsonObject().put("$limit", limit))
-
-          )
+          .put("pipeline", pipeline)
           .put("options", new JsonObject());
 
       vertx.eventBus().request(Services.DB_AGGREGATE, aggregate, reply -> {
