@@ -65,6 +65,7 @@ import TableFilterComponent from '@/components/TableFilterComponent.vue';
 import services from '@/shared/services';
 import utils from "@/shared/utils";
 import { useAuthStore } from '@/stores/store';
+import Swal from 'sweetalert2';
 import { RouterLink } from 'vue-router';
 
 export default {
@@ -87,11 +88,11 @@ export default {
                     //     action: this.approveDemand,
                     //     disabled: (demand) => demand.status === "approved"
                     // },
-                    // {
-                    //     button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
-                    //     action: this.rejecetDemand,
-                    //     disabled: (demand) => demand.status === "rejected"
-                    // },
+                    {
+                        button: `<button style='background-color : #eeba0b; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/sf-black-filled/64/FFFFFF/chat-message.png" alt="chat-message"/></button>`,
+                        action: this.showReason,
+                        disabled: (demand) => demand.status !== "rejected"
+                    },
                     {
                         button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
@@ -212,74 +213,42 @@ export default {
             }
         },
 
-        //approve demand by manager
-        async approveDemand(demand) {
-            try {
-                if (demand.status !== "approved") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "approved" });
-                    const data = await response.json();
+        showReason(demand) {
+            console.log(demand);
+            const title = "Raison de rejet";
 
-                    if (response.ok) {
-                        console.log(data);
-                        utils.successAlert("Demand has been approved")
-                        this.fetchDemands()
-                    } else {
-                        console.log(response);
-                    }
-                }
-            } catch (err) {
-                console.log(err);
-            }
+            utils.showText(title, demand.reason)
         },
-
-        //reject demand by manager
-        async rejecetDemand(demand) {
-            try {
-                if (demand.status !== "rejected") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected" });
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        console.log(data);
-                        utils.successAlert("Demand has been rejected")
-                        this.fetchDemands()
-                    } else {
-                        console.log(response);
-                        console.log(JSON.stringify(this.user));
-
-                    }
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        },
-
         //download demande pdf
         async downloadDemand(demand) {
-            const query = { filepath: demand.file_path }
-            console.log(query)
-            try {
-                const response = await utils.fetch_methode(services.file.download, query)
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                const filename = demand.file_path.split('/').pop();
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                if (response.ok) {
-                    console.log(response);
-                } else {
-                    console.log(response);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        },
+
+      const query = { filepath: demand.file_path }
+      try {
+        const response = await utils.fetch_methode(services.file.download, query);
+
+
+        if (demand.file_path.toLowerCase().endsWith('.pdf')) {
+
+          window.open(URL.createObjectURL(await response.blob()), '_blank');
+        } else {
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = demand.file_path.split('/').pop();
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
+      } catch (err) {
+        console.error("Erreur de téléchargement:", err);
+        utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
+
+      }
+    },
+
 
 
         filter() {

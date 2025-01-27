@@ -65,6 +65,7 @@ import TableFilterComponent from '@/components/TableFilterComponent.vue';
 import services from '@/shared/services';
 import utils from "@/shared/utils";
 import { useAuthStore } from '@/stores/store';
+import Swal from 'sweetalert2';
 import { RouterLink } from 'vue-router';
 
 export default {
@@ -89,7 +90,7 @@ export default {
                     },
                     {
                         button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
-                        action: this.rejecetDemand,
+                        action: this.rejectReasonPopup,
                         disabled: (demand) => demand.status === "rejected"
                     },
                     {
@@ -202,16 +203,16 @@ export default {
             try {
                 const response = await utils.fetch_methode(services.demand.listByManager, {
                     query: {
-                        filter : {
-                            type : this.filterData.type,
-                            status : this.filterData.status,
+                        filter: {
+                            type: this.filterData.type,
+                            status: this.filterData.status,
                         },
-                        search : this.searchValue
+                        search: this.searchValue
                     },
                     options: { "page": this.currentPage, "limit": this.pageSize }
                 })
                 const data = await response.json();
-                
+
                 if (response.ok) {
 
                     //pagination
@@ -230,11 +231,7 @@ export default {
                         statusTitle: item.status === "approved" ? "Acceptée" : item.status === "rejected" ? "Rejectée" : item.status === "pending" ? "En attente" : item.status,
                     }));
 
-                    if (this.user.role == 'manager' || this.user.role == "admin") {
-                        this.managerTableInfo.data = processedData;
-                    } else if (this.user.role == 'employee') {
-                        this.employeeTableInfo.data = processedData;
-                    }
+                    this.managerTableInfo.data = processedData;
                 } else {
                     console.log(response);
                 }
@@ -243,11 +240,29 @@ export default {
             }
         },
 
+
+        //popup reason of reject
+        async rejectReasonPopup(demand, message) {
+            Swal.fire({
+                input: "textarea",
+                inputLabel: "Message",
+                inputPlaceholder: "Type your message here...",
+                inputAttributes: {
+                    "aria-label": "Type your message here"
+                },
+                showCancelButton: true
+            }).then((res) => {
+                if(res.isConfirmed){
+                    this.rejecetDemand(demand, res.value)
+                }
+            });
+        },
+
         //approve demand by manager
         async approveDemand(demand) {
             try {
                 if (demand.status !== "approved") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "approved" });
+                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "approved"});
                     const data = await response.json();
 
                     if (response.ok) {
@@ -264,10 +279,10 @@ export default {
         },
 
         //reject demand by manager
-        async rejecetDemand(demand) {
+        async rejecetDemand(demand, message) {
             try {
                 if (demand.status !== "rejected") {
-                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected" });
+                    const response = await utils.fetch_methode(services.demand.update, { demand_id: demand._id, status: "rejected", reason : message });
                     const data = await response.json();
 
                     if (response.ok) {
@@ -287,30 +302,31 @@ export default {
 
         //download demande pdf
         async downloadDemand(demand) {
-            const query = { filepath: demand.file_path }
-            console.log(query)
-            try {
-                const response = await utils.fetch_methode(services.file.download, query)
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                const filename = demand.file_path.split('/').pop();
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                if (response.ok) {
-                    console.log(response);
-                } else {
-                    console.log(response);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        },
+    const query = { filepath: demand.file_path }
+    try {
+        const response = await utils.fetch_methode(services.file.download, query);
+
+
+        if (demand.file_path.toLowerCase().endsWith('.pdf')) {
+
+            window.open(URL.createObjectURL(await response.blob()), '_blank');
+        } else {
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = demand.file_path.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    } catch (err) {
+        console.error("Erreur de téléchargement:", err);
+        utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
+    }
+},
 
 
         filter() {
@@ -332,7 +348,7 @@ export default {
             }
 
             console.log(this.filterData);
-            
+
         },
 
 

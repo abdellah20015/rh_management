@@ -7,17 +7,23 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.eventbus.Message;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.mongo.MongoClient;
 
 public class Demand extends AbstractVerticle {
 
+  private MongoClient mongoClient;
   @Override
   public void start() {
+    mongoClient = Conf.createMongoClient(vertx);
+
     try {
       //getListDemand service
       vertx.eventBus().consumer(Services.DEMAND_LIST_MANAGER, this::getListDemandsByManager);
       vertx.eventBus().consumer(Services.DEMAND_LIST_USER, this::getListDemandsByUser);
       vertx.eventBus().consumer(Services.DEMAND_CREATE, this::createDemandHandler);
       vertx.eventBus().consumer(Services.DEMAND_UPDATE, this::updateDemandHandler);
+//      vertx.eventBus().consumer(Services.DEMANDS_REASON, this::demandReason);
+
     } catch (Exception e) {
       System.out.println(e);
     }
@@ -85,6 +91,7 @@ public class Demand extends AbstractVerticle {
           .put("details", 1)
           .put("status", 1)
           .put("file_path", 1)
+          .put("reason", 1)
           .put("created_date", 1)
           .put("username", "$user.username")));
 
@@ -164,6 +171,7 @@ public class Demand extends AbstractVerticle {
           .put("details", 1)
           .put("status", 1)
           .put("file_path", 1)
+          .put("reason", 1)
           .put("created_date", 1)
           .put("username", "$user.username")));
 
@@ -409,8 +417,17 @@ public class Demand extends AbstractVerticle {
       String demandId = body.getString("demand_id");
       String status = body.getString(Fields.DEMAND_STATUS);
 
-      JsonObject update = new JsonObject()
-        .put(Fields.DEMAND_STATUS, status);
+      JsonObject update = new JsonObject().
+        put(Fields.DEMAND_STATUS, status);
+
+      JsonObject setReasonField = new JsonObject();
+
+      //check if the demand is rejected and add the reason
+      if(status.equals("rejected") && body.containsKey(Fields.DEMAND_REASON)){
+        String reason = body.getString(Fields.DEMAND_REASON);
+        setReasonField.put("$set", new JsonObject()
+          .put(Fields.DEMAND_REASON, reason));
+      }
 
       JsonObject msg = new JsonObject()
         .put("collection", Collections.DEMANDS)
@@ -420,11 +437,23 @@ public class Demand extends AbstractVerticle {
       vertx.eventBus().request(Services.DB_UPDATE, msg, res -> {
         if (res.succeeded()) {
           try {
+
+            //check if the demand is rejected and add the reason by updating the demand
+            if(status.equals("rejected")){
+              mongoClient.findOneAndUpdate(Collections.DEMANDS, new JsonObject().put("_id", demandId), setReasonField, resReason -> {
+                if (resReason.succeeded()) {
+                  System.out.println("reason added" + resReason.result().toString());
+                } else {
+                  message.reply(resReason.cause().getMessage());
+                }
+              });
+            }
+
             JsonObject resBody = (JsonObject) res.result().body();
             JsonObject resBodyData = resBody.getJsonObject("data");
+            String demand_status = resBodyData.getString(Fields.DEMAND_STATUS);
 
             String demand_id = resBodyData.getString("_id");
-            String demand_status = resBodyData.getString(Fields.DEMAND_STATUS);
             String user_id = resBodyData.getString(Fields.DEMAND_USER_ID);
             System.out.println("-------------------" + demand_status);
             if (resBodyData.getString(Fields.DEMAND_TYPE).equals("demande_conge") && demand_status.equals("rejected")) {
@@ -484,4 +513,23 @@ public class Demand extends AbstractVerticle {
       message.fail(500, "error" + e);
     }
   }
+
+//  private void demandReason(Message message) {
+//    JsonObject body = (JsonObject) message.body();
+//
+//    String demandId = body.getString("demand_id");
+//    String reason = body.getString(Fields.DEMAND_REASON);
+//
+//    JsonObject update = new JsonObject()
+//      .put("$set" , new JsonObject()
+//        .put(Fields.DEMAND_REASON, reason));
+//
+//    JsonObject msg = new JsonObject()
+//      .put("collection", Collections.DEMANDS )
+//      .put("id", demandId)
+//      .put("update", update);
+//
+//    vert
+//  }
+
 }

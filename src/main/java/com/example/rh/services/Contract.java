@@ -1,6 +1,7 @@
 package com.example.rh.services;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 
 import com.example.rh.constants.Collections;
@@ -21,8 +22,13 @@ public class Contract extends AbstractVerticle {
       vertx.eventBus().consumer(Services.CONTRACT_CREATE, this::createContractHandler);
       vertx.eventBus().consumer(Services.CONTRACT_UPDATE, this::updateContractHandler);
       vertx.eventBus().consumer(Services.CONTRACT_GET, this::getContractHandler);
+      vertx.eventBus().consumer(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, this::countActiveUsersWithContracts);
+      vertx.eventBus().consumer(Services.DB_EXPIRING_CONTRACTS, this::listExpiringContracts);
 
-      vertx.setPeriodic(30 * 1000, id -> checkAndExpireContracts());
+
+
+      vertx.setPeriodic(6 * 1000, id -> checkAndExpireContracts());
+
     } catch(Exception e) {
       System.out.println(e);
     }
@@ -35,9 +41,7 @@ public class Contract extends AbstractVerticle {
 
 
  private void checkAndExpireContracts() {
-  System.out.println("Checking for expired contracts...");
   String currentDate = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-  System.out.println("Current date: " + currentDate);
 
   JsonObject query = new JsonObject()
     .put("type", "cdd")
@@ -48,7 +52,6 @@ public class Contract extends AbstractVerticle {
     .put("collection", Collections.CONTRACTS)
     .put("query", query);
 
-  System.out.println("Query for expired contracts: " + query.encodePrettily());
 
   vertx.eventBus().request(Services.DB_FIND, msg, res -> {
     if (res.succeeded()) {
@@ -57,10 +60,7 @@ public class Contract extends AbstractVerticle {
       if (response.getString("status").equals("success")) {
         JsonArray contractsData = response.getJsonArray("data");
         if (contractsData != null && !contractsData.isEmpty()) {
-          System.out.println("Found " + contractsData.size() + " contracts to expire");
           processExpiredContracts(contractsData);
-        } else {
-          System.out.println("No contracts to expire");
         }
       } else {
         System.err.println("Query failed with status: " + response.getString("status"));
@@ -70,6 +70,7 @@ public class Contract extends AbstractVerticle {
     }
   });
 }
+
 /**
  * @param contracts JsonArray
  * @author : abdellah
@@ -92,11 +93,7 @@ private void processExpiredContracts(JsonArray contracts) {
       continue;
     }
 
-    System.out.println("Processing contract: " + contractId + " for user: " + userId + " ending: " + endDate);
-
     if (currentDate.equals(endDate)) {
-      System.out.println("Expiring contract " + contractId + " for user: " + userId);
-
       JsonObject updateContract = new JsonObject()
         .put("collection", Collections.CONTRACTS)
         .put("id", contractId)
@@ -104,17 +101,33 @@ private void processExpiredContracts(JsonArray contracts) {
 
       vertx.eventBus().request(Services.DB_UPDATE, updateContract, updateRes -> {
         if (updateRes.succeeded()) {
-          System.out.println("Contract " + contractId + " expired successfully");
+          JsonObject allowNewContractMsg = new JsonObject()
+            .put("collection", Collections.USER)
+            .put("id", userId)
+            .put("update", new JsonObject()
+              .put("can_create_contract", true)
+              .put("contract_expiration_date", currentDate)
+            );
+
+            vertx.eventBus().request(Services.DB_UPDATE, allowNewContractMsg, allowRes -> {
+              if (allowRes.succeeded()) {
+                System.out.println("User " + userId + " can now create new contracts");
+              } else {
+                System.err.println("Failed to update user contract creation permissions");
+              }
+            });
+
           deactivateUser(userId);
         } else {
           System.err.println("Failed to expire contract " + contractId + ": " + updateRes.cause().getMessage());
         }
       });
     } else {
-      System.out.println("Contract " + contractId + " is not expiring today");
+
     }
   }
 }
+
 /**
    * @param userId String
    * @author : abdellah
@@ -285,6 +298,120 @@ private void createContractHandler(Message<JsonObject> message) {
     }
 }
 
+/**
+ * @param message Message
+ * @author : Abdellah
+ * <p>
+ * This function is an event bus consumer handler that calculates the number of
+ * active users with at least one active contract. It sends a reply containing
+ * the count as a JsonObject.
+ * </p>
+ */
+
+private void countActiveUsersWithContracts(Message<JsonObject> message) {
+  try {
+      JsonArray pipeline = new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject()
+              .put("status", true)))
+          .add(new JsonObject().put("$group", new JsonObject()
+              .put("_id", "$user_id")))
+          .add(new JsonObject().put("$count", "activeUsersWithContracts"));
+
+      JsonObject msg = new JsonObject()
+          .put("collection", Collections.CONTRACTS)
+          .put("pipeline", pipeline)
+          .put("options", new JsonObject());
+
+      vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
+          if (res.succeeded()) {
+              JsonObject result = (JsonObject) res.result().body();
+              message.reply(result);
+          } else {
+              message.fail(500, res.cause().getMessage());
+          }
+      });
+  } catch (Exception e) {
+      message.fail(500, "Erreur " + e);
+  }
+}
+
+/**
+ * @param message Message
+ * @author : Abdellah
+ * <p>
+ * This function is an event bus consumer handler that retrieves the top 5 contracts
+ * that are expiring within the next 10 days. The response contains details of the
+ * contract and associated user information such as username.
+ * </p>
+ */
+
+
+ private void listExpiringContracts(Message<JsonObject> message) {
+  try {
+    Calendar calendar = Calendar.getInstance();
+    SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+
+    String currentDate = dateFormat.format(calendar.getTime());
+
+
+    calendar.add(Calendar.DAY_OF_YEAR, 10);
+    String expirationDate = dateFormat.format(calendar.getTime());
+
+
+    JsonArray pipeline = new JsonArray()
+      .add(new JsonObject().put("$match", new JsonObject()
+        .put("type", "cdd")
+        .put("status", true)
+        .put("end_date", new JsonObject()
+          .put("$gte", currentDate)
+          .put("$lte", expirationDate)
+        )
+      ))
+      .add(new JsonObject().put("$lookup", new JsonObject()
+        .put("from", Collections.USER)
+        .put("localField", "user_id")
+        .put("foreignField", "_id")
+        .put("as", "user_details")
+      ))
+      .add(new JsonObject().put("$unwind", "$user_details"))
+      .add(new JsonObject().put("$addFields", new JsonObject()
+        .put("current_date", new JsonObject().put("$toDate", currentDate))
+        .put("end_date_converted", new JsonObject().put("$toDate", "$end_date"))
+      ))
+      .add(new JsonObject().put("$project", new JsonObject()
+        .put("contract_id", "$_id")
+        .put("user_id", "$user_id")
+        .put("username", "$user_details.username")
+        .put("end_date", "$end_date")
+        .put("days_until_expiration", new JsonObject()
+          .put("$dateDiff", new JsonObject()
+            .put("startDate", "$current_date")
+            .put("endDate", "$end_date_converted")
+            .put("unit", "day")
+          )
+        )
+      ))
+      .add(new JsonObject().put("$sort", new JsonObject().put("days_until_expiration", 1)))
+      .add(new JsonObject().put("$limit", 5));
+
+    JsonObject msg = new JsonObject()
+      .put("collection", Collections.CONTRACTS)
+      .put("pipeline", pipeline)
+      .put("options", new JsonObject());
+
+    vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
+      if (res.succeeded()) {
+        JsonObject result = (JsonObject) res.result().body();
+        message.reply(result);
+      } else {
+        message.fail(500, res.cause().getMessage());
+      }
+    });
+  } catch (Exception e) {
+    message.fail(500, "Erreur lors de la récupération des contrats expirés : " + e.getMessage());
+  }
+}
 
   /**
    * @param contract JsonObject

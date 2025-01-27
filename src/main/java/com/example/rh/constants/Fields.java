@@ -31,6 +31,7 @@ public class Fields {
   public static final String DEMAND_TYPE = "type";
   public static final String DEMAND_STATUS = "status";
   public static final String DEMAND_DETAILS = "details";
+  public static final String DEMAND_REASON = "reason";
   public static final String DEMAND_FILE_PATH = "file_path";
   public static final String DEMAND_DATE_CREATION = "created_date";
 
