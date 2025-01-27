@@ -40,7 +40,7 @@
 
           <!-- Notifications et profil à droite -->
           <div class="flex items-center space-x-4">
-            <p class="text-[#006aff] bg-[#c6dffb] py-1 px-2 rounded-md font-semibold text-sm">{{authStore.user.username}}</p>
+            <p class="text-[#006aff] bg-[#c6dffb] py-1 px-2 rounded-[6px] font-semibold text-sm">{{authStore.user.username}}</p>
             <!-- Centre de notifications -->
             <div class="relative">
               <button 

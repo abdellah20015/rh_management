@@ -9,13 +9,11 @@
     </div> -->
     <div class="w-11/12">
         <div class="w-full flex justify-center my-7">
-          <div class="relative w-11/12 bg-white rounded-2xl shadow-md p-2">
-            <!-- Container principal avec fond blanc et ombre -->
+          <div class="relative w-11/12 bg-white rounded-[16px]  shadow-md p-2">
             <div class="flex justify-between items-center gap-2">
-              <!-- Bouton Demande congé -->
               <button 
                 @click="chooseDemand('form')"
-                class="flex-1 relative group px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out"
+                class="flex-1 relative group px-6 py-3 rounded-[12px]  text-sm font-medium transition-all duration-200 ease-in-out"
                 :class="{
                   'bg-[#006aff] text-white shadow-lg shadow-[#006aff]/20': activeTab === 'form',
                   'bg-[#99c4ff]/10 text-[#6c7f93] hover:bg-[#99c4ff]/20': activeTab !== 'form'
@@ -28,7 +26,7 @@
                   <span>Création manuelle</span>
                 </div>
                 <div 
-                  class="absolute inset-0 rounded-xl transition-all duration-200 ease-in-out"
+                  class="absolute inset-0 rounded-[12px] transition-all duration-200 ease-in-out"
                   :class="{
                     'ring-2 ring-[#006aff] ring-offset-2': activeTab === 'form'
                   }"
@@ -38,7 +36,7 @@
               <!-- Bouton Ordre de mission -->
               <button 
                 @click="chooseDemand('import')"
-                class="flex-1 relative group px-6 py-3 rounded-xl text-sm font-medium transition-all duration-200 ease-in-out"
+                class="flex-1 relative group px-6 py-3 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out"
                 :class="{
                   'bg-[#006aff] text-white shadow-lg shadow-[#006aff]/20': activeTab === 'import',
                   'bg-[#99c4ff]/10 text-[#6c7f93] hover:bg-[#99c4ff]/20': activeTab !== 'import'
@@ -51,7 +49,7 @@
                   <span>Import Excel</span>
                 </div>
                 <div 
-                  class="absolute inset-0 rounded-xl transition-all duration-200 ease-in-out"
+                  class="absolute inset-0 rounded-[12px] transition-all duration-200 ease-in-out"
                   :class="{
                     'ring-2 ring-[#006aff] ring-offset-2': activeTab === 'import'
                   }"

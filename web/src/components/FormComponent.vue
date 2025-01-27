@@ -4,7 +4,7 @@
     <div class="w-full max-w-2xl">
       <form
       @submit.prevent="handleSubmit"
-      class="bg-white rounded-lg shadow-2xl p-8 "
+      class="bg-white rounded-[12px]  shadow-2xl p-8 "
       >
       <h2 class="text-3xl font-bold text-center text-gray-900 mb-6">
         {{ title }}
@@ -38,7 +38,7 @@
                 class="w-full"
                 :pt="{
                   root: { 
-                    class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
+                    class: 'w-full p-3 border border-gray-300 rounded--[8px]  focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
                   }
                 }"
               />
@@ -92,7 +92,7 @@
                 class="w-full"
                 :pt="{
                   root: {
-                    class: 'w-full border border-gray-300 rounded-md',
+                    class: 'w-full border border-gray-300 rounded-[8px]',
                   },
                 }"
               />
@@ -106,7 +106,7 @@
                 class="w-full"
                 :pt="{
                   root: {
-                    class: 'w-full border border-gray-300 rounded-md',
+                    class: 'w-full border border-gray-300 rounded-[8px]',
                   },
                 }"
               />
@@ -155,7 +155,7 @@
                 class="w-full"
                 :pt="{
                   root: {
-                    class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                    class: 'w-full p-3 border border-gray-300 rounded-[8px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
                   },
                 }"
               />
@@ -183,7 +183,7 @@
         <div class="pt-6 w-full">
           <button
             type="submit"
-            class="w-full py-2.5 bg-gradient-to-r bg-[#006aff]  text-white rounded-md 
+            class="w-full py-2.5 bg-gradient-to-r bg-[#006aff]  text-white rounded-[8px]
                   hover:bg-[#006aff]
                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                    transform hover:scale-[1.02] transition-all duration-300 ease-in-out"

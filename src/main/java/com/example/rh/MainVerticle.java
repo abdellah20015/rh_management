@@ -1045,6 +1045,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
   /**
    * getDemandStats
+   * @author ilyass
    * @param ctx
    * methode to get the stats of the demand
    */
@@ -1058,7 +1059,35 @@ public void handlePermission(RoutingContext ctx, String permission) {
           match.put("user_id", ctx.user().principal().getString("id"));
         
       }
-      
+
+      JsonObject facet = new JsonObject()
+      .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
+      .put("pending", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
+          .add(new JsonObject().put("$count", "pending"))
+      )
+      .put("rejected", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "rejected")))
+          .add(new JsonObject().put("$count", "rejected"))
+      )
+      .put("approved", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "approved")))
+          .add(new JsonObject().put("$count", "approved"))
+      )
+      .put("last_demands", new JsonArray()
+      .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1))) 
+      .add(new JsonObject().put("$limit", 5)) 
+  )
+  
+;
+      if (ctx.user().principal().getString("role").equals("employee")) {
+        facet.put("last_pending_demands", new JsonArray()
+        .add(new JsonObject().put("$match", new JsonObject().put("status", "pending"))) 
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1))) 
+        .add(new JsonObject().put("$limit", 5)) 
+      );
+        
+      }
       JsonArray pipeline  = new JsonArray()
        .add(new JsonObject().put("$lookup", new JsonObject()
            .put("from", Collections.USER)  
@@ -1070,22 +1099,9 @@ public void handlePermission(RoutingContext ctx, String permission) {
        )
        .add(new JsonObject().put("$match", match)) 
        .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
-       .add(new JsonObject().put("$facet", new JsonObject()
-           .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
-           .put("pending", new JsonArray()
-               .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
-               .add(new JsonObject().put("$count", "pending"))
-           )
-           .put("rejected", new JsonArray()
-               .add(new JsonObject().put("$match", new JsonObject().put("status", "rejected")))
-               .add(new JsonObject().put("$count", "rejected"))
-           )
-           .put("approved", new JsonArray()
-               .add(new JsonObject().put("$match", new JsonObject().put("status", "approved")))
-               .add(new JsonObject().put("$count", "approved"))
-           )
-       )) ;
- 
+       .add(new JsonObject().put("$facet", facet));
+
+
       JsonObject aggregate = new JsonObject()
       .put("collection", Collections.DEMANDS) 
       .put("pipeline", pipeline)
@@ -1093,18 +1109,20 @@ public void handlePermission(RoutingContext ctx, String permission) {
 
 
   vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
-        System.out.println(pipeline);
         if (reply.succeeded()) {
           JsonObject result = (JsonObject) reply.result().body();
-          System.out.println(result);
           JsonObject data = result.getJsonArray("data").getJsonObject(0);
-          System.out.println(data);
+          JsonArray lastDemands = data.getJsonArray("last_demands");
+          JsonArray lastPendingDemands = data.getJsonArray("last_pending_demands");
           JsonObject counts = new JsonObject();
           JsonArray total = data.getJsonArray("total");
           JsonArray approved = data.getJsonArray("approved");
           JsonArray rejected = data.getJsonArray("rejected");
           JsonArray pending = data.getJsonArray("pending");
-  
+          counts.put("last_demands", lastDemands);
+          if (ctx.user().principal().getString("role").equals("employee")){
+            counts.put("last_pending_demands", lastPendingDemands);
+          }
           counts.put("total_demands",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
           counts.put("approved",(approved != null && !approved.isEmpty()) ? approved.getJsonObject(0).getInteger("approved") : 0);
           counts.put("rejected", (rejected != null && !rejected.isEmpty()) ?  rejected.getJsonObject(0).getInteger("rejected"): 0);
