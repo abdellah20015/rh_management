@@ -11,7 +11,11 @@ public class Fields {
   public static final String USER_STATUS = "status";
   public static final String USER_FIRST_LOGIN = "first_login";
   public static final String USER_DATE_CREATION = "date_creation";
-
+  public static final String USER_FIRSTNAME = "firstname";
+  public static final String USER_LASTNAME = "lastname";
+  public static final String USER_EMAIL = "email";
+  public static final String USER_PHONE = "phone";
+  public static final String USER_ADDRESS = "address";
   // CONTRACT
   public static final String CONTRACT_USER_ID = "user_id";
   public static final String CONTRACT_TYPE = "type";

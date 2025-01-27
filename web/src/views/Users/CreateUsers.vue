@@ -1,26 +1,63 @@
 <template>
-  <div class="p-2 w-10/12 mx-auto">
-    <div class="my-5">
+  <!-- <div class="p-2 w-10/12 mx-auto"> -->
+    <!-- <div class="my-5">
       <RouterLink :to="{ name: 'list_user' }"
         class="w-20 flex items-center justify-center bg-black text-center text-white rounded py-1">
         <img width="30" height="30" src="https://img.icons8.com/ios-filled/50/FFFFFF/long-arrow-left.png"
           alt="long-arrow-left" />
       </RouterLink>
-    </div>
-    <div class="w-full flex justify-center mb-10">
-      <div class="flex justify-evenly bg-gray-200 border-2 border-gray-300 w-full p-3 rounded-md h-12 items-center">
-        <a href="#" @click="chooseDemand('form')"
-          class="w-80 text-center py-1 items-center rounded-md hover:bg-black hover:text-white transition-all delay-75 ease-in-out"
-          :class="{ 'bg-black text-white border border-gray-500 ': activeTab === 'form' }">
-          <p>Création manuelle</p>
-        </a>
-        <a href="#" @click="chooseDemand('import')"
-          class="w-80 text-center py-1 items-center rounded-md hover:bg-black hover:text-white transition-all delay-75 ease-in-out"
-          :class="{ 'bg-black text-white border border-gray-500 ': activeTab === 'import' }">
-          <p>Import Excel</p>
-        </a>
-      </div>
-    </div>
+    </div> -->
+    <div class="w-11/12">
+        <div class="w-full flex justify-center my-7">
+          <div class="relative w-11/12 bg-white rounded-[16px]  shadow-md p-2">
+            <div class="flex justify-between items-center gap-2">
+              <button 
+                @click="chooseDemand('form')"
+                class="flex-1 relative group px-6 py-3 rounded-[12px]  text-sm font-medium transition-all duration-200 ease-in-out"
+                :class="{
+                  'bg-[#006aff] text-white shadow-lg shadow-[#006aff]/20': activeTab === 'form',
+                  'bg-[#99c4ff]/10 text-[#6c7f93] hover:bg-[#99c4ff]/20': activeTab !== 'form'
+                }"
+              >
+                <div class="flex items-center justify-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  <span>Création manuelle</span>
+                </div>
+                <div 
+                  class="absolute inset-0 rounded-[12px] transition-all duration-200 ease-in-out"
+                  :class="{
+                    'ring-2 ring-[#006aff] ring-offset-2': activeTab === 'form'
+                  }"
+                ></div>
+              </button>
+  
+              <!-- Bouton Ordre de mission -->
+              <button 
+                @click="chooseDemand('import')"
+                class="flex-1 relative group px-6 py-3 rounded-[12px] text-sm font-medium transition-all duration-200 ease-in-out"
+                :class="{
+                  'bg-[#006aff] text-white shadow-lg shadow-[#006aff]/20': activeTab === 'import',
+                  'bg-[#99c4ff]/10 text-[#6c7f93] hover:bg-[#99c4ff]/20': activeTab !== 'import'
+                }"
+              >
+                <div class="flex items-center justify-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                  </svg>
+                  <span>Import Excel</span>
+                </div>
+                <div 
+                  class="absolute inset-0 rounded-[12px] transition-all duration-200 ease-in-out"
+                  :class="{
+                    'ring-2 ring-[#006aff] ring-offset-2': activeTab === 'import'
+                  }"
+                ></div>
+              </button>
+            </div>
+          </div>
+        </div>
 
     <!-- Form Creation -->
     <div v-if="activeTab === 'form'" class="mb-8">
@@ -113,6 +150,30 @@ export default {
           label: 'Nom d\'utilisateur',
           type: 'text',
           placeholder: 'Entrez le nom d\'utilisateur'
+        },
+        {
+          name: 'phone',
+          label: 'phone',
+          type: 'text',
+          placeholder: 'phone numbre'
+        },
+        {
+          name: 'firstName',
+          label: 'first Name',
+          type: 'text',
+          placeholder: 'first Name'
+        },
+        {
+          name: 'lastName',
+          label: 'lastName',
+          type: 'text',
+          placeholder: 'lastName'
+        },
+        {
+          name: 'email',
+          label: 'email',
+          type: 'text',
+          placeholder: 'email'
         },
         {
           name: 'password',

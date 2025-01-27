@@ -1,8 +1,8 @@
 <template>
   <div class="bg-gray-100">
-    <div class="container mx-auto">
+    <!-- <div class="container mx-auto">
       <div class="flex justify-center items-center h-screen">
-        <div class="w-full max-w-md">
+        <div class="w-full max-w-md"> -->
           <FormComponent
             :fields="formFields"
             @formSubmitted="updateUser"
@@ -11,9 +11,9 @@
             :initialData="userData"
           />
         </div>
-      </div>
+      <!-- </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script>
@@ -34,6 +34,30 @@ export default {
           type: "text",
           label: "Nom d'utilisateur :",
           placeholder: "Entrez votre nom",
+        },
+        {
+          name: 'phone',
+          label: 'phone',
+          type: 'text',
+          placeholder: 'phone numbre'
+        },
+        {
+          name: 'firstName',
+          label: 'first Name',
+          type: 'text',
+          placeholder: 'first Name'
+        },
+        {
+          name: 'lastName',
+          label: 'lastName',
+          type: 'text',
+          placeholder: 'lastName'
+        },
+        {
+          name: 'email',
+          label: 'email',
+          type: 'text',
+          placeholder: 'email'
         },
         {
           name: "role",

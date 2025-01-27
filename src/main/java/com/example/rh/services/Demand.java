@@ -80,6 +80,7 @@ public class Demand extends AbstractVerticle {
         }
       }
 
+
       pipeline.add(new JsonObject().put("$skip" , skip))
         .add(new JsonObject().put("$sort", new JsonObject().put("created_date", -1)))
         .add(new JsonObject().put("$limit" , limit))
@@ -174,6 +175,7 @@ public class Demand extends AbstractVerticle {
           .put("created_date", 1)
           .put("username", "$user.username")));
 
+
       JsonObject msg = new JsonObject()
         .put("collection" , Collections.DEMANDS)
         .put("pipeline", pipeline)
@@ -203,7 +205,7 @@ public class Demand extends AbstractVerticle {
   private void createDemandHandler(Message message) {
     try {
       JsonObject body = (JsonObject) message.body();
-      System.out.println("message " + body);
+      // System.out.println("message " + body);
 
       String userId = body.getString(Fields.DEMAND_USER_ID);
       String type = body.getString(Fields.DEMAND_TYPE);
@@ -228,22 +230,41 @@ public class Demand extends AbstractVerticle {
         .put("query", new JsonObject().put(Fields.CONTRACT_USER_ID, userId));
 
         vertx.eventBus().request(Services.DB_FIND_ONE, contract , reply ->{
+          JsonObject contractData = (JsonObject) reply.result().body();
+          Integer leave_balance = contractData.getInteger(Fields.CONTRACT_LEAVE_BALANCE);
+          JsonObject details_ = body.getJsonObject(Fields.DEMAND_DETAILS);
+          Integer leave_days = details_.getInteger("days");
           if (reply.succeeded()) {
-            JsonObject contractData = (JsonObject) reply.result().body();
-            Integer leave_balance = contractData.getInteger(Fields.CONTRACT_LEAVE_BALANCE);
-            JsonObject details_ = body.getJsonObject(Fields.DEMAND_DETAILS);
-            Integer leave_days = details_.getInteger("days");
-            if (type.equals("demande_conge") && leave_balance < leave_days) {
-              // if (leave_balance <  leave_days) {
+            if (  type.equals("demande_conge") && leave_balance < leave_days) {
+              System.out.println("insufficient leave balance");
               JsonObject response = new JsonObject()
                 .put("status", "error")
                 .put("code", 400)
                 .put("message", "insufficient leave balance");
               message.reply(response);
-
-              // }
             }
             else{
+              // if ( type.equals("demande_conge") &&   leave_balance < leave_days){
+                if (type.equals("demande_conge")) {
+                  System.out.println("in update leave balance");
+                  Integer new_leave_balance = leave_balance - leave_days;
+                  JsonObject update_leave_balance = new JsonObject()
+                  .put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance);
+                  
+                  JsonObject payload = new JsonObject()
+                  .put("collection", Collections.CONTRACTS)
+                 .put("id",contractData.getString("_id") )
+                  .put("update", update_leave_balance );
+                  vertx.eventBus().request(Services.DB_UPDATE, payload, res -> {
+                    if (res.succeeded()) {
+                      System.out.println("leave balance updated");
+                      
+                    } else {
+                      message.reply(res.cause().getMessage());
+                    }
+                  });
+                }
+              // }
               vertx.eventBus().request(Services.DB_INSERT, msg, res -> {
                 if (res.succeeded()) {
 
@@ -294,7 +315,7 @@ public class Demand extends AbstractVerticle {
                         JsonArray dataArray = aggregationData.getJsonArray("data");
                         JsonObject result = dataArray.getJsonObject(0);
 
-                        System.out.println(dataArray);
+                        // System.out.println(dataArray);
 
                         vertx.eventBus().request(Services.DEMAND_PDF_GENERATE, result, generatePdfRes -> {
                           if (generatePdfRes.succeeded()) {
@@ -312,7 +333,7 @@ public class Demand extends AbstractVerticle {
 
                             vertx.eventBus().request(Services.DB_UPDATE, updateDemandMsg, updateDemandRes -> {
                               if (updateDemandRes.succeeded()) {
-                                System.out.println("demand has been created : " + updateDemandRes.result().body());
+                                // System.out.println("demand has been created : " + updateDemandRes.result().body());
 
                                 //create notification for manager
                                 JsonArray pipeline = new JsonArray()
@@ -337,7 +358,7 @@ public class Demand extends AbstractVerticle {
 
                                 vertx.eventBus().request(Services.DB_AGGREGATE,NotificationAggregation, aggRes -> {
                                   if(aggRes.succeeded()) {
-                                    System.out.println("\n +++ notification agg" + aggRes.result().body());
+                                    // System.out.println("\n +++ notification agg" + aggRes.result().body());
                                     JsonObject notificationAggRes = (JsonObject) aggRes.result().body();
                                     JsonArray notificationArrayData = notificationAggRes.getJsonArray("data");
                                     JsonObject notificationJsonData = notificationArrayData.getJsonObject(0);
@@ -435,25 +456,25 @@ public class Demand extends AbstractVerticle {
             String demand_id = resBodyData.getString("_id");
             String user_id = resBodyData.getString(Fields.DEMAND_USER_ID);
             System.out.println("-------------------" + demand_status);
-            if (resBodyData.getString(Fields.DEMAND_TYPE).equals("demande_conge") && demand_status.equals("approved")) {
-              System.out.println("demande conge approved");
+            if (resBodyData.getString(Fields.DEMAND_TYPE).equals("demande_conge") && demand_status.equals("rejected")) {
+              System.out.println("demande conge rejected");
                 JsonObject contract = new JsonObject()
                   .put("collection", Collections.CONTRACTS)
                   .put("query", new JsonObject().put(Fields.CONTRACT_USER_ID, user_id));
 
                 vertx.eventBus().request(Services.DB_FIND_ONE, contract, reply ->{
                   if (reply.succeeded()) {
-
+                    System.out.println("in find one");
                     JsonObject contractData = (JsonObject) reply.result().body();
                     Integer leave_balance = contractData.getInteger(Fields.CONTRACT_LEAVE_BALANCE);
                     JsonObject details = resBodyData.getJsonObject(Fields.DEMAND_DETAILS);
                     Integer leave_days = details.getInteger("days");
-                    Integer new_leave_balance = leave_balance - leave_days;
+                    Integer new_leave_balance = leave_balance + leave_days;
                     JsonObject contractUpdate = new JsonObject()
                     .put("collection", Collections.CONTRACTS)
                     .put("id",contractData.getString("_id") )
                     .put("update", new JsonObject().put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance));
-                    if (leave_balance >=  leave_days) {
+                   
                       vertx.eventBus().request(Services.DB_UPDATE, contractUpdate, contractUpdateReply -> {
                         if (contractUpdateReply.succeeded()) {
                           System.out.println("leave balance updated");
@@ -461,7 +482,7 @@ public class Demand extends AbstractVerticle {
                           message.reply(contractUpdateReply.cause().getMessage());
                         }
                       });
-                    }
+                    
                   }
                   else{
                     message.reply(reply.cause().getMessage());
