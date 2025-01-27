@@ -69,6 +69,64 @@
 
       <!-- Contract Section -->
       <div class="bg-white rounded-xl shadow-lg p-6">
+
+        <!-- Contract History Modal -->
+        <div v-if="showContractHistoryModal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
+            <div class="flex justify-between items-center p-6 border-b">
+              <h2 class="text-2xl font-bold text-gray-800">Historique des Contrats</h2>
+              <button @click="showContractHistoryModal = false" class="text-gray-600 hover:text-gray-900">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                  stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div v-if="showContractHistoryModal" class="bg-white shadow-md rounded-lg overflow-hidden">
+              <table class="w-full">
+                <thead class="bg-gray-100 border-b">
+                  <tr>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Début</th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date Fin
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Statut
+                    </th>
+                    <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date de Création</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                  <tr v-for="contract in inactiveContracts" :key="contract._id" class="hover:bg-gray-50 transition">
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="uppercase text-sm font-medium text-gray-900">{{ contract.type }}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="text-gray-600">{{ contract.start_date }}</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span v-if="contract.type === 'cdd'" class="text-gray-600">
+                        {{ contract.end_date || 'N/A' }}
+                      </span>
+                      <span v-else class="text-gray-400">-</span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                      <span class="px-2 py-1 rounded-full text-xs font-medium"
+                        :class="contract.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                        {{ contract.status ? 'Actif' : 'Inactif' }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {{ contract.date_creation }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="flex items-center space-x-4 mb-6">
           <div class="bg-gray-100 p-4 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-gray-600" fill="none" viewBox="0 0 24 24"
@@ -83,6 +141,14 @@
           </div>
         </div>
 
+
+        <div v-if="authStore.user.role === 'admin'" class="mt-4">
+          <button @click="showContractHistory"
+            class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+            Historique des Contrats
+          </button>
+        </div>
+        <br>
         <!-- Loading State -->
         <div v-if="loading" class="text-center py-8">
           <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
@@ -98,46 +164,44 @@
           </button>
         </div>
 
-        <!-- Contract Display -->
-        <template v-else-if="userData?.contracts?.[0]">
+        <!-- Current Contract Display -->
+        <template v-else-if="currentActiveContract">
           <div class="grid gap-4">
-            <!-- <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
-              <span class="font-medium text-gray-600">Contract ID:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0]._id }}</span>
-            </div> -->
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Type:</span>
-              <span class="col-span-2 uppercase text-gray-900">{{ userData.contracts[0].type }}</span>
+              <span class="col-span-2 uppercase text-gray-900">{{ currentActiveContract.type }}</span>
             </div>
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Start Date:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0].start_date }}</span>
+              <span class="col-span-2 text-gray-900">{{ currentActiveContract.start_date }}</span>
             </div>
-            <div v-if="userData.contracts[0].type === 'cdd'"
+            <div v-if="currentActiveContract.type === 'cdd'"
               class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">End Date:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0].end_date }}</span>
+              <span class="col-span-2 text-gray-900">{{ currentActiveContract.end_date }}</span>
             </div>
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Leave Balance:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0].leave_balance }} days</span>
+              <span class="col-span-2 text-gray-900">{{ currentActiveContract.leave_balance }} days</span>
             </div>
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Salary:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0].salary }} DH</span>
+              <span class="col-span-2 text-gray-900">{{ currentActiveContract.salary }} DH</span>
             </div>
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Status:</span>
               <span class="col-span-2 px-3 py-1 rounded-full text-sm font-medium w-fit"
-                :class="userData.contracts[0].status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                {{ userData.contracts[0].status ? 'Active' : 'Inactive' }}
+                :class="currentActiveContract.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                {{ currentActiveContract.status ? 'Active' : 'Inactive' }}
               </span>
             </div>
             <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
               <span class="font-medium text-gray-600">Created On:</span>
-              <span class="col-span-2 text-gray-900">{{ userData.contracts[0].date_creation }}</span>
+              <span class="col-span-2 text-gray-900">{{ currentActiveContract.date_creation }}</span>
             </div>
-            <div class="mt-6" v-if="authStore.user.role === 'admin'">
+
+            <!-- Update Contract Button for Admin (only for active contracts) -->
+            <div v-if="authStore.user.role === 'admin' && currentActiveContract.status" class="mt-6">
               <button @click="navigateToContractUpdate"
                 class="w-full bg-black text-white py-2 px-4 rounded-lg hover:bg-gray-800 transition duration-200">
                 Update Contract
@@ -145,6 +209,47 @@
             </div>
           </div>
         </template>
+
+        <!-- No Contract State for First-Time Users -->
+        <template v-else-if="isFirstTimeUser">
+          <div class="text-center py-8">
+            <div class="mb-6">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 mx-auto text-gray-400 mb-4" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 class="text-xl font-semibold text-gray-800 mb-2">Bienvenue!</h3>
+              <p class="text-gray-600"><span class="font-bold text-gray-700 italic">{{ userData?.username }}</span>n'a
+                pas encore de contrat. Créer son contrat.</p>
+            </div>
+            <button @click="navigateToContractCreate"
+              class="bg-black text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition duration-200 inline-flex items-center justify-center space-x-2">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd"
+                  d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
+                  clip-rule="evenodd" />
+              </svg>
+              <span>Ajouter un Contrat</span>
+            </button>
+          </div>
+        </template>
+
+
+        <!-- Expired Contract Warning -->
+        <div v-else-if="isContractExpired" class="bg-yellow-50 p-4 rounded-lg">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-yellow-800 font-medium mb-2">Contrat de <span class="font-bold text-yellow-900 italic">{{
+                  userData?.username }}</span> est expiré.</p>
+              <p class="text-yellow-700 text-sm">Please create a new contract to continue working.</p>
+            </div>
+            <button @click="navigateToContractCreate"
+              class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200">
+              Create New Contract
+            </button>
+          </div>
+        </div>
 
         <!-- No Contract State -->
         <template v-else>
@@ -159,6 +264,8 @@
           </div>
         </template>
       </div>
+
+
 
       <div class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
         <div class="mb-6">
@@ -207,7 +314,8 @@ export default {
       totalPages: 1,
       count: 0,
       authStore: useAuthStore(),
-
+      showContractHistoryModal: false,
+      inactiveContracts: [],
       employeeTableInfo: {
         headers: [
           { title: "Type de demand", key: "typeTitle" },
@@ -369,30 +477,31 @@ export default {
     },
 
     async downloadDemand(demand) {
-            const query = { filepath: demand.file_path }
-            console.log(query)
-            try {
-                const response = await utils.fetch_methode(services.file.download, query)
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                const filename = demand.file_path.split('/').pop();
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                if (response.ok) {
-                    console.log(response);
-                } else {
-                    console.log(response);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        },
+      const query = { filepath: demand.file_path }
+      try {
+        const response = await utils.fetch_methode(services.file.download, query);
+
+
+        if (demand.file_path.toLowerCase().endsWith('.pdf')) {
+
+          window.open(URL.createObjectURL(await response.blob()), '_blank');
+        } else {
+
+          const blob = await response.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = demand.file_path.split('/').pop();
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          window.URL.revokeObjectURL(url);
+        }
+      } catch (err) {
+        console.error("Erreur de téléchargement:", err);
+        utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
+      }
+    },
 
     //approve demand by manager
     async approveDemand(demand) {
@@ -412,6 +521,14 @@ export default {
       } catch (err) {
         console.log(err);
       }
+    },
+
+    showContractHistory() {
+      // Filter out inactive contracts from the user's contracts
+      this.inactiveContracts = this.userData.contracts
+        ? this.userData.contracts.filter(contract => !contract.status)
+        : [];
+      this.showContractHistoryModal = true;
     },
 
     //reject demand by manager
@@ -513,6 +630,37 @@ export default {
       this.fetchUserProfile();
     } else {
       this.error = 'No user is currently logged in';
+    }
+  },
+
+  computed: {
+    isFirstTimeUser() {
+      return !this.userData ||
+        !this.userData.contracts ||
+        this.userData.contracts.length === 0;
+    },
+
+    isContractExpired() {
+      if (!this.userData || !this.userData.contracts || this.userData.contracts.length === 0) {
+        return false;
+      }
+
+      const currentContract = this.userData.contracts[0];
+      const currentDate = new Date().toISOString().split('T')[0];
+
+      return (
+        (currentContract.type === 'cdd' &&
+          currentContract.end_date &&
+          currentContract.end_date < currentDate) ||
+        !currentContract.status
+      );
+    },
+
+    currentActiveContract() {
+      if (!this.userData || !this.userData.contracts) return null;
+
+      
+      return this.userData.contracts.find(contract => contract.status === true);
     }
   }
 }
