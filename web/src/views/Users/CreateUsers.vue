@@ -115,6 +115,30 @@ export default {
           placeholder: 'Entrez le nom d\'utilisateur'
         },
         {
+          name: 'phone',
+          label: 'phone',
+          type: 'text',
+          placeholder: 'phone numbre'
+        },
+        {
+          name: 'firstName',
+          label: 'first Name',
+          type: 'text',
+          placeholder: 'first Name'
+        },
+        {
+          name: 'lastName',
+          label: 'lastName',
+          type: 'text',
+          placeholder: 'lastName'
+        },
+        {
+          name: 'email',
+          label: 'email',
+          type: 'text',
+          placeholder: 'email'
+        },
+        {
           name: 'password',
           label: 'Mot de passe',
           type: 'password',

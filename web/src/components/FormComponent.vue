@@ -1,12 +1,12 @@
 
 <template>
-  <div class="flex justify-center items-center min-h-screen bg-transparent p-4">
+  <div class="flex justify-center items-center  bg-transparent p-4">
     <div class="w-full max-w-2xl">
       <form
       @submit.prevent="handleSubmit"
       class="bg-white rounded-lg shadow-2xl p-8 "
       >
-      <h2 class="text-3xl font-extrabold text-center text-gray-900 mb-6">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-6">
         {{ title }}
       </h2>
         <div 
@@ -98,10 +98,11 @@
               />
               <Select
                 v-model="formData[field.name]"
+                 v-if="!field.multiple"
                 :options="field.options"
                 optionLabel="label"
                 optionValue="value"
-                placeholder="Select a City"
+                :placeholder= "field.label"
                 class="w-full"
                 :pt="{
                   root: {
@@ -168,7 +169,7 @@
                 :binary="true"
                 :pt="{
                   box: {
-                    class: 'border-2 border-gray-300 rounded w-4 h-4',
+                    class: 'border-2 border-gray-300 rounded w-4 h-4 ',
                   },
                 }"
               />
@@ -180,16 +181,15 @@
         </div>
 
         <div class="pt-6 w-full">
-          <Button
+          <button
             type="submit"
-            severity="secondary"
-            class="w-full py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-md 
-                   hover:from-blue-700 hover:to-blue-900 
+            class="w-full py-2.5 bg-gradient-to-r bg-[#006aff]  text-white rounded-md 
+                  hover:bg-[#006aff]
                    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
                    transform hover:scale-[1.02] transition-all duration-300 ease-in-out"
           >
             {{ btn_text }}
-          </Button>
+          </button>
         </div>
       </form>
     </div>

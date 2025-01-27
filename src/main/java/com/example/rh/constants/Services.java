@@ -30,7 +30,8 @@ public class Services {
 
 
   //Demands
-  public static final String DEMAND_LIST = "getListDemands";
+  public static final String DEMAND_LIST_MANAGER = "getListDemandsByManager";
+  public static final String DEMAND_LIST_USER = "getListDemandsByUser";
   public static final String DEMAND_CREATE = "createDemand";
 
 
@@ -51,4 +52,6 @@ public class Services {
   public static final String NOTIFICATION_CREATE = "createNotification";
   public static final String NOTIFICATION_LIST = "getListNotification";
   public static final String NOTIFICATION_UPDATE_STATUS = "updateNotificationStatus";
+  public static final String NOTIFICATION_SEND = "sendNotification";
+
 }

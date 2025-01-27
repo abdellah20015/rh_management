@@ -62,7 +62,7 @@ export default {
           if (["admin", "manager"].includes(data.user.role)) {
             this.$router.push({ name: "list_user" })
           } else {
-            this.$router.push({ name: "list_demand" })
+            this.$router.push({ name: "userDemands" })
           }
         } else {
           utils.errorAlert("Username or password is incorrect");

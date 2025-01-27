@@ -1,113 +1,198 @@
 <template>
-  <div class="flex flex-col min-h-screen">
-    <!-- Navbar -->
-    <nav class="bg-black p-3">
-      <div class="container mx-auto flex justify-between items-center">
-        <div class="text-white text-2xl font-bold">
-          <RouterLink :to="{ name : 'list_demand' }"> RH</RouterLink>
-        </div>
-        <div class="flex justify-evenly w-1/3">
-          <RouterLink :to="{ name : 'list_user' }" v-if="user.permissions.includes('view_users')" href="./users.html" class="text-white hover:text-gray-300">Les Utilisateurs</RouterLink>
-          <RouterLink :to="{ name : 'list_demand' }"  href="#" class="text-white hover:text-gray-300">Les Demandes</RouterLink>
-        </div>
-        <div class="flex items-center space-x-4">
-          <!-- Notification Dropdown -->
-          <div class="relative">
-            <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleNotificationDropdown">
-              <div>
-                <img v-if="notifications.filter((notification) => notification.is_read == false).length > 0" class="-mb-2" width="10" height="10" src="https://img.icons8.com/ios-filled/50/FA5252/filled-circle.png" alt="filled-circle"/>
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                  stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
-              </div>
-            </button>
-            <transition name="fade-slide">
-              <div v-if="isNotificationDropdownOpen"
-                class="absolute right-0 mt-2 w-96 bg-white rounded-md shadow-lg  z-20 h-96 overflow-y-auto flex flex-col justify-between">
-                <p v-if="notifications.length === 0" class="px-4 py-2 text-gray-700">No notifications</p>
-                <div v-else>
-                  <div class="mb-3 mt-1 mx-4">
-                    <p class="text-sm font-semibold py-2">notifications non lues : ( {{ notifications.filter(notification => notification.is_read == false ).length }} )</p>
-                  </div>
-                  <a @click="updateNotificationStatus(notification)" v-for="(notification, index) in notifications" :key="index"
-                    href="#" class="block border-t border-gray-300 text-gray-700  hover:bg-gray-100">
-                    <div v-if="notification.is_read" class="p-4 flex items-center gap-5">
-                      <div>
-                        <img width="20" height="20"
-                          src="https://img.icons8.com/external-vitaliy-gorbachev-fill-vitaly-gorbachev/60/1A1A1A/external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev.png"
-                          alt="external-mail-business-vitaliy-gorbachev-fill-vitaly-gorbachev" />
-                      </div>
-                      <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
-                        <p class="text-sm font-semibold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
-                          notification.user_username }}</p>
-                        <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
-                      </div>
-                    </div>
-                    <div v-else class="bg-slate-200 p-4 flex items-center gap-5">
-                      <div>
-                        <img width="20" height="20"
-                          src="https://img.icons8.com/external-creatype-glyph-colourcreatype/64/1A1A1A/external-app-web-application-v1-creatype-glyph-colourcreatype-31.png"
-                          alt="external-app-web-application-v1-creatype-glyph-colourcreatype-31" />
-                      </div>
-                      <div class="w-full" :class="{ 'flex items-center justify-between' : user.role == 'employee' }">
-                        <p class="text-sm font-bold">{{ notification.message }}</p>
-                        <p class="text-xs font-bold" v-if="notification.hasOwnProperty('user_username')">par {{
-                          notification.user_username }}</p>
-                        <p class="text-xs float-end">{{ convertDate(notification.created_date) }}</p>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-                <div class="flex justify-center">
-                  <a href="#" class="w-full text-center bg-slate-300 p-3 text-sm font-semibold" @click="addPagesize">charger plus</a>
-                </div>
-              </div>
-            </transition>
+  <div class="flex flex-col min-h-screen bg-gray-50">
+    <!-- Navbar Modern -->
+    <nav class="bg-[#f8fafc] shadow-md border-b border-gray-100">
+      <div class="container mx-auto px-6">
+        <div class="flex items-center justify-between h-16">
+          <!-- Logo à gauche -->
+          <div class="flex-shrink-0">
+            <div class="text-2xl font-semibold text-[#006aff]">
+              <img src="../asset/RH.png" alt="Logo" class="w-auto h-16"/>
+            </div>
           </div>
 
-          <!-- Profile Dropdown -->
-          <div class="relative">
-            <button class="text-white hover:text-gray-300 focus:outline-none" @click="toggleProfileDropdown">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
-                stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5.121 17.804A4.992 4.992 0 0112 15c1.657 0 3.156.672 4.121 1.804M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14v7m0 0H9m3 0h3" />
-              </svg>
-            </button>
-            <transition name="fade-slide">
-              <div v-if="isProfileDropdownOpen"
-                class="absolute right-0 mt-2 w-48 bg-white border border-gray-400 rounded-md shadow-lg py-2 z-20">
-                <a @click="profile()" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Profile</a>
-                <a @click="logout()" href="#" class="block border-t px-4 py-2 text-gray-700 hover:bg-gray-100  ">Logout</a>
-              </div>
-            </transition>
+          <!-- Navigation au centre -->
+          <div class="flex-1 flex justify-center">
+            <div class=" md:flex items-center space-x-8">
+              <RouterLink 
+                v-if="user.permissions.includes('view_users')" 
+                :to="{ name: 'list_user' }"
+                class="text-[#6c7f93] hover:text-[#006aff] font-medium transition-all duration-200 text-sm"
+              >
+                Utilisateurs
+              </RouterLink>
+              <RouterLink 
+                v-if="user.role != 'employee'" 
+                :to="{ name: 'TeamDemands' }"
+                class="text-[#6c7f93] hover:text-[#006aff] font-medium transition-all duration-200 text-sm"
+              >
+                Users Demandes
+              </RouterLink>
+              <RouterLink 
+                 v-if="user.role != 'admin'"
+                :to="{ name: 'userDemands' }"
+                class="text-[#6c7f93] hover:text-[#006aff] font-medium transition-all duration-200 text-sm"
+              >
+                Demandes
+              </RouterLink>
+            </div>
+          </div>
+
+          <!-- Notifications et profil à droite -->
+          <div class="flex items-center space-x-4">
+            <p class="text-[#006aff] bg-[#c6dffb] py-1 px-2 rounded-md font-semibold text-sm">{{authStore.user.username}}</p>
+            <!-- Centre de notifications -->
+            <div class="relative">
+              <button 
+                @click="toggleNotificationDropdown"
+                class="p-1.5 rounded-full hover:bg-[#99c4ff]/20 transition-colors duration-200 relative"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5  text-[#6c7f93]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                </svg>
+                <span 
+                  v-if="notifications.length"
+                  class="absolute -top-1 -right-1 bg-[#006aff] text-white text-xs rounded-full w-4 h-4 flex items-center justify-center"
+                >
+                  {{ notifications.length }}
+                </span>
+              </button>
+
+              <!-- Dropdown Notifications -->
+              <transition name="fade-scale">
+                <div 
+                  v-if="isNotificationDropdownOpen"
+                  class="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-xl border border-gray-100 z-50"
+                >
+                  <div class="p-3 border-b border-gray-100 flex justify-between items-center">
+                    <h3 class="text-sm font-semibold text-[#6c7f93]">Notifications</h3>
+                    <button 
+                      @click="markAllAsRead"
+                      class="text-xs text-[#006aff] hover:text-[#99c4ff] transition-colors"
+                    >
+                      Tout marquer comme lu
+                    </button>
+                  </div>
+
+                  <div class="max-h-80 overflow-y-auto">
+                    <div 
+                      v-if="notifications.length === 0" 
+                      class="p-4 text-center text-[#6c7f93]"
+                    >
+                      Aucune nouvelle notification
+                    </div>
+                    <div 
+                      v-for="notification in notifications" 
+                      :key="notification._id"
+                      @click="handleNotification(notification)"
+                      class="px-4 py-3 hover:bg-[#99c4ff]/10 cursor-pointer transition-colors border-b border-gray-50"
+                      :class="{ 'bg-[#99c4ff]/5': !notification.is_read }"
+                    >
+                      <div class="flex items-start space-x-3">
+                        <div class="flex-shrink-0">
+                          <div 
+                            class="w-8 h-8 rounded-full flex items-center justify-center"
+                            :class="notification.is_read ? 'bg-gray-100' : 'bg-[#99c4ff]/20'"
+                          >
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              class="h-4 w-4" 
+                              :class="notification.is_read ? 'text-[#6c7f93]' : 'text-[#006aff]'"
+                              viewBox="0 0 20 20" 
+                              fill="currentColor"
+                            >
+                              <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-gray-900">
+                            {{ notification.message }}
+                          </p>
+                          <p class="text-xs text-[#6c7f93] mt-1">
+                            {{ convertDate(notification.created_date) }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </transition>
+            </div>
+
+            <!-- Profil utilisateur -->
+            <div class="relative">
+              <button 
+                @click="toggleProfileDropdown"
+                class="flex items-center space-x-3 p-1.5 rounded-full hover:bg-[#99c4ff]/20 transition-colors duration-200"
+              >
+                <img 
+                src="https://img.icons8.com/office/40/test-account.png"  
+                  alt="Profile"
+                  class="h-8 w-8 rounded-full object-cover border-2 border-[#99c4ff]"
+                />
+                <span class="hidden md:block text-sm font-medium text-[#6c7f93]">
+                  {{ user.name }}
+                </span>
+              </button>
+
+              <!-- Dropdown Profil -->
+              <transition name="fade-scale">
+                <div 
+                  v-if="isProfileDropdownOpen"
+                  class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50"
+                >
+                  <div class="px-4 py-3 border-b border-gray-100">
+                    <p class="text-sm font-semibold text-gray-900">{{ user.name }}</p>
+                    <p class="text-xs text-[#6c7f93]">{{ user.email }}</p>
+                  </div>
+                  <div class="py-1">
+                    <button 
+                      @click="profile"
+                      class="w-full text-left px-4 py-2 text-sm text-[#6c7f93] hover:bg-[#99c4ff]/10 hover:text-[#006aff] transition-colors"
+                    >
+                    <div class="flex gap-3">
+                      <img width="20" height="20" src="https://img.icons8.com/offices/30/gender-neutral-user.png" alt="gender-neutral-user"/>
+                      Profile
+                    </div>
+                    </button>
+                    <button 
+                      @click="logout"
+                      class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                    <div class="flex gap-3">
+                      <img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FA5252/logout-rounded-left.png" alt="logout-rounded-left"/>
+                      Déconnexion
+                    </div>
+                    </button>
+                  </div>
+                </div>
+              </transition>
+            </div>
           </div>
         </div>
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="bg-gray-50 flex-grow" @click="closeDropDowns()">
+    <!-- Le reste du contenu reste inchangé -->
+    <main class="flex-grow container mx-auto px-4 py-6" @click="closeDropdowns">
       <RouterView />
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-black text-white py-3 mt-4">
-      <div class="container mx-auto text-center">
-        <p class="text-sm font-bold">&copy;2025 RH. All Rights Reserved.</p>
+    <footer class="bg-white border-t border-gray-100 py-6">
+      <div class="container mx-auto px-4 text-center">
+        <p class="text-sm text-[#6c7f93]">
+          &copy; 2025 Enterprise Resource Management. Tous droits réservés.
+        </p>
       </div>
     </footer>
   </div>
 </template>
 
 <script>
+import { RouterLink, RouterView } from 'vue-router';
 import services from '@/shared/services';
 import utils from '@/shared/utils';
-import { RouterLink, RouterView } from 'vue-router';
 import { useAuthStore } from '@/stores/store';
 import router from '@/router';
 
@@ -121,114 +206,109 @@ export default {
       pageSize: 10,
       currentPage: 1,
       totalPages: 1,
+      connection: null
     };
   },
   computed: {
-      authStore() {
-        return useAuthStore();
-      },
+    authStore() {
+      return useAuthStore();
     },
+  },
   methods: {
-    //handler profile dropdown
     toggleProfileDropdown() {
       this.isProfileDropdownOpen = !this.isProfileDropdownOpen;
-      this.isNotificationDropdownOpen = false
+      this.isNotificationDropdownOpen = false;
       this.getNotifications();
     },
-
-    //handler notifications dropdown
     toggleNotificationDropdown() {
       this.isNotificationDropdownOpen = !this.isNotificationDropdownOpen;
-      this.isProfileDropdownOpen = false
+      this.isProfileDropdownOpen = false;
       this.getNotifications();
     },
-
-    //fetch notifications by logged user
     async getNotifications() {
-      const response = await utils.fetch_methode(services.notification.list, { query: { "user_id": this.user.id }, options: { "page": this.currentPage, "limit": this.pageSize } });
+      const response = await utils.fetch_methode(services.notification.list, { 
+        query: { "user_id": this.user.id }, 
+        options: { "page": this.currentPage, "limit": this.pageSize } 
+      });
       const data = await response.json();
       this.notifications = data.data;
     },
-
-    //update notification is_read statsu to true
     async updateNotificationStatus(notification) {
-      const query = { notification_id : notification._id }
+      const query = { notification_id: notification._id };
       try {
         const response = await utils.fetch_methode(services.notification.updateStatus, query);
-        if(response.ok) {
-          console.log(response);
-          this.getNotifications()
-          router.push({ "name": "list_demand" })
-        }else {
-          console.log(response);
+        if (response.ok) {
+          this.getNotifications();
+          router.push({ "name": "list_demand" });
         }
-      }catch(err){
-        console.log(err);
+      } catch (err) {
+        console.error(err);
       }
     },
-
-    async addPagesize() {
-      this.pageSize += this.pageSize
-      console.log(this.pageSize);
-      this.getNotifications()
+    async loadMoreNotifications() {
+      this.pageSize += 10;
+      await this.getNotifications();
     },
-
     convertDate(date) {
-      return utils.convertDate(date)
+      return utils.convertDate(date);
     },
-
     async logout() {
-      const response = await utils.fetch_methode(services.logout)
+      const response = await utils.fetch_methode(services.logout);
       if (response.ok) {
         localStorage.clear();
-        router.push({ "name": "login" })
+        router.push({ "name": "login" });
       }
     },
-
-    //close navBar dropDowns
-    closeDropDowns() {
-      this.isProfileDropdownOpen = false
-      this.isNotificationDropdownOpen = false
+    closeDropdowns() {
+      this.isProfileDropdownOpen = false;
+      this.isNotificationDropdownOpen = false;
     },
-
     profile() {
-      this.$router.push({ name: "profile_user" , params : {id : this.authStore.user.id} }).then(() => {
+      this.$router.push({ 
+        name: "profile_user", 
+        params: { id: this.authStore.user.id } 
+      }).then(() => {
         window.location.reload();
       });
+    },
+  },
+  created() {
+    this.connection = new WebSocket("ws://localhost:8888/notification");
+    
+    this.connection.onopen = (event) => {
+      console.log("Successfully connected to the websocket server...");
+    };
 
-    }
+    this.connection.onmessage = (event) => {
+      console.log(event.data);
+    };
+
+    this.connection.onclose = () => {
+      console.log("WebSocket connection closed. Reconnecting...");
+      setTimeout(() => this.wsConnection(), 1000);
+    };
   },
   mounted() {
     this.getNotifications();
-    console.log(this.user.permissions);
   }
 };
 </script>
 
 <style scoped>
-/* Transition classes for fade and slide animations */
-.fade-slide-enter-active,
-.fade-slide-leave-active {
-  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+.fade-scale-enter-active,
+.fade-scale-leave-active {
+  transition: all 0.2s ease-in-out;
 }
 
-.fade-slide-enter-from {
+.fade-scale-enter-from,
+.fade-scale-leave-to {
   opacity: 0;
-  transform: translateY(-10px);
+  transform: scale(0.95);
 }
 
-.fade-slide-enter-to {
+.fade-scale-enter-to,
+.fade-scale-leave-from {
   opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-slide-leave-from {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.fade-slide-leave-to {
-  opacity: 0;
-  transform: translateY(-10px);
+  transform: scale(1);
 }
 </style>
