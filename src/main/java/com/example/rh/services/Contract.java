@@ -26,6 +26,7 @@ public class Contract extends AbstractVerticle {
       vertx.eventBus().consumer(Services.DB_EXPIRING_CONTRACTS, this::listExpiringContracts);
 
 
+
       vertx.setPeriodic(6 * 1000, id -> checkAndExpireContracts());
 
     } catch(Exception e) {

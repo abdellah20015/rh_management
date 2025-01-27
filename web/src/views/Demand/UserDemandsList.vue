@@ -256,6 +256,7 @@ export default {
 
         //download demande pdf
         async downloadDemand(demand) {
+
       const query = { filepath: demand.file_path }
       try {
         const response = await utils.fetch_methode(services.file.download, query);
@@ -282,6 +283,7 @@ export default {
 
       }
     },
+
 
 
         filter() {

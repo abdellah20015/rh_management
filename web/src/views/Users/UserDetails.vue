@@ -263,15 +263,19 @@
       </div>
 
 
+      <div  v-if="this.authStore.user.id != this.$route.params.id" class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
+
 
       <div v-if="this.authStore.user.id != this.$route.params.id"
         class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
+
         <div class="mb-6">
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Listes des demandes</h2>
             <p class="text-gray-500">Liste des demandes en attente</p>
           </div>
         </div>
+
         <div class=" w-full">
           <div class="flex flex-col justify-between w-full">
             <div class="w-full flex justify-between">
@@ -333,9 +337,11 @@
             <TableComponent :tableInfo="managerTableInfo" :pageSize="pageSize" :currentPage="currentPage"
               :totalPages="totalPages"></TableComponent>
           </div>
+
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>
 
@@ -541,13 +547,16 @@ export default {
     async fetchDemands() {
       try {
         const response = await utils.fetch_methode(services.demand.listByUser, {
+
           query: {
             filter: {
               type: this.filterData.type,
               status: this.filterData.status,
             },
             search: this.searchValue,
+
             user_id: this.userId
+
           },
           options: { "page": this.currentPage, "limit": this.pageSize }
         })
