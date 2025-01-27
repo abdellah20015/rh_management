@@ -64,7 +64,7 @@ export default {
           if (["admin", "manager"].includes(this.user.role)) {
             this.$router.push({ name: "list_user" });
           } else {
-            this.$router.push({ name: "list_demand" });
+            this.$router.push({ name: "userDemands" });
           }
         } else {
           utils.errorAlert("Error: Unable to reset the password. Please try again.");

@@ -3,14 +3,50 @@
     <div class="w-11/12">
       <div class="flex items-center justify-between p-5 my-3">
         <p class="text-2xl font-semibold ">Listes des utilisateurs</p>
-        <router-link v-if="authStore.user.permissions.includes('create_user')" :to="{ name: 'create_user' }" class="w-48 bg-black text-white text-center rounded p-2">
+        <router-link v-if="authStore.user.permissions.includes('create_user')" :to="{ name: 'create_user' }"
+          class="w-48 bg-black text-white text-center rounded p-2">
           Ajouter un utilisateur
         </router-link>
       </div>
       <div class="flex items-center justify-between p-5">
-        <TableFilterComponent :filterStructure="filterStructure" @filterHandler="filterHandler"
-          @searchHandler="searchHandler" @resertFilterHandler="resertFilterHandler">
-        </TableFilterComponent>
+        <div class="w-full flex justify-between">
+          <div class="w-1/3">
+            <input type="text" placeholder="Search" v-model="searchValue"
+              class="p-2 border border-gray-300 w-2/3 mr-2 rounded ">
+            <button @click="search" class="w-1/4 p-2 rounded bg-black text-white">Search</button>
+          </div>
+          <div class="w-36">
+            <button @click="toggleFilterDropdown"
+              class="w-full p-2 rounded bg-black text-white flex justify-evenly items-center">
+              <p>Filter</p>
+              <img width="25" height="25" src="https://img.icons8.com/sf-black/64/FFFFFF/expand-arrow.png"
+                alt="expand-arrow" />
+            </button>
+          </div>
+        </div>
+        <div class="w-1/2 relative justify-end">
+          <!-- Filter Dropdown with Transition -->
+          <transition name="dropdown">
+            <div v-if="showFilterDropdown"
+              class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
+              <div v-for="(filter, index) in filterStructure" :key="index">
+                <p class="text-sm font-semibold">{{ filter.name }} :</p>
+                <div class="flex justify-evenly p-3">
+                  <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values" :key="index"
+                    class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
+                    :class="{ 'bg-black text-white': value.selected === true }">
+                    <p class="text-sm">{{ value.title }}</p>
+                  </a>
+                </div>
+              </div>
+              <div class="flex gap-5 mt-3">
+                <button @click="filter" class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
+                <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
+                  filtre</button>
+              </div>
+            </div>
+          </transition>
+        </div>
       </div>
       <div>
         <TableComponent :tableInfo="tableInfo" :pageSize="pageSize" :currentPage="currentPage" :totalPages="totalPages"
@@ -86,7 +122,7 @@ export default {
             },
             {
               title: "Admin",
-              value: "ADMIN",
+              value: "admin",
               key: "role",
               selected: false,
             },
@@ -97,22 +133,16 @@ export default {
           values: [
             {
               title: "CDD",
-              value: "CDD",
-              key: "contractTypeTitle",
+              value: "cdd",
+              key: "type",
               selected: false,
             },
             {
               title: "CDI",
-              value: "CDI",
-              key: "contractTypeTitle",
+              value: "cdi",
+              key: "type",
               selected: false,
-            },
-            {
-              title: "Pas de contrat",
-              value: "Pas de contrat",
-              key: "contractTypeTitle",
-              selected: false,
-            },
+            }
           ],
         },
       ],
@@ -120,6 +150,12 @@ export default {
       currentPage: 1,
       count: 0,
       totalPages: 1,
+      searchValue: null,
+      filterData: {
+        role: [],
+        type: [],
+      },
+      showFilterDropdown: false
     };
   },
   computed: {
@@ -132,6 +168,11 @@ export default {
       try {
         const payload = {
           query: {
+            filter: {
+              role: this.filterData.role,
+              type: this.filterData.type,
+            },
+            search: this.searchValue,
             page: this.currentPage,
             limit: this.pageSize,
           },
@@ -147,14 +188,14 @@ export default {
           this.count = data.count;
           this.count += (this.currentPage - 1) * this.pageSize;
           console.log(this.count);
-          
+
           if (this.count > this.pageSize) {
             this.totalPages = Math.ceil(this.count / this.pageSize);
           }
 
           this.tableInfo.data = data.data.map((user) => ({
             ...user,
-            contractTypeTitle: user?.contracts[0]?.type == "cdd" ? "CDD" : user?.contracts[0]?.type == "cdi" ? "CDI" : "Pas de contrat",
+            contractTypeTitle: user?.contracts?.type == "cdd" ? "CDD" : user?.contracts?.type == "cdi" ? "CDI" : "Pas de contrat",
             userStatusTitle: user.status == true ? "Active" : "Désactivé"
           }));
 
@@ -173,7 +214,7 @@ export default {
       this.fetchUsers();
     },
     viewUser(user) {
-      this.$router.push({ name: "details_user" , params : {id : user._id} });
+      this.$router.push({ name: "details_user", params: { id: user._id } });
     },
     async deleteUser(user) {
       const response = await utils.fetch_methode(services.user.delete, {
@@ -192,54 +233,77 @@ export default {
       this.$router.push({ name: "update_user", params: { id: user._id } });
     },
 
-    filterHandler(filterData) {
-      const currentData = this.tableInfo.data;
-      if (filterData.length > 0) {
-        const groupedFilters = {};
-        filterData.forEach((filter) => {
-          const fieldName = Object.keys(filter)[0];
-          const value = filter[fieldName];
-          if (!groupedFilters[fieldName]) {
-            groupedFilters[fieldName] = [];
-          }
-          groupedFilters[fieldName].push(value);
-        });
 
-        const filteredData = currentData.filter((user) => {
-          return Object.keys(groupedFilters).every((fieldName) => {
-            return groupedFilters[fieldName].some(
-              (filterValue) =>
-                String(user[fieldName]).toLowerCase() ===
-                String(filterValue).toLowerCase()
-            );
-          });
-        });
-
-        this.tableInfo.data = filteredData;
-      }
+    toggleFilterDropdown() {
+      this.showFilterDropdown = !this.showFilterDropdown;
     },
 
-    searchHandler(searchValue) {
-      if (!searchValue) {
-        this.fetchUsers();
-        return;
-      }
-
-      const searchedData = this.tableInfo.data.filter((user) => {
-        return Object.values(user).some((value) =>
-          String(value).toLowerCase().includes(searchValue.toLowerCase())
-        );
-      });
-
-      this.tableInfo.data = searchedData;
+    //filter handler
+    filter() {
+      this.fetchUsers()
     },
 
-    resertFilterHandler() {
+    //select filter data to filter with
+    selectFilter(selectedValue) {
+      console.log(selectedValue);
+
+      selectedValue.selected = !selectedValue.selected
+
+      const value = selectedValue.value
+      const key = selectedValue.key
+
+      if (key == "role") {
+        this.filterData.role.push(value)
+      }
+
+      if (key == "type") {
+        this.filterData.type.push(value)
+      }
+
+      console.log(this.filterData);
+
+    },
+
+
+    //search handle
+    search() {
       this.fetchUsers();
     },
+
+    //resert filter
+    resertFilter() {
+      this.filterData.role = [];
+      this.filterData.type = [];
+      this.filterStructure.forEach(filter => {
+        filter.values.forEach(value => {
+          value.selected = false
+        });
+      });
+      this.fetchUsers()
+    },
+
+    handlePageChange(newPage) {
+      this.currentPage = newPage;
+      this.fetchUsers();
+    },
+
   },
   mounted() {
     this.fetchUsers();
   },
 };
 </script>
+
+<style scoped>
+/* Transition for dropdown */
+.dropdown-enter-active,
+.dropdown-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dropdown-enter-from,
+.dropdown-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+</style>

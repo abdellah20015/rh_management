@@ -3,7 +3,7 @@
         <div class="w-11/12">
             <div class="mx-10">
                 <div class="mx-5 my-5">
-                    <RouterLink :to="{ name: 'list_demand' }"
+                    <RouterLink :to="{ name: 'userDemands' }"
                         class="w-20 flex items-center justify-center bg-black text-center text-white rounded py-1">
                         <img width="30" height="30"
                             src="https://img.icons8.com/ios-filled/50/FFFFFF/long-arrow-left.png"
@@ -212,7 +212,7 @@ export default {
 
                 if (response.status === 201) {
                     utils.successAlert("votre demande a été créée");
-                    router.push({ "name": "list_demand" });
+                    router.push({ "name": "userDemands" });
                 }
 
             } catch (err) {

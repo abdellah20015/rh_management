@@ -27,6 +27,7 @@ public class Contract extends AbstractVerticle {
 
 
       vertx.setPeriodic(6 * 1000, id -> checkAndExpireContracts());
+
     } catch(Exception e) {
       System.out.println(e);
     }
