@@ -39,6 +39,8 @@ public class Services {
   public static final String CONTRACT_CREATE = "contract.create";
   public static final String CONTRACT_UPDATE = "contract.update";
   public static final String CONTRACT_GET = "contract.get";
+  public static final String DB_ACTIVE_USERS_WITH_CONTRACTS = "db.active.users.with.contracts";
+  public static final String DB_EXPIRING_CONTRACTS = "db.expiring.contracts";
 
   //Files
   public static final String FILE_DOWNLOAD = "file.download";
