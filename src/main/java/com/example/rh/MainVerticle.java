@@ -140,11 +140,10 @@ public class MainVerticle extends AbstractVerticle {
         if (ctx.user() != null) {
           ctx.request().toWebSocket().onSuccess(ws -> {
               JsonObject user = ctx.user().principal();
-              String userId = user.getString("id");  // Get the user ID from the authenticated user
+              String userId = user.getString("id");
               userWebSockets.put(userId, ws);
               System.out.println("\n user object ws : " + user + "\n");
               System.out.println("websocket connected");
-
 
 
               vertx.eventBus().consumer(Services.NOTIFICATION_SEND, msg -> {
