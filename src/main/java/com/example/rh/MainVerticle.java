@@ -1,10 +1,5 @@
 package com.example.rh;
 
-
-
-
-
-
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
@@ -12,12 +7,10 @@ import java.util.Map;
 
 import com.example.rh.constants.Collections;
 import com.example.rh.constants.Services;
-import com.example.rh.constants.Services;
 import com.example.rh.services.*;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.ServerWebSocket;
 import io.vertx.core.http.WebSocket;
@@ -25,9 +18,7 @@ import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import io.vertx.ext.web.FileUpload;
-
 import io.vertx.ext.auth.User;
-import io.vertx.ext.mongo.MongoClient;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -97,8 +88,6 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
       routerBuilder.getRoute("updateNotificationStatus").addHandler(this::updateNotificationStatus);
 
-      // Add handlers
-
        // path  /check
       routerBuilder.getRoute("checkAuth").addHandler(this::handleCheck);
 
@@ -132,6 +121,8 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
       routerBuilder.getRoute("updateContract").addHandler(ctx -> { handlePermission(ctx, "update_contract"); }).addHandler(this::updateContract);
       routerBuilder.getRoute("getContract").addHandler(this::getContract);
+      routerBuilder.getRoute("getActiveUsersWithContracts").addHandler(this::getActiveUsersWithContracts);
+      routerBuilder.getRoute("getExpiringContracts").addHandler(this::getExpiringContracts);
 
       // Files
       routerBuilder.getRoute("uploadFile").addHandler(ctx -> { handlePermission(ctx, "import_user"); }).addHandler(this::uploadFile);
@@ -432,6 +423,65 @@ public void getContract(RoutingContext ctx) {
 
 /**
  * @param ctx RoutingContext
+ * @author : Abdellah
+ * <p>
+ * This function handles an HTTP request to retrieve the count of active users
+ * with at least one active contract. It sends the result as a JSON response
+ * to the client.
+ * </p>
+ */
+
+private void getActiveUsersWithContracts(RoutingContext ctx) {
+  JsonObject msg = new JsonObject();
+
+  vertx.eventBus().request(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, msg, res -> {
+      if (res.succeeded()) {
+          ctx.response()
+              .putHeader("content-type", "application/json")
+              .end(res.result().body().toString());
+      } else {
+          ctx.response()
+              .putHeader("content-type", "application/json")
+              .setStatusCode(500)
+              .end(new JsonObject()
+                  .put("error", res.cause().getMessage())
+                  .toString());
+      }
+  });
+}
+
+
+/**
+ * @param ctx RoutingContext
+ * @author : Abdellah
+ * <p>
+ * This function handles an HTTP request to retrieve the list of contracts
+ * expiring within the next 10 days. It sends the result as a JSON response
+ * to the client.
+ * </p>
+ */
+
+private void getExpiringContracts(RoutingContext ctx) {
+  JsonObject msg = new JsonObject();
+
+  vertx.eventBus().request(Services.DB_EXPIRING_CONTRACTS, msg, res -> {
+      if (res.succeeded()) {
+          ctx.response()
+              .putHeader("content-type", "application/json")
+              .end(res.result().body().toString());
+      } else {
+          ctx.response()
+              .putHeader("content-type", "application/json")
+              .setStatusCode(500)
+              .end(new JsonObject()
+                  .put("error", res.cause().getMessage())
+                  .toString());
+      }
+  });
+}
+
+/**
+ * @param ctx RoutingContext
  * @author abdellah
  * <p>
  * OpenAPI3 Route uploadFile
@@ -563,10 +613,18 @@ public void downloadFile(RoutingContext ctx) {
           if (res.succeeded()) {
               JsonObject response = (JsonObject) res.result().body();
               String filename = Paths.get(response.getString("filepath")).getFileName().toString();
-              ctx.response()
-                  .putHeader("Content-Type", "application/pdf")
-                  .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                  .sendFile("uploads/" +filename);
+
+              
+              if (filename.toLowerCase().endsWith(".pdf")) {
+                  ctx.response()
+                      .putHeader("Content-Type", "application/pdf")
+                      .putHeader("Content-Disposition", "inline; filename=\"" + filename + "\"")
+                      .sendFile("uploads/" + filename);
+              } else {
+                  ctx.response()
+                      .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
+                      .sendFile("uploads/" + filename);
+              }
           } else {
               String error = res.cause().getMessage();
               int statusCode = error.contains("non trouvé") ? 404 : 500;

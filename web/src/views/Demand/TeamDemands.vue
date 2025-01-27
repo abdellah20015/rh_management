@@ -65,7 +65,7 @@ import TableFilterComponent from '@/components/TableFilterComponent.vue';
 import services from '@/shared/services';
 import utils from "@/shared/utils";
 import { useAuthStore } from '@/stores/store';
-import { RouterLink } from 'vue-router';
+
 
 export default {
     name: 'TeamDemands',
@@ -287,30 +287,31 @@ export default {
 
         //download demande pdf
         async downloadDemand(demand) {
-            const query = { filepath: demand.file_path }
-            console.log(query)
-            try {
-                const response = await utils.fetch_methode(services.file.download, query)
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                const filename = demand.file_path.split('/').pop();
-                a.download = filename;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-                document.body.removeChild(a);
-                if (response.ok) {
-                    console.log(response);
-                } else {
-                    console.log(response);
-                }
-            } catch (err) {
-                console.log(err);
-            }
-        },
+    const query = { filepath: demand.file_path }
+    try {
+        const response = await utils.fetch_methode(services.file.download, query);
+
+        
+        if (demand.file_path.toLowerCase().endsWith('.pdf')) {
+
+            window.open(URL.createObjectURL(await response.blob()), '_blank');
+        } else {
+
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = demand.file_path.split('/').pop();
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+    } catch (err) {
+        console.error("Erreur de téléchargement:", err);
+        utils.errorAlert("Impossible de visualiser ou télécharger le fichier");
+    }
+},
 
 
         filter() {
