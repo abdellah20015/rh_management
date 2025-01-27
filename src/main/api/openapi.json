@@ -715,7 +715,10 @@
                                           "approved",
                                           "rejected"
                                       ]
-                                  }
+                                  },
+                                "reason": {
+                                  "type": "string"
+                                }
                               },
                               "required": [
                                   "demand_id",

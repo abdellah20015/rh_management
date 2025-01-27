@@ -1,0 +1,292 @@
+<template>
+    <div class="statistics bg-gray-50 p-6 ">
+        <h1 class=" text-3xl font-bold text-gray-800 mb-10">Dashboard Statistics</h1>
+        <div class="flex flex-col gap-20">
+
+            <!-- cards for manaerg and admin -->
+            <div class="grid grid-cols-4 gap-6" v-if="user.role === 'admin' || user.role === 'manager'">
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #3B82F6' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35"
+                                    src="https://img.icons8.com/ios-glyphs/30/3b82f6/conference-call--v1.png"
+                                    alt="conference-call--v1" />
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Users</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalUsers }}</div>
+                                </div>
+                                <i class="pi pi-users text-blue-500 text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #3B82F6' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/3b82f6/external-folders-library-tanah-basah-glyph-tanah-basah.png" alt="external-folders-library-tanah-basah-glyph-tanah-basah"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalDemands }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #F59E0B' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/f59e0b/external-pending-folder-tanah-basah-glyph-tanah-basah.png" alt="external-pending-folder-tanah-basah-glyph-tanah-basah"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Pending Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalPendingDemands }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #10B981' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35"
+                                    src="https://img.icons8.com/ios-glyphs/30/10B981/conference-call--v1.png"
+                                    alt="conference-call--v1" />
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Active Users</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalActiveUsers }}</div>
+                                </div>
+                                <i class="pi pi-check-circle text-indigo-500 text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+            </div>
+
+
+            <!-- cards for employee -->
+            <div class="grid grid-cols-4 gap-6" v-else>
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #3B82F6' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/3b82f6/external-folders-library-tanah-basah-glyph-tanah-basah.png" alt="external-folders-library-tanah-basah-glyph-tanah-basah"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalUsers }}</div>
+                                </div>
+                                <i class="pi pi-users text-blue-500 text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #10B981' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/10b981/external-approved-approved-and-rejected-tanah-basah-glyph-tanah-basah-6.png" alt="external-approved-approved-and-rejected-tanah-basah-glyph-tanah-basah-6"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Approved Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalDemands }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #F59E0B' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/f59e0b/external-pending-folder-tanah-basah-glyph-tanah-basah.png" alt="external-pending-folder-tanah-basah-glyph-tanah-basah"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Pending Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalPendingDemands }}</div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+
+                <Card
+                    class="shadow-md hover:shadow-[rgba(0,_0,_0,_0.24)_0px_3px_8px] transition-all ease-in-out overflow-hidden border border-gray-300"
+                    :style="{ backgroundColor: '#FFFFFF', borderLeft: '8px solid #e5383b' }">
+                    <template #content>
+                        <div class="p-4 flex justify-between flex-row-reverse">
+                            <div>
+                                <img width="35" height="35" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/e5383b/external-rejected-approved-and-rejected-tanah-basah-glyph-tanah-basah-11.png" alt="external-rejected-approved-and-rejected-tanah-basah-glyph-tanah-basah-11"/>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-md text-gray-500 mb-2">Total Rejected Demands</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalActiveUsers }}</div>
+                                </div>
+                                <i class="pi pi-check-circle text-indigo-500 text-4xl opacity-50"></i>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
+            </div>
+
+
+            <!-- tables for manager and admin -->
+            <div class="grid grid-cols-2 gap-6" v-if="user.role === 'admin' || user.role === 'manager'">
+                <!-- Upcoming Contract Expirations -->
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
+                    <template #title>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">Upcoming Contract Expirations</h2>
+                        </div>
+                    </template>
+                    <template #content>
+                        <DataTable :value="contractExpirations" responsiveLayout="scroll">
+                            <Column field="client" header="User"></Column>
+                            <Column field="expirationDate" header="Expiration Date"></Column>
+                            <Column header="Actions">
+
+                            </Column>
+                        </DataTable>
+                    </template>
+                </Card>
+
+                <!-- Recent Demands -->
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
+                    <template #title>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">Recent Demands</h2>
+                        </div>
+                    </template>
+                    <template #content>
+                        <DataTable :value="recentDemands" responsiveLayout="scroll">
+                            <Column field="demandId" header="ID"></Column>
+                            <Column field="status" header="Status"></Column>
+                            <Column field="createdAt" header="Date"></Column>
+                            <Column header="Actions">
+                                <template #body="slotProps">
+                                    <Button icon="pi pi-eye" class="p-button-rounded p-button-info p-button-text"
+                                        @click="viewDemandDetails(slotProps.data)" />
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </template>
+                </Card>
+            </div>
+            
+
+            <!-- tables for employee -->
+            <div class="grid grid-cols-2 gap-6" v-else>
+                <!-- Upcoming Contract Expirations -->
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                    <template #title>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">last Demands</h2>
+                        </div>
+                    </template>
+                    <template #content>
+                        <DataTable :value="contractExpirations" responsiveLayout="scroll">
+                            <Column field="client" header="User"></Column>
+                            <Column field="expirationDate" header="Expiration Date"></Column>
+                            <Column header="Actions">
+
+                            </Column>
+                        </DataTable>
+                    </template>
+                </Card>
+
+                <!-- Recent Demands -->
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                    <template #title>
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-lg font-semibold text-gray-800">last pending demands</h2>
+                        </div>
+                    </template>
+                    <template #content>
+                        <DataTable :value="recentDemands" responsiveLayout="scroll">
+                            <Column field="demandId" header="ID"></Column>
+                            <Column field="status" header="Status"></Column>
+                            <Column field="createdAt" header="Date"></Column>
+                            <Column header="Actions">
+                                <template #body="slotProps">
+                                    <Button icon="pi pi-eye" class="p-button-rounded p-button-info p-button-text"
+                                        @click="viewDemandDetails(slotProps.data)" />
+                                </template>
+                            </Column>
+                        </DataTable>
+                    </template>
+                </Card>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script>
+import Card from 'primevue/card';
+import DataTable from 'primevue/datatable';
+import Column from 'primevue/column';
+
+import { useAuthStore } from '@/stores/store';
+
+export default {
+    name: 'Statistics',
+    data() {
+        return {
+            totalUsers: 0,
+            totalDemands: 0,
+            totalPendingDemands: 0,
+            totalActiveUsers: 0,
+            contractExpirations: [],
+            recentDemands: [],
+            user: useAuthStore().user,
+        };
+    },
+    components: {
+        Card,
+        DataTable,
+        Column
+    },
+    mounted() {
+
+    },
+    methods: {
+
+    }
+};
+</script>

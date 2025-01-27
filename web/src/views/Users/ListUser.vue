@@ -30,17 +30,17 @@
             <div v-if="showFilterDropdown"
               class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
               <div v-for="(filter, index) in filterStructure" :key="index">
-                <p class="text-sm font-semibold">{{ filter.name }} :</p>
+                <p class="text-sm font-semibold text-gray-600 p-2">{{ filter.name }}</p>
                 <div class="flex justify-evenly p-3">
                   <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values" :key="index"
-                    class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
-                    :class="{ 'bg-black text-white': value.selected === true }">
+                    class="rounded-full py-2 px-5 hover:bg-[#99CAFF] hover:text-white transition-all ease-in-out"
+                    :class="{ 'bg-[#3b82f6] text-white': value.selected === true }">
                     <p class="text-sm">{{ value.title }}</p>
                   </a>
                 </div>
               </div>
               <div class="flex gap-5 mt-3">
-                <button @click="filter" class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
+                <button @click="filter" class="w-1/2 p-2 rounded bg-[#3b82f6] text-white">Filtre</button>
                 <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
                   filtre</button>
               </div>

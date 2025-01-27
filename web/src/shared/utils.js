@@ -74,12 +74,52 @@ const errorAlert = (message) => {
     });
 };
 
+const showText = (title, text) => {
+    Swal.fire({
+        title: title,
+        text: text,
+        showCloseButton: true,
+        confirmButtonText: "OK",
+        didRender: () => {
+            const content = Swal.getHtmlContainer();
+            if (content) {
+                content.style.textAlign = 'left';
+            }
+        }
+    });
+};
+
+const notification = (message) => {
+    const Toast = Swal.mixin({
+        toast: true,
+        position: "bottom-end",
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+        icon: 'info',
+        didOpen: (toast) => {
+            toast.onmouseenter = Swal.stopTimer;
+            toast.onmouseleave = Swal.resumeTimer;
+        },
+        didRender: (toast) => {
+            toast.style.backgroundColor = '#caf0f8'; 
+            toast.style.width = '1000px';
+        }
+    });
+    Toast.fire({
+        iconHtml: '<img width="35" height="35" style="padding: 5px;" src="https://img.icons8.com/external-tanah-basah-glyph-tanah-basah/48/3b82f6/external-bell-essentials-pack-tanah-basah-glyph-tanah-basah.png" alt="external-bell-essentials-pack-tanah-basah-glyph-tanah-basah"/>',
+        title: message
+    });
+}
+
 
 export default {
     fetch_methode,
     convertDate,
     formatString,
     successAlert,
-    errorAlert
+    errorAlert,
+    showText,
+    notification
 
 };

@@ -16,6 +16,14 @@ const router = createRouter({
       children: [
         // users
         {
+          path: '/private/statistics',
+          name: 'statistics',
+          meta : {
+            permission : ""
+          },
+          component: ()=> import('@/views/Statistics.vue'),
+        },
+        {
           path: '/private/user/list',
           name: 'list_user',
           meta : {

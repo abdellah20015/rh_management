@@ -242,7 +242,9 @@ export default {
     }
 
     this.connection.onmessage = (event) => {
-      console.log(event.data);
+      const notification = JSON.parse(event.data);
+      console.log(notification);
+      utils.notification(notification.message)
     }
 
     this.connection.onclose = () => {
