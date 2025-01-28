@@ -170,6 +170,18 @@ export default {
           placeholder: 'Nom'
         },
         {
+          name: 'address',
+          label: 'address',
+          type: 'text',
+          placeholder: 'address'
+        },
+        {
+          name: 'cin',
+          label: 'cin',
+          type: 'text',
+          placeholder: 'cin'
+        },
+        {
           name: 'email',
           label: 'email',
           type: 'text',
