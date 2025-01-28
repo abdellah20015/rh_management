@@ -94,11 +94,9 @@
       <!-- Profile Section -->
       <div v-if="userData?.role !== 'admin'" class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center space-x-4 mb-6">
-          <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img
-              src="https://img.icons8.com/external-kmg-design-glyph-kmg-design/32/006aff/external-user-back-to-school-kmg-design-glyph-kmg-design.png"
-              alt="Test Account" class="h-11 w-11 text-gray-600" />
-
+          <div class="bg-[#dbeaff] p-3 rounded-full">
+            <img src="https://img.icons8.com/plasticine/100/contract-job.png" alt="Test Account"
+              class="h-16 w-16 text-gray-600" />
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Détail de profil</h2>
@@ -114,12 +112,12 @@
           <!--Firstname-->
           <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Prénom:</span>
-            <span class="col-span-2 text-gray-900">{{ userData?.firstname }}</span>
+            <span class="col-span-2 text-gray-900">{{ userData?.firstName }}</span>
           </div>
           <!-- Lastname -->
           <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Nom:</span>
-            <span class="col-span-2 text-gray-900">{{ userData?.lastname }}</span>
+            <span class="col-span-2 text-gray-900">{{ userData?.lastName }}</span>
           </div>
           <!--Adresse-->
           <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
@@ -287,10 +285,9 @@
         </transition>
 
         <div class="flex items-center space-x-4 mb-6">
-          <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img
-              src="https://img.icons8.com/external-kiranshastry-solid-kiranshastry/64/006aff/external-contract-law-and-crime-kiranshastry-solid-kiranshastry.png"
-              alt="Contract" class="h-11 w-11 text-gray-600" />
+          <div class="bg-[#dbeaff] p-3 rounded-full">
+            <img src="https://img.icons8.com/plasticine/100/agreement.png" alt="Contract"
+              class="h-16 w-16 text-gray-600" />
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Information de contrat</h2>

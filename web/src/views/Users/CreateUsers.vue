@@ -153,21 +153,21 @@ export default {
         },
         {
           name: 'phone',
-          label: 'phone',
+          label: 'Numéro de téléphone',
           type: 'text',
-          placeholder: 'phone numbre'
+          placeholder: 'numéro de téléphone'
         },
         {
           name: 'firstName',
-          label: 'first Name',
+          label: 'Prénom',
           type: 'text',
-          placeholder: 'first Name'
+          placeholder: 'Prénom'
         },
         {
           name: 'lastName',
-          label: 'lastName',
+          label: 'Nom',
           type: 'text',
-          placeholder: 'lastName'
+          placeholder: 'Nom'
         },
         {
           name: 'email',
