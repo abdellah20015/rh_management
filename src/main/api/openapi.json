@@ -159,7 +159,7 @@
                             }
                         }
                     }
-                    
+
                 },
                 "responses":{
                     "200" : {
@@ -621,22 +621,7 @@
               }
           }
       },
-      "/private/contract/active-users": {
-    "post": {
-        "summary": "Nombre total d'utilisateurs actifs avec des contrats",
-        "operationId": "getActiveUsersWithContracts",
-        "tags": ["Contract"],
-        "responses": {
-            "200": {
-                "description": "Nombre d'utilisateurs actifs avec contrats"
-            },
-            "500": {
-                "description": "Erreur serveur"
-            }
-        }
-    }
-},
-
+      
 "/private/contract/expiring": {
     "post": {
         "summary": "Liste des 5 derniers contrats expirant dans 10 jours",
@@ -742,7 +727,7 @@
                         }
                     }
                 }
-                
+
             },
             "responses":{
                 "200" : {

@@ -173,15 +173,17 @@
                 <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
-                            <h2 class="text-lg font-semibold text-gray-800">Upcoming Contract Expirations</h2>
+                            <h2 class="text-lg font-semibold text-gray-800">Prochaines expirations de contrats</h2>
                         </div>
                     </template>
                     <template #content>
                         <DataTable :value="contractExpirations" responsiveLayout="scroll">
-                            <Column field="client" header="User"></Column>
-                            <Column field="expirationDate" header="Expiration Date"></Column>
-                            <Column header="Actions">
-
+                            <Column field="username" header="User"></Column>
+                            <Column field="end_date" header="Expiration Date"></Column>
+                            <Column field="days_until_expiration" header="Days Left">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.days_until_expiration }} days
+                                </template>
                             </Column>
                         </DataTable>
                     </template>
@@ -191,7 +193,7 @@
                 <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
-                            <h2 class="text-lg font-semibold text-gray-800">Recent Demands</h2>
+                            <h2 class="text-lg font-semibold text-gray-800">Demandes récentes</h2>
                         </div>
                     </template>
                     <template #content>
@@ -205,7 +207,7 @@
                     </template>
                 </Card>
             </div>
-            
+
 
             <!-- tables for employee -->
             <div class="grid grid-cols-2 gap-6" v-else>
@@ -213,7 +215,7 @@
                 <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
-                            <h2 class="text-lg font-semibold text-gray-800">last Demands</h2>
+                            <h2 class="text-lg font-semibold text-gray-800">Dernières demandes</h2>
                         </div>
                     </template>
                     <template #content>
@@ -231,7 +233,7 @@
                 <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
-                            <h2 class="text-lg font-semibold text-gray-800">last pending demands</h2>
+                            <h2 class="text-lg font-semibold text-gray-800">dernières demandes en cours</h2>
                         </div>
                     </template>
                     <template #content>
@@ -258,9 +260,11 @@ import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
+
 import { useAuthStore } from '@/stores/store';
 import utils from '@/shared/utils';
 import services from '@/shared/services';
+
 
 export default {
     name: 'Statistics',
@@ -283,10 +287,27 @@ export default {
         Column
     },
     mounted() {
-        this.fetchUserStats();
+
+       this.fetchExpiringContracts();
+       this.fetchUserStats();
         this.fetchDemandsStats();
+
     },
     methods: {
+        async fetchExpiringContracts() {
+            try {
+                const response = await utils.fetch_methode('/private/contract/expiring');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    this.contractExpirations = data.data;
+                }
+            } catch (error) {
+                console.error('Error fetching expiring contracts:', error);
+                utils.errorAlert('Failed to fetch expiring contracts');
+            }
+        },
+
         async fetchUserStats(){
             try {
                 const response = await utils.fetch_methode(services.user.stats)
@@ -303,7 +324,7 @@ export default {
                 console.log(error)
             }
         }  ,
-        
+
         async fetchDemandsStats(){
             try {
                 const response = await utils.fetch_methode(services.demand.stats)
@@ -332,6 +353,7 @@ export default {
                 console.log(error)
             }
         }  ,
+
 
     }
 };
