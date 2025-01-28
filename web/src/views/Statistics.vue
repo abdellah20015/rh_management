@@ -212,25 +212,23 @@
             <!-- tables for employee -->
             <div class="grid grid-cols-2 gap-6" v-else>
                 <!-- Upcoming Contract Expirations -->
-                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class=" border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-800">Dernières demandes</h2>
                         </div>
                     </template>
                     <template #content>
-                        <DataTable :value="contractExpirations" responsiveLayout="scroll">
-                            <Column field="client" header="User"></Column>
-                            <Column field="expirationDate" header="Expiration Date"></Column>
-                            <Column header="Actions">
-
-                            </Column>
+                        <DataTable :value="last_demands" responsiveLayout="scroll">
+                            <Column field="type" header="User"></Column>
+                            <Column field="status" header="status"></Column>
+                            <Column field="created_date" header="Expiration Date"></Column>
                         </DataTable>
                     </template>
                 </Card>
 
                 <!-- Recent Demands -->
-                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="h-72 border border-gray-300">
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #3B82F6' }" class="border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-800">dernières demandes en cours</h2>
@@ -238,15 +236,9 @@
                     </template>
                     <template #content>
                         <DataTable :value="recentDemands" responsiveLayout="scroll">
-                            <Column field="demandId" header="ID"></Column>
+                            <Column field="type" header="ID"></Column>
                             <Column field="status" header="Status"></Column>
-                            <Column field="createdAt" header="Date"></Column>
-                            <Column header="Actions">
-                                <template #body="slotProps">
-                                    <Button icon="pi pi-eye" class="p-button-rounded p-button-info p-button-text"
-                                        @click="viewDemandDetails(slotProps.data)" />
-                                </template>
-                            </Column>
+                            <Column field="created_date" header="Date"></Column>
                         </DataTable>
                     </template>
                 </Card>
@@ -278,6 +270,7 @@ export default {
             totalApprovedDemands: 0,
             contractExpirations: [],
             recentDemands: [],
+            last_demands: [],
             user: useAuthStore().user,
         };
     },
@@ -333,13 +326,17 @@ export default {
                 if (response.ok) {
                     this.totalDemands = data.total_demands
                     this.totalPendingDemands = data.pending
-                    if (this.user.role !== "employeee") {
+                    if (this.user.role !== "employee") {
                         this.recentDemands = data.last_demands
                     }
                     else{
                         this.recentDemands = data.last_pending_demands
+                        this.last_demands = data.last_demands
                         this.totalApprovedDemands = data.approved
                         this.totalRejectedDemands = data.rejected
+                        this.last_demands.forEach(demand => {
+                            demand.created_date = utils.convertDate(demand.created_date)
+                        })
                     }
 
                 this.recentDemands.forEach(demand => {
