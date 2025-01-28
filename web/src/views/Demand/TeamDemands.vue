@@ -2,7 +2,11 @@
     <div class="flex justify-center">
         <div class="w-11/12">
             <div class="flex items-center justify-between  mt-5 mb-9    ">
-                <p class="text-3xl font-semibold">Listes des demands (users)</p>
+                <div class="flex  gap-3">
+                    <p class="text-3xl font-semibold">Demandes des utilisateurs</p>
+                    <p class="text-[#006aff] bg-[#c6dffb] py-1 px-3 rounded-[6px] font-semibold text-base">
+                        {{ count }}</p>
+                </div>
                 <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
                     class="w-48 bg-[#006AFF] hover:bg-[#006AFF]/80 transition-all ease-in-out text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
@@ -89,7 +93,7 @@ export default {
             managerTableInfo: {
                 headers: [
                     { title: "Type de demand", key: "typeTitle" },
-                    { title: "Username", key: "username" },
+                    { title: "Nom et Prenom", key: "fullname" },
                     { title: "Status", key: "statusTitle" },
                     { title: "Created date", key: "created_date" },
                     { title: "Actions", key: "actions" }
@@ -97,17 +101,17 @@ export default {
                 data: [],
                 buttons: [
                     {
-                        button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+                        button: `<button style='background-color : #38b000; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
                         action: this.approveDemand,
                         disabled: (demand) => demand.status === "approved"
                     },
                     {
-                        button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+                        button: `<button style='background-color : #d90429; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
                         action: this.rejectReasonPopup,
                         disabled: (demand) => demand.status === "rejected"
                     },
                     {
-                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
+                        button: `<button style='background-color : #023047; padding : 5px; color : white;border-radius : 2px ; border : none'><img width="27" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
                         action: this.downloadDemand,
                         disabled: false
                     }
@@ -227,6 +231,7 @@ export default {
                 const data = await response.json();
 
                 if (response.ok) {
+                    console.log(data);
 
                     //pagination
                     this.count = data.count;
@@ -242,6 +247,8 @@ export default {
                         //chaneg type value to new value
                         typeTitle: utils.formatString(item.type),
                         statusTitle: item.status === "approved" ? "Acceptée" : item.status === "rejected" ? "Rejectée" : item.status === "pending" ? "En attente" : item.status,
+                        fullname : item.user_firstName != null && item.user_lastName != null ? item.user_firstName + " " + item.user_lastName : "Vide",
+
                     }));
 
                     this.managerTableInfo.data = processedData;
@@ -344,6 +351,7 @@ export default {
 
         filter() {
             this.fetchDemands()
+            this.searchValue = null
         },
 
         selectFilter(selectedValue) {

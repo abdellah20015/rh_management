@@ -1,13 +1,19 @@
 <template>
   <div class="p-6">
-    <FormComponent
-      :fields="allFields"
-      :btn_text="'Mettre à jour le contrat'"
-      :title="'Mise à jour du contrat'"
-      :initialData="contractData"
-      @formSubmitted="updateContract"
-    />
+    <div class="container mx-auto">
+      <div class="flex justify-center items-center">
+        <div class="w-full max-w-md">
+          <FormComponent
+            :fields="allFields"
+            :btn_text="'Mettre à jour le contrat'"
+            :title="'Mise à jour du contrat'"
+            :initialData="contractData"
+            @formSubmitted="updateContract"
+          />
+        </div>
+    </div>
   </div>
+</div>
 </template>
 
 <script>

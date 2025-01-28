@@ -1,11 +1,17 @@
 <template>
   <div class="p-6">
+    <div class="container mx-auto">
+      <div class="flex justify-center items-center">
+        <div class="w-full max-w-md">
     <FormComponent
       :fields="allFields"
       :btn_text="'Créer le contrat'"
       :title="'Création d\'un contrat'"
       @formSubmitted="handleContractSubmission"
     />
+          </div>
+        </div>
+    </div>
   </div>
 </template>
 

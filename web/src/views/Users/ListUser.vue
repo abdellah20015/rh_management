@@ -2,7 +2,11 @@
   <div class="flex justify-center">
     <div class="w-11/12">
       <div class="flex items-center justify-between mt-5 mb-9">
-        <p class="text-3xl font-semibold">Listes des utilisateurs</p>
+        <div class="flex  gap-3">
+          <p class="text-3xl font-semibold">Listes des utilisateurs</p>
+          <p class="text-[#006aff] bg-[#c6dffb] py-1 px-3 rounded-[6px] font-semibold text-base">
+            {{ count }}</p>
+        </div>
         <router-link v-if="authStore.user.permissions.includes('create_user')" :to="{ name: 'create_user' }"
           class="w-48 bg-[#006AFF] hover:bg-[#006AFF]/80 transition-all ease-in-out  text-white text-center rounded p-2">
           Ajouter un utilisateur
@@ -27,7 +31,7 @@
           </div>
           <div class="w-36">
             <button @click="toggleFilterDropdown"
-              class="w-full rounded-[5px] p-2.5 rounded-lg bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+              class="w-full rounded-[5px] p-2.5 bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
               <span>Filter</span>
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                 stroke="currentColor">
@@ -90,6 +94,7 @@ export default {
       tableInfo: {
         headers: [
           { title: "User Name", key: "username" },
+          { title: "Nom et Prenom", key: "fullname" },
           { title: "Type de contrat", key: "contractTypeTitle" },
           { title: "Status", key: "userStatusTitle" },
           { title: "Role", key: "role" },
@@ -98,19 +103,19 @@ export default {
         data: [],
         buttons: [
           {
-            button: `<button style='background-color: #3B82F6; padding: 7px; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" /></button>`,
+            button: `<button style='background-color: #3B82F6; padding: 9px; border-radius: 2px; border: none;'><img  width="18" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/visible.png" alt="View Icon" /></button>`,
             action: this.viewUser,
             disabled: false,
           },
           {
-            button: `<button style='background-color: #C1121F; padding: 7px; color: white; border-radius: 2px; border: none;'><img  width="20" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
+            button: `<button style='background-color: #C1121F; padding: 9px; color: white; border-radius: 2px; border: none;'><img  width="18" height="20"  src="https://img.icons8.com/ios-filled/50/FFFFFF/trash.png" alt="Delete Icon" /></button>`,
             action: this.deleteUser,
             disabled: () =>
               !this.authStore.user.permissions.includes("delete_user"),
           },
           {
-            button: `<button style='background-color: #FFBE0B; padding: 7px; color: white; border-radius: 2px; border: none;'>
-                          <img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/pencil--v1.png" alt="Pencil Icon" />
+            button: `<button style='background-color: #FFBE0B; padding: 9px; color: white; border-radius: 2px; border: none;'>
+                          <img width="18" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/pencil--v1.png" alt="Pencil Icon" />
                     </button>`,
             action: this.updateUser,
             disabled: () =>
@@ -211,7 +216,8 @@ export default {
           this.tableInfo.data = data.data.map((user) => ({
             ...user,
             contractTypeTitle: user?.contracts?.type == "cdd" ? "CDD" : user?.contracts?.type == "cdi" ? "CDI" : "Pas de contrat",
-            userStatusTitle: user.status == true ? "Active" : "Désactivé"
+            userStatusTitle: user.status == true ? "Active" : "Désactivé",
+            fullname : user.firstname != null && user.lastname != null ? user.firstname + " " + user.lastname : "Vide",
           }));
 
         } else {

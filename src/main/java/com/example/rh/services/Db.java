@@ -229,7 +229,7 @@ private void count(Message<JsonObject> message) {
     });
 }
 
-  private void aggregate(Message<JsonObject> message) {
+private void aggregate(Message<JsonObject> message) {
     JsonObject payload = message.body();
     String collection = payload.getString("collection");
     JsonArray pipeline = payload.getJsonArray("pipeline");

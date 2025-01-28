@@ -83,7 +83,8 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createDemand").addHandler(this::createDemand);
       // path: /private/demand/update
       routerBuilder.getRoute("updateDemand").addHandler(ctx -> { handlePermission(ctx, "update_demand"); }).addHandler(this::updateDemand);
-
+      // path : /private/demand/stats
+      routerBuilder.getRoute("getDemandStats").addHandler(this::getDemandStats);
       //notificaiton
       routerBuilder.getRoute("getNotifications").addHandler(this::getNotification);
       routerBuilder.getRoute("updateNotificationStatus").addHandler(this::updateNotificationStatus);
@@ -116,6 +117,8 @@ public class MainVerticle extends AbstractVerticle {
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
+      // path : /private//user/stats
+      routerBuilder.getRoute("getStats").addHandler(this::usersCount);
 
       // Contracts
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
@@ -166,7 +169,7 @@ public class MainVerticle extends AbstractVerticle {
               // Close handler
               ws.closeHandler(handle -> {
                 System.out.println("connection closed");
-                ctx.clearUser();
+                userWebSockets.remove(userId);
               });
 
               // Incoming message handler
@@ -611,9 +614,11 @@ public void downloadFile(RoutingContext ctx) {
       vertx.eventBus().request(Services.FILE_DOWNLOAD_PDF, fileInfo, res -> {
           if (res.succeeded()) {
               JsonObject response = (JsonObject) res.result().body();
+              byte[] content = response.getBinary("content");
               String filename = Paths.get(response.getString("filepath")).getFileName().toString();
 
-              
+
+
               if (filename.toLowerCase().endsWith(".pdf")) {
                   ctx.response()
                       .putHeader("Content-Type", "application/pdf")
@@ -624,6 +629,7 @@ public void downloadFile(RoutingContext ctx) {
                       .putHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"")
                       .sendFile("uploads/" + filename);
               }
+
           } else {
               String error = res.cause().getMessage();
               int statusCode = error.contains("non trouvé") ? 404 : 500;
@@ -924,11 +930,21 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .add(new JsonObject().put("$sort", new JsonObject().put("date_creation", -1)));
 
 
-      if(search != null){
+      if (search != null && !search.isEmpty()) {
         pipeline.add(new JsonObject().put("$match", new JsonObject()
-          .put("username", new JsonObject()
-            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
-            .put("$options", "i"))));
+          .put("$or", new JsonArray()
+            .add(new JsonObject()
+              .put("username", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i")))
+            .add(new JsonObject()
+              .put("firstname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i")))
+            .add(new JsonObject()
+              .put("lastname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i"))))));
       }
 
       if(!filter.isEmpty()){
@@ -975,7 +991,171 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
     }
   }
+  /**
+   * users counts
+   * @author ilyass
+   * methode to get the stats of the users
+   */
+  public void usersCount(RoutingContext ctx){
+    try {
+      JsonObject match = new JsonObject();
+      if (!ctx.user().principal().getString("role").equals("admin")) {
+          match.put("manager_id", ctx.user().principal().getString("id"));
+      }
 
+      JsonObject aggregate = new JsonObject()
+          .put("collection", Collections.USER)
+          .put("pipeline", new JsonArray()
+              .add(new JsonObject().put("$match", match))
+              .add(new JsonObject().put("$facet", new JsonObject()
+                  .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
+                  .put("active", new JsonArray()
+                      .add(new JsonObject().put("$match", new JsonObject().put("status", true)))
+                      .add(new JsonObject().put("$count", "active"))
+                  )
+                  .put("inactive", new JsonArray()
+                      .add(new JsonObject().put("$match", new JsonObject().put("status", false)))
+                      .add(new JsonObject().put("$count", "inactive"))
+                  )
+              ))
+          )
+          .put("options", new JsonObject());
+
+      vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
+        if (reply.succeeded()) {
+          JsonObject result = (JsonObject) reply.result().body();
+          JsonObject data = result.getJsonArray("data").getJsonObject(0);
+          JsonObject counts = new JsonObject();
+          JsonArray total = data.getJsonArray("total");
+          JsonArray active = data.getJsonArray("active");
+          JsonArray inactive = data.getJsonArray("inactive");
+
+          counts.put("total_users",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
+          counts.put("active",(active != null && !active.isEmpty()) ? active.getJsonObject(0).getInteger("active") : 0);
+          counts.put("inactive", (inactive != null && !inactive.isEmpty()) ?  inactive.getJsonObject(0).getInteger("inactive"): 0);
+          // JsonObject
+          ctx.response()
+              .setStatusCode(200)
+              .putHeader("content-type", "application/json")
+              .end(counts.encode());
+        } else {
+          ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+        }
+      });
+    } catch (Exception e) {
+      ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
+    }
+  }
+
+  /**
+   * getDemandStats
+   * @author ilyass
+   * @param ctx
+   * methode to get the stats of the demand
+   */
+  public void getDemandStats(RoutingContext ctx){
+    try {
+      JsonObject match = new JsonObject();
+      if (ctx.user().principal().getString("role").equals("manager") || ctx.user().principal().getString("role").equals("admin")) {
+          match.put("user.manager_id", ctx.user().principal().getString("id"));
+      }
+      if (ctx.user().principal().getString("role").equals("employee")) {
+          match.put("user_id", ctx.user().principal().getString("id"));
+
+      }
+
+      JsonObject facet = new JsonObject()
+      .put("total", new JsonArray().add(new JsonObject().put("$count", "total")))
+      .put("pending", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
+          .add(new JsonObject().put("$count", "pending"))
+      )
+      .put("rejected", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "rejected")))
+          .add(new JsonObject().put("$count", "rejected"))
+      )
+      .put("approved", new JsonArray()
+          .add(new JsonObject().put("$match", new JsonObject().put("status", "approved")))
+          .add(new JsonObject().put("$count", "approved"))
+      )
+      .put("last_demands", new JsonArray()
+      .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1)))
+      .add(new JsonObject().put("$limit", 5))
+  )
+
+;
+      if (ctx.user().principal().getString("role").equals("employee")) {
+        facet.put("last_pending_demands", new JsonArray()
+        .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1)))
+        .add(new JsonObject().put("$limit", 5))
+      );
+
+      }
+      JsonArray pipeline  = new JsonArray()
+       .add(new JsonObject().put("$lookup", new JsonObject()
+           .put("from", Collections.USER)
+           .put("localField", "user_id")
+           .put("foreignField", "_id")
+           .put("as", "user")
+       )
+
+       )
+       .add(new JsonObject().put("$match", match))
+       .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
+       .add(new JsonObject().put("$facet", facet));
+
+
+      JsonObject aggregate = new JsonObject()
+      .put("collection", Collections.DEMANDS)
+      .put("pipeline", pipeline)
+      .put("options", new JsonObject());
+
+
+  vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
+        if (reply.succeeded()) {
+          JsonObject result = (JsonObject) reply.result().body();
+          JsonObject data = result.getJsonArray("data").getJsonObject(0);
+          JsonArray lastDemands = data.getJsonArray("last_demands");
+          JsonArray lastPendingDemands = data.getJsonArray("last_pending_demands");
+          JsonObject counts = new JsonObject();
+          JsonArray total = data.getJsonArray("total");
+          JsonArray approved = data.getJsonArray("approved");
+          JsonArray rejected = data.getJsonArray("rejected");
+          JsonArray pending = data.getJsonArray("pending");
+          counts.put("last_demands", lastDemands);
+          if (ctx.user().principal().getString("role").equals("employee")){
+            counts.put("last_pending_demands", lastPendingDemands);
+          }
+          counts.put("total_demands",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
+          counts.put("approved",(approved != null && !approved.isEmpty()) ? approved.getJsonObject(0).getInteger("approved") : 0);
+          counts.put("rejected", (rejected != null && !rejected.isEmpty()) ?  rejected.getJsonObject(0).getInteger("rejected"): 0);
+          counts.put("pending", (pending != null && !pending.isEmpty()) ?  pending.getJsonObject(0).getInteger("pending"): 0);
+          // JsonObject
+          ctx.response()
+              .setStatusCode(200)
+              .putHeader("content-type", "application/json")
+              .end(counts.encode());
+        } else {
+          ctx.response()
+          .setStatusCode(500)
+          .putHeader("content-type", "application/json")
+          .end(new JsonObject().put("message", reply.cause().getMessage()).encode());
+        }
+      });
+    } catch (Exception e) {
+      ctx.response()
+      .setStatusCode(500)
+      .putHeader("content-type", "application/json")
+      .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
+    }
+  }
    /**
    * List manager handler
    * @param ctx RoutingContext

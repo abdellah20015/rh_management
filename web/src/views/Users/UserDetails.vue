@@ -3,7 +3,7 @@
     <!-- Main Grid Container -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <!-- Profile Section -->
-      <div class="bg-white rounded-xl shadow-lg p-6">
+      <div class="bg-white rounded-[8px] shadow-lg p-6">
         <div class="flex items-center space-x-4 mb-6">
           <div class="bg-[#dbeaff] p-4 rounded-full">
             <img
@@ -18,19 +18,19 @@
         </div>
         <div class="grid gap-4">
           <!-- Username -->
-          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Nom d'utilisateur:</span>
             <span class="col-span-2 text-gray-900">{{ userData?.username }}</span>
           </div>
 
           <!-- Role -->
-          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Role:</span>
             <span class="col-span-2 text-gray-900">{{ userData?.role }}</span>
           </div>
           <!-- Manager -->
           <div v-if="authStore.user.role === 'employee'"
-            class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Manager:</span>
             <span class="col-span-2 text-gray-900">
               <template v-if="loading">
@@ -45,7 +45,7 @@
             </span>
           </div>
           <!-- Status -->
-          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+          <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
             <span class="font-medium text-gray-600">Status:</span>
             <span class="col-span-2 px-3 py-1 rounded-full text-sm font-medium w-fit"
               :class="userData?.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
@@ -54,7 +54,7 @@
           </div>
 
           <!-- Permissions -->
-          <div class="grid gap-3 p-4 bg-gray-50 rounded-lg">
+          <div class="grid gap-3 p-4 bg-gray-50 rounded-[5px]">
             <h3 class="font-medium text-gray-600">Permissions:</h3>
             <div class="grid grid-flow-row grid-cols-2 gap-2">
               <span v-for="permission in userData?.permissions" :key="permission"
@@ -67,12 +67,12 @@
       </div>
 
       <!-- Contract Section -->
-      <div class="bg-white rounded-xl shadow-lg p-6">
+      <div class="bg-white rounded-[8px] shadow-lg p-6">
 
         <!-- Contract History Modal -->
         <div v-if="showContractHistoryModal"
           class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div class="bg-white rounded-xl shadow-lg w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
+          <div class="bg-white rounded-[8px] shadow-lg w-11/12 max-w-2xl max-h-[80vh] overflow-y-auto">
             <div class="flex justify-between items-center p-6 border-b">
               <h2 class="text-2xl font-bold text-gray-800">Historique des contrats</h2>
               <button @click="showContractHistoryModal = false" class="text-gray-600 hover:text-gray-900">
@@ -83,7 +83,7 @@
               </button>
             </div>
 
-            <div v-if="showContractHistoryModal" class="bg-white shadow-md rounded-lg overflow-hidden">
+            <div v-if="showContractHistoryModal" class="bg-white shadow-md rounded-[5px] overflow-hidden">
               <table class="w-full">
                 <thead class="bg-gray-100 border-b">
                   <tr>
@@ -143,7 +143,7 @@
 
         <div v-if="authStore.user.role === 'admin'" class="mt-4">
           <button @click="showContractHistory"
-            class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+            class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-[5px] hover:bg-gray-300 transition duration-200">
             Historique des contrats
           </button>
         </div>
@@ -158,7 +158,7 @@
         <div v-else-if="error" class="text-center py-8">
           <div class="text-red-500 mb-4">{{ error }}</div>
           <button @click="fetchUserProfile"
-            class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+            class="bg-gray-200 text-gray-700 py-2 px-4 rounded-[5px] hover:bg-gray-300 transition duration-200">
             Réessayer
           </button>
         </div>
@@ -166,35 +166,35 @@
         <!-- Current Contract Display -->
         <template v-else-if="currentActiveContract">
           <div class="grid gap-4">
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Type:</span>
               <span class="col-span-2 uppercase text-gray-900">{{ currentActiveContract.type }}</span>
             </div>
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Date de début:</span>
               <span class="col-span-2 text-gray-900">{{ currentActiveContract.start_date }}</span>
             </div>
             <div v-if="currentActiveContract.type === 'cdd'"
-              class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+              class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Date fin:</span>
               <span class="col-span-2 text-gray-900">{{ currentActiveContract.end_date }}</span>
             </div>
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Solde de congés:</span>
               <span class="col-span-2 text-gray-900">{{ currentActiveContract.leave_balance }} days</span>
             </div>
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Salaire:</span>
               <span class="col-span-2 text-gray-900">{{ currentActiveContract.salary }} DH</span>
             </div>
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Status:</span>
               <span class="col-span-2 px-3 py-1 rounded-full text-sm font-medium w-fit"
                 :class="currentActiveContract.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                 {{ currentActiveContract.status ? 'Active' : 'Inactive' }}
               </span>
             </div>
-            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-lg">
+            <div class="grid grid-cols-3 items-center p-3 bg-gray-50 rounded-[5px]">
               <span class="font-medium text-gray-600">Crée le:</span>
               <span class="col-span-2 text-gray-900">{{ currentActiveContract.date_creation }}</span>
             </div>
@@ -202,7 +202,7 @@
             <!-- Update Contract Button for Admin (only for active contracts) -->
             <div v-if="authStore.user.role === 'admin' && currentActiveContract.status" class="mt-6">
               <button @click="navigateToContractUpdate"
-                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-lg hover:bg-[#006AFF]/90 transition-all duration-200">
+                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-[5px] hover:bg-[#006AFF]/90 transition-all duration-200">
                 Modifier le contrat
               </button>
             </div>
@@ -223,7 +223,7 @@
                 pas encore de contrat. Créer son contrat.</p>
             </div>
             <button @click="navigateToContractCreate"
-              class="bg-[#006AFF] text-white py-3 px-6 rounded-lg hover:bg-[#006AFF]/90 transition-all duration-200 inline-flex items-center justify-center space-x-2">
+              class="bg-[#006AFF] text-white py-3 px-6 rounded-[5px] hover:bg-[#006AFF]/90 transition-all duration-200 inline-flex items-center justify-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
@@ -236,7 +236,7 @@
 
 
         <!-- Expired Contract Warning -->
-        <div v-else-if="isContractExpired" class="bg-yellow-50 p-4 rounded-lg">
+        <div v-else-if="isContractExpired" class="bg-yellow-50 p-4 rounded-[5px]">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-yellow-800 font-medium mb-2">Contrat de <span class="font-bold text-yellow-900 italic">{{
@@ -244,7 +244,7 @@
               <p class="text-yellow-700 text-sm">Please create a new contract to continue working.</p>
             </div>
             <button @click="navigateToContractCreate"
-              class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200">
+              class="bg-yellow-500 text-white py-2 px-4 rounded-[5px] hover:bg-yellow-600 transition duration-200">
               Créer nouveau contrat
             </button>
           </div>
@@ -256,7 +256,7 @@
             <p class="text-gray-500 mb-4">No active contract found</p>
             <div v-if="authStore.user.role === 'admin'">
               <button @click="navigateToContractCreate"
-                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-lg hover:bg-[#006AFF]/90 transition-all duration-200">
+                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-[5px] hover:bg-[#006AFF]/90 transition-all duration-200">
                 Créer nouveau contrat
               </button>
             </div>
@@ -267,7 +267,7 @@
 
       <!-- Demand Section -->
       <div v-if="this.authStore.user.id != this.$route.params.id"
-        class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
+        class="md:col-span-2 bg-white rounded-[8px] shadow-lg p-6">
 
         <div class="mb-6">
           <div>
@@ -400,17 +400,17 @@ export default {
         data: [],
         buttons: [
           {
-            button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+            button: `<button style='background-color : #38b000; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
             action: this.approveDemand,
             disabled: (demand) => demand.status === "approved"
           },
           {
-            button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+            button: `<button style='background-color : #d90429; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
             action: this.rejecetDemand,
             disabled: (demand) => demand.status === "rejected"
           },
           {
-            button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
+            button: `<button style='background-color : #023047; padding : 5px; color : white;border-radius : 2px ; border : none'><img width="27" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
             action: this.downloadDemand,
             disabled: false
           }

@@ -2,7 +2,11 @@
     <div class="flex justify-center">
         <div class="w-11/12">
             <div class="flex items-center justify-between  mt-5 mb-9">
-                <p class="text-3xl font-semibold">Listes des demands</p>
+                <div class="flex  gap-3">
+                    <p class="text-3xl font-semibold">Listes des demands</p>
+                    <p class="text-[#006aff] bg-[#c6dffb] py-1 px-3 rounded-[6px] font-semibold text-base">
+                        {{ count }}</p>
+                </div>
                 <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
                     class="w-48 bg-[#006AFF] hover:bg-[#006AFF]/80 transition-all ease-in-out text-center text-white rounded p-2">
                     Ajouter un demande</RouterLink>
