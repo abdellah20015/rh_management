@@ -124,7 +124,6 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
       routerBuilder.getRoute("updateContract").addHandler(ctx -> { handlePermission(ctx, "update_contract"); }).addHandler(this::updateContract);
       routerBuilder.getRoute("getContract").addHandler(this::getContract);
-      routerBuilder.getRoute("getActiveUsersWithContracts").addHandler(this::getActiveUsersWithContracts);
       routerBuilder.getRoute("getExpiringContracts").addHandler(this::getExpiringContracts);
 
       // Files
@@ -427,36 +426,6 @@ public void getContract(RoutingContext ctx) {
  * @param ctx RoutingContext
  * @author : Abdellah
  * <p>
- * This function handles an HTTP request to retrieve the count of active users
- * with at least one active contract. It sends the result as a JSON response
- * to the client.
- * </p>
- */
-
-private void getActiveUsersWithContracts(RoutingContext ctx) {
-  JsonObject msg = new JsonObject();
-
-  vertx.eventBus().request(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, msg, res -> {
-      if (res.succeeded()) {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .end(res.result().body().toString());
-      } else {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .setStatusCode(500)
-              .end(new JsonObject()
-                  .put("error", res.cause().getMessage())
-                  .toString());
-      }
-  });
-}
-
-
-/**
- * @param ctx RoutingContext
- * @author : Abdellah
- * <p>
  * This function handles an HTTP request to retrieve the list of contracts
  * expiring within the next 10 days. It sends the result as a JSON response
  * to the client.
@@ -618,7 +587,7 @@ public void downloadFile(RoutingContext ctx) {
               String filename = Paths.get(response.getString("filepath")).getFileName().toString();
 
 
-              
+
               if (filename.toLowerCase().endsWith(".pdf")) {
                   ctx.response()
                       .putHeader("Content-Type", "application/pdf")
@@ -981,10 +950,10 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .end(new JsonObject().put("message", "Internal server error: " + e.getMessage()).encode());
     }
   }
-  /** 
+  /**
    * users counts
    * @author ilyass
-   * methode to get the stats of the users 
+   * methode to get the stats of the users
    */
   public void usersCount(RoutingContext ctx){
     try {
@@ -992,7 +961,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
       if (!ctx.user().principal().getString("role").equals("admin")) {
           match.put("manager_id", ctx.user().principal().getString("id"));
       }
-      
+
       JsonObject aggregate = new JsonObject()
           .put("collection", Collections.USER)
           .put("pipeline", new JsonArray()
@@ -1010,7 +979,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
               ))
           )
           .put("options", new JsonObject());
-  
+
       vertx.eventBus().request(Services.DB_AGGREGATE, aggregate ,reply ->{
         if (reply.succeeded()) {
           JsonObject result = (JsonObject) reply.result().body();
@@ -1019,11 +988,11 @@ public void handlePermission(RoutingContext ctx, String permission) {
           JsonArray total = data.getJsonArray("total");
           JsonArray active = data.getJsonArray("active");
           JsonArray inactive = data.getJsonArray("inactive");
-  
+
           counts.put("total_users",(total != null && !total.isEmpty()) ? total.getJsonObject(0).getInteger("total"): 0);
           counts.put("active",(active != null && !active.isEmpty()) ? active.getJsonObject(0).getInteger("active") : 0);
           counts.put("inactive", (inactive != null && !inactive.isEmpty()) ?  inactive.getJsonObject(0).getInteger("inactive"): 0);
-          // JsonObject 
+          // JsonObject
           ctx.response()
               .setStatusCode(200)
               .putHeader("content-type", "application/json")
@@ -1057,7 +1026,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
       }
       if (ctx.user().principal().getString("role").equals("employee")) {
           match.put("user_id", ctx.user().principal().getString("id"));
-        
+
       }
 
       JsonObject facet = new JsonObject()
@@ -1075,35 +1044,35 @@ public void handlePermission(RoutingContext ctx, String permission) {
           .add(new JsonObject().put("$count", "approved"))
       )
       .put("last_demands", new JsonArray()
-      .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1))) 
-      .add(new JsonObject().put("$limit", 5)) 
+      .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1)))
+      .add(new JsonObject().put("$limit", 5))
   )
-  
+
 ;
       if (ctx.user().principal().getString("role").equals("employee")) {
         facet.put("last_pending_demands", new JsonArray()
-        .add(new JsonObject().put("$match", new JsonObject().put("status", "pending"))) 
-        .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1))) 
-        .add(new JsonObject().put("$limit", 5)) 
+        .add(new JsonObject().put("$match", new JsonObject().put("status", "pending")))
+        .add(new JsonObject().put("$sort", new JsonObject().put("created_at", -1)))
+        .add(new JsonObject().put("$limit", 5))
       );
-        
+
       }
       JsonArray pipeline  = new JsonArray()
        .add(new JsonObject().put("$lookup", new JsonObject()
-           .put("from", Collections.USER)  
-           .put("localField", "user_id") 
-           .put("foreignField", "_id")   
-           .put("as", "user")  
+           .put("from", Collections.USER)
+           .put("localField", "user_id")
+           .put("foreignField", "_id")
+           .put("as", "user")
        )
-       
+
        )
-       .add(new JsonObject().put("$match", match)) 
+       .add(new JsonObject().put("$match", match))
        .add(new JsonObject().put("$unwind", new JsonObject().put("path", "$user")))
        .add(new JsonObject().put("$facet", facet));
 
 
       JsonObject aggregate = new JsonObject()
-      .put("collection", Collections.DEMANDS) 
+      .put("collection", Collections.DEMANDS)
       .put("pipeline", pipeline)
       .put("options", new JsonObject());
 
@@ -1127,7 +1096,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
           counts.put("approved",(approved != null && !approved.isEmpty()) ? approved.getJsonObject(0).getInteger("approved") : 0);
           counts.put("rejected", (rejected != null && !rejected.isEmpty()) ?  rejected.getJsonObject(0).getInteger("rejected"): 0);
           counts.put("pending", (pending != null && !pending.isEmpty()) ?  pending.getJsonObject(0).getInteger("pending"): 0);
-          // JsonObject 
+          // JsonObject
           ctx.response()
               .setStatusCode(200)
               .putHeader("content-type", "application/json")

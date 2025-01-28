@@ -178,10 +178,12 @@
                     </template>
                     <template #content>
                         <DataTable :value="contractExpirations" responsiveLayout="scroll">
-                            <Column field="client" header="User"></Column>
-                            <Column field="expirationDate" header="Expiration Date"></Column>
-                            <Column header="Actions">
-
+                            <Column field="username" header="User"></Column>
+                            <Column field="end_date" header="Expiration Date"></Column>
+                            <Column field="days_until_expiration" header="Days Left">
+                                <template #body="slotProps">
+                                    {{ slotProps.data.days_until_expiration }} days
+                                </template>
                             </Column>
                         </DataTable>
                     </template>
@@ -209,7 +211,7 @@
                     </template>
                 </Card>
             </div>
-            
+
 
             <!-- tables for employee -->
             <div class="grid grid-cols-2 gap-6" v-else>
@@ -262,7 +264,9 @@ import Card from 'primevue/card';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
+
 import { useAuthStore } from '@/stores/store';
+import utils from '@/shared/utils';
 
 export default {
     name: 'Statistics',
@@ -283,9 +287,23 @@ export default {
         Column
     },
     mounted() {
+      this.fetchExpiringContracts();
 
     },
     methods: {
+        async fetchExpiringContracts() {
+            try {
+                const response = await utils.fetch_methode('/private/contract/expiring');
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    this.contractExpirations = data.data;
+                }
+            } catch (error) {
+                console.error('Error fetching expiring contracts:', error);
+                utils.errorAlert('Failed to fetch expiring contracts');
+            }
+        }
 
     }
 };
