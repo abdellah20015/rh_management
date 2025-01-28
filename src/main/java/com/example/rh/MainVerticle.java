@@ -117,7 +117,7 @@ public class MainVerticle extends AbstractVerticle {
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
-      // path : /private//user/stats
+      // path : /private/user/stats
       routerBuilder.getRoute("getStats").addHandler(this::usersCount);
 
       // Contracts
@@ -809,8 +809,16 @@ public void handlePermission(RoutingContext ctx, String permission) {
     try {
       JsonObject body = ctx.body().asJsonObject();
       vertx.eventBus().request(Services.AUTH_LOGIN, body , reply ->{
-        if(reply.succeeded() && reply.cause() == null){
+        if(reply.succeeded() && reply.cause() == null ){
           JsonObject response = (JsonObject) reply.result().body();
+          if (response.containsKey("error")) {
+            ctx.response()
+              .setStatusCode(401)
+              .putHeader("content-type", "application/json")
+              .end(response.encode());
+            return;
+            
+          }
           User user = User.create(response.getJsonObject("user"));
           ctx.setUser(user);
           ctx.session().regenerateId();

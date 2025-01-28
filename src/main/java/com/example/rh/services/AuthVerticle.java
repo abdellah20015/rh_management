@@ -91,7 +91,7 @@ public class AuthVerticle extends AbstractVerticle {
                             }
                         });
                     } else {
-                        message.fail(401, "User is disabled");
+                        message.reply(new JsonObject().put("error", "User is disabled").put("status", "desactiver"));
                     }
                 }
             });
@@ -135,7 +135,7 @@ public class AuthVerticle extends AbstractVerticle {
                                 .add("update_demand");
                         break;
                     default:
-                        permissions.add(null);
+                        permissions.add("create_demand");
                 }
             }
 
