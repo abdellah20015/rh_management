@@ -5,9 +5,9 @@
       <!-- Profile Section -->
       <div class="bg-white rounded-xl shadow-lg p-6">
         <div class="flex items-center space-x-4 mb-6">
-          <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img src="https://img.icons8.com/external-kmg-design-glyph-kmg-design/32/006aff/external-user-back-to-school-kmg-design-glyph-kmg-design.png" alt="Test Account"
-              class="h-11 w-11 text-gray-600" />
+          <div class="bg-[#dbeaff] p-3 rounded-full">
+            <img src="https://img.icons8.com/plasticine/100/contract-job.png" alt="Test Account"
+              class="h-16 w-16 text-gray-600" />
 
           </div>
           <div>
@@ -128,9 +128,9 @@
         </div>
 
         <div class="flex items-center space-x-4 mb-6">
-          <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img src="https://img.icons8.com/external-kiranshastry-solid-kiranshastry/64/006aff/external-contract-law-and-crime-kiranshastry-solid-kiranshastry.png" alt="Contract"
-              class="h-11 w-11 text-gray-600" />
+          <div class="bg-[#dbeaff] p-3 rounded-full">
+            <img src="https://img.icons8.com/plasticine/100/agreement.png"alt="Contract"
+              class="h-16 w-16 text-gray-600" />
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Information de contrat</h2>

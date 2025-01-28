@@ -56,6 +56,11 @@ export default {
           password,
         });
         const data = await response.json();
+        console.log(data);
+        if (data.status === "desactiver") {
+          utils.errorAlert("Votre compte est désactivé");
+          return;       
+        }
         if (response.ok) {
           utils.successAlert("Login successful");
            authStore.auth(data)

@@ -11,13 +11,15 @@ export default {
         profile:'/private/user/profile',
         resetPassword:'/private/reset_password',
         import_users : '/private/user/import',
-        manager: '/private/user/manager'
+        manager: '/private/user/manager' ,
+        stats : '/private/user/stats',
     },
     demand:{
         listByManager:'/private/demand/manager/list',
         listByUser:'/private/demand/user/list',
         update:'/private/demand/update',
-        create:'/private/demand/create'
+        create:'/private/demand/create',
+        stats : '/private/demand/stats'
     },
     notification:{
         list: 'private/notification',

@@ -17,7 +17,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Users</p>
+                                    <p class="text-md text-gray-500 mb-2">Total des utilisateurs</p>
                                     <div class="text-4xl font-bold text-gray-800">{{ totalUsers }}</div>
                                 </div>
                                 <i class="pi pi-users text-blue-500 text-4xl opacity-50"></i>
@@ -36,7 +36,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Demands</p>
+                                    <p class="text-md text-gray-500 mb-2">Demandes totales</p>
                                     <div class="text-4xl font-bold text-gray-800">{{ totalDemands }}</div>
                                 </div>
 
@@ -55,7 +55,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Pending Demands</p>
+                                    <p class="text-md text-gray-500 mb-2">Demandes en attente</p>
                                     <div class="text-4xl font-bold text-gray-800">{{ totalPendingDemands }}</div>
                                 </div>
 
@@ -76,7 +76,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Active Users</p>
+                                    <p class="text-md text-gray-500 mb-2">Utilisateurs actifs</p>
                                     <div class="text-4xl font-bold text-gray-800">{{ totalActiveUsers }}</div>
                                 </div>
                                 <i class="pi pi-check-circle text-indigo-500 text-4xl opacity-50"></i>
@@ -99,8 +99,8 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Demands</p>
-                                    <div class="text-4xl font-bold text-gray-800">{{ totalUsers }}</div>
+                                    <p class="text-md text-gray-500 mb-2">Total des demandes</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalDemands }}</div>
                                 </div>
                                 <i class="pi pi-users text-blue-500 text-4xl opacity-50"></i>
                             </div>
@@ -118,8 +118,8 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Approved Demands</p>
-                                    <div class="text-4xl font-bold text-gray-800">{{ totalDemands }}</div>
+                                    <p class="text-md text-gray-500 mb-2">Demandes approuvées</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalApprovedDemands }}</div>
                                 </div>
 
                             </div>
@@ -137,7 +137,7 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Pending Demands</p>
+                                    <p class="text-md text-gray-500 mb-2">Demandes en attente</p>
                                     <div class="text-4xl font-bold text-gray-800">{{ totalPendingDemands }}</div>
                                 </div>
 
@@ -156,8 +156,8 @@
                             </div>
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-md text-gray-500 mb-2">Total Rejected Demands</p>
-                                    <div class="text-4xl font-bold text-gray-800">{{ totalActiveUsers }}</div>
+                                    <p class="text-md text-gray-500 mb-2"> Demandes rejetées</p>
+                                    <div class="text-4xl font-bold text-gray-800">{{ totalRejectedDemands }}</div>
                                 </div>
                                 <i class="pi pi-check-circle text-indigo-500 text-4xl opacity-50"></i>
                             </div>
@@ -188,7 +188,7 @@
                 </Card>
 
                 <!-- Recent Demands -->
-                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="h-72 border border-gray-300">
+                <Card :style="{ backgroundColor: '#FFFFFF', borderTop: '8px solid #6C7F93' }" class="border border-gray-300">
                     <template #title>
                         <div class="flex justify-between items-center">
                             <h2 class="text-lg font-semibold text-gray-800">Recent Demands</h2>
@@ -196,14 +196,10 @@
                     </template>
                     <template #content>
                         <DataTable :value="recentDemands" responsiveLayout="scroll">
-                            <Column field="demandId" header="ID"></Column>
+                            <Column field="type" header="type"></Column>
                             <Column field="status" header="Status"></Column>
-                            <Column field="createdAt" header="Date"></Column>
-                            <Column header="Actions">
-                                <template #body="slotProps">
-                                    <Button icon="pi pi-eye" class="p-button-rounded p-button-info p-button-text"
-                                        @click="viewDemandDetails(slotProps.data)" />
-                                </template>
+                            <Column field="created_date"   header="Date">
+
                             </Column>
                         </DataTable>
                     </template>
@@ -263,6 +259,8 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
 import { useAuthStore } from '@/stores/store';
+import utils from '@/shared/utils';
+import services from '@/shared/services';
 
 export default {
     name: 'Statistics',
@@ -272,6 +270,8 @@ export default {
             totalDemands: 0,
             totalPendingDemands: 0,
             totalActiveUsers: 0,
+            totalRejectedDemands: 0,
+            totalApprovedDemands: 0,
             contractExpirations: [],
             recentDemands: [],
             user: useAuthStore().user,
@@ -283,9 +283,55 @@ export default {
         Column
     },
     mounted() {
-
+        this.fetchUserStats();
+        this.fetchDemandsStats();
     },
     methods: {
+        async fetchUserStats(){
+            try {
+                const response = await utils.fetch_methode(services.user.stats)
+                const data = await response.json()
+                console.log(data)
+                if (response.ok) {
+                    this.totalUsers = data.total_users
+                    this.totalActiveUsers = data.active
+                }
+                else{
+                    console.log(data)
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }  ,
+        
+        async fetchDemandsStats(){
+            try {
+                const response = await utils.fetch_methode(services.demand.stats)
+                const data = await response.json()
+                console.log(data)
+                if (response.ok) {
+                    this.totalDemands = data.total_demands
+                    this.totalPendingDemands = data.pending
+                    if (this.user.role !== "employeee") {
+                        this.recentDemands = data.last_demands
+                    }
+                    else{
+                        this.recentDemands = data.last_pending_demands
+                        this.totalApprovedDemands = data.approved
+                        this.totalRejectedDemands = data.rejected
+                    }
+
+                this.recentDemands.forEach(demand => {
+                    demand.created_date = utils.convertDate(demand.created_date)
+                })
+                }
+                else{
+                    console.log(data)
+                }
+            } catch (error) {
+                console.log(error)
+            }
+        }  ,
 
     }
 };
