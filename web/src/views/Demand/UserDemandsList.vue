@@ -9,7 +9,7 @@
                 </div>
                 <RouterLink :to="{ name: 'create_demand' }" v-if="this.user.role != 'admin'"
                     class="w-48 bg-[#006AFF] hover:bg-[#006AFF]/80 transition-all ease-in-out text-center text-white rounded p-2">
-                    Ajouter un demande</RouterLink>
+                    Ajouter une demande</RouterLink>
             </div>
             <div class="flex flex-col justify-between w-full">
                 <div class="w-full flex justify-between">
