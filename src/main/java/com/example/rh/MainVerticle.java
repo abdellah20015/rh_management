@@ -433,7 +433,9 @@ public void getContract(RoutingContext ctx) {
  */
 
 private void getExpiringContracts(RoutingContext ctx) {
-  JsonObject msg = new JsonObject();
+  JsonObject msg = new JsonObject()
+    .put("user_id" , ctx.user().principal().getString("id"));
+
 
   vertx.eventBus().request(Services.DB_EXPIRING_CONTRACTS, msg, res -> {
       if (res.succeeded()) {
@@ -786,7 +788,7 @@ public void handlePermission(RoutingContext ctx, String permission) {
               .putHeader("content-type", "application/json")
               .end(response.encode());
             return;
-            
+
           }
           User user = User.create(response.getJsonObject("user"));
           ctx.setUser(user);
