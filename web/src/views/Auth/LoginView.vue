@@ -62,14 +62,14 @@ export default {
           return;       
         }
         if (response.ok) {
-          utils.successAlert("Login successful");
+          utils.successAlert("Connexion réussie");
            authStore.auth(data)
             this.$router.push({ name: "statistics" })
         } else {
-          utils.errorAlert("Username or password is incorrect");
+          utils.errorAlert("Nom d'utilisateur ou mot de passe incorrect");
         }
       } catch (error) {
-        utils.errorAlert("Username or password is incorrect");
+        utils.errorAlert("Nom d'utilisateur ou mot de passe incorrect");
         console.error("Erreur lors de la connexion:", error);
       }
     },
