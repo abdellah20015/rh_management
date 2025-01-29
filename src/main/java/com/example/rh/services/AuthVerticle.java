@@ -71,6 +71,10 @@ public class AuthVerticle extends AbstractVerticle {
             vertx.eventBus().request(Services.DB_FIND_ONE, payload, reply -> {
                 if (reply.succeeded() && reply.result() != null) {
                     JsonObject user_find = (JsonObject) reply.result().body();
+                    if (user_find == null) {
+                        message.fail(401, "not found");
+                        return;     
+                    }
                     Boolean status = user_find.getBoolean(Fields.USER_STATUS);
                     if (status) {
                         UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(username, password);
