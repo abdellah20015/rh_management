@@ -53,12 +53,13 @@ export default {
   methods: {
     async reset_password(formdata) {
       const { old_password, new_password } = formdata;
+      console.log(typeof(old_password) , old_password , new_password)
       try {
         const response = await utils.fetch_methode(services.user.resetPassword, {
           old_password,
           new_password,
         });
-        
+        console.log(response)
         if (response.ok) {
           utils.successAlert("Success: Password has been reset successfully.");
           if (["admin", "manager"].includes(this.user.role)) {

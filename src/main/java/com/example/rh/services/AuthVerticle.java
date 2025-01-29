@@ -210,9 +210,12 @@ public class AuthVerticle extends AbstractVerticle {
                 if (reply.succeeded() && reply.result().body() != null) {
                     JsonObject user = (JsonObject) reply.result().body();
                     String user_password = user.getString(Fields.USER_PASSWORD);
-                    String old_Password_hash = mongoAuth.hash("pbkdf2", "salt", oldPassword);
+                    String[] parts = user_password.split("\\$");
+                    String salt = parts[2];
+                    System.out.println( "salt = --------" +salt);
+                    String old_Password_hash = mongoAuth.hash("pbkdf2", salt, oldPassword);
                     if (user_password.equals(old_Password_hash)) {
-                        String new_Password_hash = mongoAuth.hash("pbkdf2", "salt", newPassword);
+                        String new_Password_hash = mongoAuth.hash("pbkdf2", salt, newPassword);
                         JsonObject update = new JsonObject().put(Fields.USER_PASSWORD, new_Password_hash)
                                 .put(Fields.USER_FIRST_LOGIN, false);
                         JsonObject payload2 = new JsonObject()
