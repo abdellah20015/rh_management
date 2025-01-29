@@ -94,10 +94,10 @@
             @formSubmitted="createDemande"
           />
         </div>
-        <div v-else-if="demandType == 'attestation_de_travail'" class="flex justify-center mt-6">
+        <div v-else-if="demandType == 'attestation_de_travail'" class="flex justify-center items-center h-full mt-6">
           <button 
             @click="createDemande()" 
-            class="px-6 py-2.5 bg-[#006aff] text-white rounded-xl font-medium shadow-lg shadow-[#006aff]/20 hover:bg-[#006aff]/90 transition-all duration-200"
+            class="px-6 py-2.5 bg-[#006aff] text-white rounded-[5px] font-medium shadow-lg shadow-[#006aff]/20 hover:bg-[#006aff]/90 transition-all duration-200"
           >
             Ajouter une demande
           </button>

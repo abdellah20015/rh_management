@@ -60,11 +60,17 @@ public class Demand extends AbstractVerticle {
         .add(new JsonObject().put("$match", new JsonObject()
           .put("user.manager_id", user.getString("id"))));
 
-      if(search != null){
+      if (search != null && search != "") {
         pipeline.add(new JsonObject().put("$match", new JsonObject()
-          .put("type", new JsonObject()
-            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
-            .put("$options", "i"))));
+          .put("$or", new JsonArray()
+            .add(new JsonObject()
+              .put("user.firstname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i")))
+            .add(new JsonObject()
+              .put("user.lastname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i"))))));
       }
 
       if(!filter.isEmpty()){
@@ -93,7 +99,9 @@ public class Demand extends AbstractVerticle {
           .put("file_path", 1)
           .put("reason", 1)
           .put("created_date", 1)
-          .put("username", "$user.username")));
+          .put("username", "$user.username")
+          .put("user_firstName" , "$user.firstname")
+          .put("user_lastName" , "$user.lastname")));
 
       JsonObject msg = new JsonObject()
         .put("collection" , Collections.DEMANDS)
@@ -240,7 +248,7 @@ public class Demand extends AbstractVerticle {
               JsonObject response = new JsonObject()
                 .put("status", "error")
                 .put("code", 400)
-                .put("message", "insufficient leave balance");
+                .put("message", "Vous n'avez pas assez de solde de congés.");
               message.reply(response);
             }
             else{
@@ -250,7 +258,7 @@ public class Demand extends AbstractVerticle {
                   Integer new_leave_balance = leave_balance - leave_days;
                   JsonObject update_leave_balance = new JsonObject()
                   .put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance);
-                  
+
                   JsonObject payload = new JsonObject()
                   .put("collection", Collections.CONTRACTS)
                  .put("id",contractData.getString("_id") )
@@ -258,7 +266,7 @@ public class Demand extends AbstractVerticle {
                   vertx.eventBus().request(Services.DB_UPDATE, payload, res -> {
                     if (res.succeeded()) {
                       System.out.println("leave balance updated");
-                      
+
                     } else {
                       message.reply(res.cause().getMessage());
                     }
@@ -474,7 +482,7 @@ public class Demand extends AbstractVerticle {
                     .put("collection", Collections.CONTRACTS)
                     .put("id",contractData.getString("_id") )
                     .put("update", new JsonObject().put(Fields.CONTRACT_LEAVE_BALANCE, new_leave_balance));
-                   
+
                       vertx.eventBus().request(Services.DB_UPDATE, contractUpdate, contractUpdateReply -> {
                         if (contractUpdateReply.succeeded()) {
                           System.out.println("leave balance updated");
@@ -482,7 +490,7 @@ public class Demand extends AbstractVerticle {
                           message.reply(contractUpdateReply.cause().getMessage());
                         }
                       });
-                    
+
                   }
                   else{
                     message.reply(reply.cause().getMessage());

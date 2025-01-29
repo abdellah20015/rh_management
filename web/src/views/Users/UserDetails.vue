@@ -6,10 +6,9 @@
       <div class="bg-white rounded-xl shadow-lg p-6">
         <!-- En-tête -->
         <div class="flex items-center space-x-4 mb-8">
-          <div class="bg-[#dbeaff] p-4 rounded-full">
-            <img
-              src="https://img.icons8.com/external-kmg-design-glyph-kmg-design/32/006aff/external-user-back-to-school-kmg-design-glyph-kmg-design.png"
-              alt="Test Account" class="h-11 w-11 text-gray-600" />
+          <div class="bg-[#dbeaff] p-3 rounded-full">
+            <img src="https://img.icons8.com/plasticine/100/contract-job.png" alt="Test Account"
+              class="h-16 w-16 text-gray-600" />
           </div>
           <div>
             <h2 class="text-2xl font-bold text-gray-800">Détail de profil</h2>
@@ -319,7 +318,7 @@
         <div v-else-if="error" class="text-center py-8">
           <div class="text-red-500 mb-4">{{ error }}</div>
           <button @click="fetchUserProfile"
-            class="bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 transition duration-200">
+            class="bg-gray-200 text-gray-700 py-2 px-4 rounded-[5px] hover:bg-gray-300 transition duration-200">
             Réessayer
           </button>
         </div>
@@ -384,7 +383,7 @@
                 pas encore de contrat. Créer son contrat.</p>
             </div>
             <button @click="navigateToContractCreate"
-              class="bg-[#006AFF] text-white py-3 px-6 rounded-lg hover:bg-[#006AFF]/90 transition-all duration-200 inline-flex items-center justify-center space-x-2">
+              class="bg-[#006AFF] text-white py-3 px-6 rounded-[5px] hover:bg-[#006AFF]/90 transition-all duration-200 inline-flex items-center justify-center space-x-2">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd"
                   d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z"
@@ -397,7 +396,7 @@
 
 
         <!-- Expired Contract Warning -->
-        <div v-else-if="isContractExpired" class="bg-yellow-50 p-4 rounded-lg">
+        <div v-else-if="isContractExpired" class="bg-yellow-50 p-4 rounded-[5px]">
           <div class="flex items-center justify-between">
             <div>
               <p class="text-yellow-800 font-medium mb-2">Contrat de <span class="font-bold text-yellow-900 italic">{{
@@ -405,7 +404,7 @@
               <p class="text-yellow-700 text-sm">Veuillez créer un nouveau contrat pour continuer à travailler.</p>
             </div>
             <button @click="navigateToContractCreate"
-              class="bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200">
+              class="bg-yellow-500 text-white py-2 px-4 rounded-[5px] hover:bg-yellow-600 transition duration-200">
               Créer nouveau contrat
             </button>
           </div>
@@ -417,7 +416,7 @@
             <p class="text-gray-500 mb-4">Aucun contrat actif trouvé</p>
             <div v-if="authStore.user.role === 'admin'">
               <button @click="navigateToContractCreate"
-                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-lg hover:bg-[#006AFF]/90 transition-all duration-200">
+                class="w-full bg-[#006AFF] text-white py-2.5 px-4 rounded-[5px] hover:bg-[#006AFF]/90 transition-all duration-200">
                 Créer nouveau contrat
               </button>
             </div>
@@ -426,42 +425,20 @@
       </div>
 
 
+      <!-- Demand Section -->
       <div v-if="this.authStore.user.id != this.$route.params.id"
-        class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
+        class="md:col-span-2 bg-white rounded-[8px] shadow-lg p-6">
 
 
-        <div v-if="this.authStore.user.id != this.$route.params.id"
-          class="md:col-span-2 bg-white rounded-xl shadow-lg p-6">
-
-          <div class="mb-6">
-            <div>
-              <h2 class="text-2xl font-bold text-gray-800">Listes des demandes</h2>
-              <p class="text-gray-500">Liste des demandes en attente</p>
-            </div>
-          </div>
-
-          <div class=" w-full">
-            <div class="flex flex-col justify-between w-full">
-              <div class="w-full flex justify-between">
-                <div class="w-1/3">
-                  <div class="relative flex items-center">
-                    <input type="text" placeholder="Search" v-model="searchValue"
-                      class="w-full p-2.5 pl-4 pr-32 border border-[#99C4FF] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#006AFF]/50 focus:border-[#006AFF] transition-all duration-200">
-                    <button @click="search"
-                      class="absolute right-0 h-full px-4 rounded-r-lg bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                      </svg>
-                      <span>Rechercher</span>
-                    </button>
-                  </div>
-                </div>
-                <div class="w-36">
-                  <button @click="toggleFilterDropdown"
-                    class="w-full p-2.5 rounded-lg bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
-                    <span>Filtre</span>
+        <div class=" w-full">
+          <div class="flex flex-col justify-between w-full">
+            <div class="w-full flex justify-between">
+              <div class="w-1/3">
+                <div class="relative flex items-center ">
+                  <input type="text" placeholder="Search" v-model="searchValue"
+                    class="w-full p-2.5 rounded-[5px] pl-4 pr-32 border border-[#99C4FF]  focus:outline-none focus:ring-2 focus:ring-[#006AFF]/50 focus:border-[#006AFF] transition-all duration-200">
+                  <button @click="search"
+                    class="absolute right-0  rounded-r-[5px] h-full px-4  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                       stroke="currentColor">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -470,31 +447,43 @@
                   </button>
                 </div>
               </div>
-              <div class="w-full flex justify-end">
-                <div class="w-1/2 relative justify-end">
-                  <!-- Filter Dropdown with Transition -->
-                  <transition name="dropdown">
-                    <div v-if="showFilterDropdown"
-                      class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
-                      <div v-for="(filter, index) in filterStructure" :key="index">
-                        <p class="text-sm font-semibold">{{ filter.name }} :</p>
-                        <div class="flex justify-evenly p-3">
-                          <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values"
-                            :key="index"
-                            class="rounded-full py-1 px-3 hover:bg-black hover:text-white transition-all ease-in-out"
-                            :class="{ 'bg-black text-white': value.selected === true }">
-                            <p class="text-sm">{{ value.title }}</p>
-                          </a>
-                        </div>
-                      </div>
-                      <div class="flex gap-5 mt-3">
-                        <button @click="filter" class="w-1/2 p-2 rounded bg-black text-white">Filtre</button>
-                        <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
-                          filtre</button>
+<<<<<<< HEAD
+              <div class="w-36">
+                <button @click="toggleFilterDropdown"
+                  class="w-full p-2.5 rounded-[5px]  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
+                  <span>Filter</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            <div class="w-full flex justify-end">
+              <div class="w-1/3 relative justify-end">
+                <!-- Filter Dropdown with Transition -->
+                <transition name="dropdown">
+                  <div v-if="showFilterDropdown"
+                    class="absolute top-full left-0 bg-white rounded-md border border-gray-300 w-full p-3 mt-2 z-10 shadow-lg">
+                    <div v-for="(filter, index) in filterStructure" :key="index">
+                      <p class="text-sm font-semibold text-gray-600 p-1.5">{{ filter.name }}</p>
+                      <div class="flex justify-evenly p-3">
+                        <a href="#" @click.prevent="selectFilter(value)" v-for="(value, index) in filter.values"
+                          :key="index"
+                          class="rounded-full py-1.5 px-5 hover:bg-[#99CAFF] hover:text-white transition-all ease-in-out"
+                          :class="{ 'bg-[#3b82f6] text-white': value.selected === true }">
+                          <p class="text-sm">{{ value.title }}</p>
+                        </a>
                       </div>
                     </div>
-                  </transition>
-                </div>
+                    <div class="flex gap-5 mt-3">
+                      <button @click="filter" class="w-1/2 p-2 rounded bg-[#3b82f6] text-white">Filtre</button>
+                      <button @click="resertFilter" class="w-1/2 p-2 rounded bg-gray-300">Réinitialiser le
+                        filtre</button>
+                    </div>
+                  </div>
+                </transition>
               </div>
             </div>
             <div class="w-full">
@@ -565,17 +554,17 @@ export default {
         data: [],
         buttons: [
           {
-            button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
+            button: `<button style='background-color : #38b000; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
             action: this.approveDemand,
             disabled: (demand) => demand.status === "approved"
           },
           {
-            button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
+            button: `<button style='background-color : #d90429; padding : 9px; color : white;border-radius : 2px ; border : none'><img width="18" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
             action: this.rejecetDemand,
             disabled: (demand) => demand.status === "rejected"
           },
           {
-            button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
+            button: `<button style='background-color : #023047; padding : 5px; color : white;border-radius : 2px ; border : none'><img width="27" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
             action: this.downloadDemand,
             disabled: false
           }

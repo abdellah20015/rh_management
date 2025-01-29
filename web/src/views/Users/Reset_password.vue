@@ -1,8 +1,8 @@
 <template>
-  <div class="bg-gray-100">
+  <div >
     <div class="container mx-auto">
-      <div class="flex justify-center items-center h-[80.5vh]">
-        <div class="w-full max-w-md">
+      <div class="flex justify-center items-center h-[80.5vh] ">
+        <div class="w-full max-w-md ">
           <FormComponent
             :fields="formFields"
             @formSubmitted="reset_password"
@@ -30,18 +30,18 @@ export default {
         {
           name: "old_password",
           type: "password",
-          label: "old password",
+          label: "Ancien mot de passe",
           placeholder: "Entrez votre ancien mot de passe",
         },
         {
           name: "new_password",
           type: "password",
-          label: "new password",
+          label: "Nouveau mot de passe",
           placeholder: "Nouveau mot de passe :",
         },
       ],
-      btn_text: "Reset password",
-      title: "Reset password Form",
+      btn_text: "Réinitialiser le mot de passe",
+      title: "Réinitialisation du mot de passe",
       auth: useAuthStore(),
     };
   },
