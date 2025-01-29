@@ -124,7 +124,6 @@ public class MainVerticle extends AbstractVerticle {
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
       routerBuilder.getRoute("updateContract").addHandler(ctx -> { handlePermission(ctx, "update_contract"); }).addHandler(this::updateContract);
       routerBuilder.getRoute("getContract").addHandler(this::getContract);
-      // routerBuilder.getRoute("getActiveUsersWithContracts").addHandler(this::getActiveUsersWithContracts);
       routerBuilder.getRoute("getExpiringContracts").addHandler(this::getExpiringContracts);
 
       // Files
@@ -423,34 +422,6 @@ public void getContract(RoutingContext ctx) {
   }
 }
 
-/**
- * @param ctx RoutingContext
- * @author : Abdellah
- * <p>
- * This function handles an HTTP request to retrieve the count of active users
- * with at least one active contract. It sends the result as a JSON response
- * to the client.
- * </p>
- */
-
-private void getActiveUsersWithContracts(RoutingContext ctx) {
-  JsonObject msg = new JsonObject();
-
-  vertx.eventBus().request(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, msg, res -> {
-      if (res.succeeded()) {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .end(res.result().body().toString());
-      } else {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .setStatusCode(500)
-              .end(new JsonObject()
-                  .put("error", res.cause().getMessage())
-                  .toString());
-      }
-  });
-}
 
 
 /**
