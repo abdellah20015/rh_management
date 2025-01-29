@@ -22,7 +22,6 @@ public class Contract extends AbstractVerticle {
       vertx.eventBus().consumer(Services.CONTRACT_CREATE, this::createContractHandler);
       vertx.eventBus().consumer(Services.CONTRACT_UPDATE, this::updateContractHandler);
       vertx.eventBus().consumer(Services.CONTRACT_GET, this::getContractHandler);
-      vertx.eventBus().consumer(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, this::countActiveUsersWithContracts);
       vertx.eventBus().consumer(Services.DB_EXPIRING_CONTRACTS, this::listExpiringContracts);
 
 
@@ -302,43 +301,6 @@ private void createContractHandler(Message<JsonObject> message) {
  * @param message Message
  * @author : Abdellah
  * <p>
- * This function is an event bus consumer handler that calculates the number of
- * active users with at least one active contract. It sends a reply containing
- * the count as a JsonObject.
- * </p>
- */
-
-private void countActiveUsersWithContracts(Message<JsonObject> message) {
-  try {
-      JsonArray pipeline = new JsonArray()
-          .add(new JsonObject().put("$match", new JsonObject()
-              .put("status", true)))
-          .add(new JsonObject().put("$group", new JsonObject()
-              .put("_id", "$user_id")))
-          .add(new JsonObject().put("$count", "activeUsersWithContracts"));
-
-      JsonObject msg = new JsonObject()
-          .put("collection", Collections.CONTRACTS)
-          .put("pipeline", pipeline)
-          .put("options", new JsonObject());
-
-      vertx.eventBus().request(Services.DB_AGGREGATE, msg, res -> {
-          if (res.succeeded()) {
-              JsonObject result = (JsonObject) res.result().body();
-              message.reply(result);
-          } else {
-              message.fail(500, res.cause().getMessage());
-          }
-      });
-  } catch (Exception e) {
-      message.fail(500, "Erreur " + e);
-  }
-}
-
-/**
- * @param message Message
- * @author : Abdellah
- * <p>
  * This function is an event bus consumer handler that retrieves the top 5 contracts
  * that are expiring within the next 10 days. The response contains details of the
  * contract and associated user information such as username.
@@ -383,6 +345,8 @@ private void countActiveUsersWithContracts(Message<JsonObject> message) {
         .put("contract_id", "$_id")
         .put("user_id", "$user_id")
         .put("username", "$user_details.username")
+        .put("firstName", "$user_details.firstName")
+        .put("lastName", "$user_details.lastName")
         .put("end_date", "$end_date")
         .put("days_until_expiration", new JsonObject()
           .put("$dateDiff", new JsonObject()

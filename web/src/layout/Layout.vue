@@ -57,7 +57,7 @@
               <!-- Dropdown Notifications -->
               <transition name="fade-scale">
                 <div v-if="isNotificationDropdownOpen"
-                  class="absolute right-0 mt-2 w-96 bg-white rounded-[8px] shadow-xl border border-gray-100 z-50">
+                  class="absolute right-0 mt-2 w-96 bg-white rounded-[8px] shadow-xl border border-gray-300 z-50">
                   <div class="p-3 border-b border-gray-100 flex justify-between items-center">
                     <h3 class="text-sm font-semibold text-[#6c7f93]">Notifications</h3>
                   </div>
@@ -111,7 +111,7 @@
               <!-- Dropdown Profil -->
               <transition name="fade-scale">
                 <div v-if="isProfileDropdownOpen"
-                  class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border border-gray-100 z-50">
+                  class="absolute right-0 mt-2 w-48 bg-white rounded-[8px] shadow-xl border  border-gray-300 z-50">
                   <div class="py-1">
                     <button @click="profile"
                       class="w-full text-left px-4 py-2 text-sm text-[#6c7f93] hover:bg-[#99c4ff]/10 hover:text-[#006aff] transition-colors">

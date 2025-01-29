@@ -117,14 +117,13 @@ public class MainVerticle extends AbstractVerticle {
 
       // path : /private/user/profile
       routerBuilder.getRoute("getUserProfile").addHandler(this::getUserProfileHandler);
-      // path : /private//user/stats
+      // path : /private/user/stats
       routerBuilder.getRoute("getStats").addHandler(this::usersCount);
 
       // Contracts
       routerBuilder.getRoute("createContract").addHandler(ctx -> { handlePermission(ctx, "create_contract"); }).addHandler(this::createContract);
       routerBuilder.getRoute("updateContract").addHandler(ctx -> { handlePermission(ctx, "update_contract"); }).addHandler(this::updateContract);
       routerBuilder.getRoute("getContract").addHandler(this::getContract);
-      routerBuilder.getRoute("getActiveUsersWithContracts").addHandler(this::getActiveUsersWithContracts);
       routerBuilder.getRoute("getExpiringContracts").addHandler(this::getExpiringContracts);
 
       // Files
@@ -422,36 +421,6 @@ public void getContract(RoutingContext ctx) {
         .toString());
   }
 }
-
-/**
- * @param ctx RoutingContext
- * @author : Abdellah
- * <p>
- * This function handles an HTTP request to retrieve the count of active users
- * with at least one active contract. It sends the result as a JSON response
- * to the client.
- * </p>
- */
-
-private void getActiveUsersWithContracts(RoutingContext ctx) {
-  JsonObject msg = new JsonObject();
-
-  vertx.eventBus().request(Services.DB_ACTIVE_USERS_WITH_CONTRACTS, msg, res -> {
-      if (res.succeeded()) {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .end(res.result().body().toString());
-      } else {
-          ctx.response()
-              .putHeader("content-type", "application/json")
-              .setStatusCode(500)
-              .end(new JsonObject()
-                  .put("error", res.cause().getMessage())
-                  .toString());
-      }
-  });
-}
-
 
 /**
  * @param ctx RoutingContext
@@ -809,8 +778,16 @@ public void handlePermission(RoutingContext ctx, String permission) {
     try {
       JsonObject body = ctx.body().asJsonObject();
       vertx.eventBus().request(Services.AUTH_LOGIN, body , reply ->{
-        if(reply.succeeded() && reply.cause() == null){
+        if(reply.succeeded() && reply.cause() == null ){
           JsonObject response = (JsonObject) reply.result().body();
+          if (response.containsKey("error")) {
+            ctx.response()
+              .setStatusCode(401)
+              .putHeader("content-type", "application/json")
+              .end(response.encode());
+            return;
+            
+          }
           User user = User.create(response.getJsonObject("user"));
           ctx.setUser(user);
           ctx.session().regenerateId();

@@ -36,11 +36,6 @@
                 :placeholder="field.placeholder"
                 v-model="formData[field.name]"
                 class="w-full"
-                :pt="{
-                  root: { 
-                    class: 'w-full p-3 border border-gray-300 rounded--[8px]  focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
-                  }
-                }"
               />
             </div>
 
@@ -57,24 +52,20 @@
                 :placeholder="field.placeholder"
                 :inputId="field.name"
                 class="w-full"
-                :pt="{
-                  root: { 
-                    // class: 'w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500' 
-                  }
-                }"
               />
             </div>
 
             <!-- Other input types remain the same as in previous version -->
             <!-- Date Input -->
             <div v-if="field.type === 'date'  && !isFieldHidden(field)" class="mb-6">
-      <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
-      <input
-        :type="field.type"
-        :name="field.name"
-        v-model="formData[field.name]"
-        class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-      /> </div>
+              <label :for="field.name" class="block text-gray-700 text-sm font-semibold mb-2">{{ field.label }}</label>
+              <input
+                :type="field.type"
+                :name="field.name"
+                v-model="formData[field.name]"
+                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-800 leading-tight focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              />
+             </div>
 
             <!-- Select Input -->
             <div v-if="field.type === 'select'">
@@ -90,11 +81,6 @@
                 :placeholder="field.label"
                 filter
                 class="w-full"
-                :pt="{
-                  root: {
-                    class: 'w-full border border-gray-300 rounded-[8px]',
-                  },
-                }"
               />
               <Select
                 v-model="formData[field.name]"
@@ -104,11 +90,6 @@
                 optionValue="value"
                 :placeholder= "field.label"
                 class="w-full"
-                :pt="{
-                  root: {
-                    class: 'w-full border border-gray-300 rounded-[8px]',
-                  },
-                }"
               />
             </div>
 
@@ -127,11 +108,6 @@
                     :name="field.name"
                     :value="option.value"
                     v-model="formData[field.name]"
-                    :pt="{
-                      box: {
-                        class: 'border-2 border-gray-300 rounded-full w-4 h-4',
-                      },
-                    }"
                   />
                   <label class="ml-2 text-sm text-gray-700">
                     {{ option.label }}
@@ -153,11 +129,6 @@
                 v-model="formData[field.name]"
                 :placeholder="field.placeholder"
                 class="w-full"
-                :pt="{
-                  root: {
-                    class: 'w-full p-3 border border-gray-300 rounded-[8px] focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-                  },
-                }"
               />
             </div>
 
@@ -167,11 +138,6 @@
                 :name="field.name"
                 v-model="formData[field.name]"
                 :binary="true"
-                :pt="{
-                  box: {
-                    class: 'border-2 border-gray-300 rounded w-4 h-4 ',
-                  },
-                }"
               />
               <label :for="field.name" class="ml-2 text-sm text-gray-700">
                 {{ field.label }}

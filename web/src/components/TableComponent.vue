@@ -21,7 +21,7 @@
           <tr v-for="(row, rowIndex) in tableInfo.data" :key="rowIndex"
             class="hover:bg-[#99C4FF]/10 transition-all duration-200">
             <td v-for="(header, colIndex) in tableInfo.headers" :key="colIndex"
-              class="px-6 py-4 text-base text-[#060721] border-b border-[#99C4FF]/30">
+              class="px-6 py-3 text-sm text-[#060721] border-b border-[#99C4FF]/30">
               <div v-if="header.key != 'created_date'">{{ row[header.key] }}</div>
               <div v-if="header.key == 'created_date'">{{ convertDate(row[header.key]) }}</div>
               <div class="flex" v-if="header.key === 'actions'">

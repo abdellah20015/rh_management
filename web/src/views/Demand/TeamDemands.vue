@@ -1,7 +1,7 @@
 <template>
     <div class="flex justify-center">
         <div class="w-11/12">
-            <div class="flex items-center justify-between  mt-5 mb-9    ">
+            <div class="flex items-center justify-between  mt-5 mb-14">
                 <div class="flex  gap-3">
                     <p class="text-3xl font-semibold">Demandes des utilisateurs</p>
                     <p class="text-[#006aff] bg-[#c6dffb] py-1 px-3 rounded-[6px] font-semibold text-base">
@@ -118,34 +118,6 @@ export default {
                 ],
             },
 
-            //employee table infos
-            employeeTableInfo: {
-                headers: [
-                    { title: "Type de demand", key: "typeTitle" },
-                    { title: "Status", key: "statusTitle" },
-                    { title: "created_date", key: "created_date" },
-                    { title: "Actions", key: "actions" }
-                ],
-                data: [],
-                buttons: [
-                    // {
-                    //     button: `<button style='background-color : #38b000; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/external-tal-revivo-bold-tal-revivo/24/FFFFFF/external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo.png" alt="external-select-checkmark-symbol-to-choose-true-answer-basic-bold-tal-revivo"/></button>`,
-                    //     action: this.approveDemand,
-                    //     disabled: (demand) => demand.status === "approved"
-                    // },
-                    // {
-                    //     button: `<button style='background-color : #d90429; padding : 7px; color : white;border-radius : 2px ; border : none'><img width="20" height="20" src="https://img.icons8.com/ios-filled/50/FFFFFF/cancel-2.png" alt="cancel-2"/></button>`,
-                    //     action: this.rejecetDemand,
-                    //     disabled: (demand) => demand.status === "rejected"
-                    // },
-                    {
-                        button: `<button style='background-color : #023047; padding : 3px; color : white;border-radius : 2px ; border : none'><img width="28" height="28" src="https://img.icons8.com/sf-black-filled/50/FFFFFF/pdf-2.png" alt="pdf-2"/></button>`,
-                        action: this.downloadDemand,
-                        disabled: false
-                    }
-                ],
-            },
-
             //filter structure
             filterStructure: [
                 {
@@ -247,7 +219,7 @@ export default {
                         //chaneg type value to new value
                         typeTitle: utils.formatString(item.type),
                         statusTitle: item.status === "approved" ? "Acceptée" : item.status === "rejected" ? "Rejectée" : item.status === "pending" ? "En attente" : item.status,
-                        fullname : item.user_firstName != null && item.user_lastName != null ? item.user_firstName + " " + item.user_lastName : "Vide",
+                        fullname : item.user_firstName != null && item.user_lastName != null ? item.user_firstName + " " + item.user_lastName : "-",
 
                     }));
 

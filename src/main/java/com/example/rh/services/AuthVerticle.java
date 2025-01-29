@@ -91,7 +91,7 @@ public class AuthVerticle extends AbstractVerticle {
                             }
                         });
                     } else {
-                        message.fail(401, "User is disabled");
+                        message.reply(new JsonObject().put("error", "User is disabled").put("status", "desactiver"));
                     }
                 }
             });
@@ -135,7 +135,7 @@ public class AuthVerticle extends AbstractVerticle {
                                 .add("update_demand");
                         break;
                     default:
-                        permissions.add(null);
+                        permissions.add("create_demand");
                 }
             }
 
@@ -149,6 +149,7 @@ public class AuthVerticle extends AbstractVerticle {
                     if (reply.result().body() == null) {
                         mongoUserUtil.createUser(username, password, res -> {
                             if (res.succeeded()) {
+                                System.out.println(body);
                                 JsonObject payload2 = new JsonObject()
                                         .put("collection", Collections.USER)
                                         .put("id", res.result())
@@ -163,6 +164,7 @@ public class AuthVerticle extends AbstractVerticle {
                                                 .put(Fields.USER_FIRSTNAME, body.getString(Fields.USER_FIRSTNAME ,null))
                                                 .put(Fields.USER_LASTNAME, body.getString(Fields.USER_LASTNAME ,null))
                                                 .put(Fields.USER_PHONE, body.getString(Fields.USER_PHONE ,null))
+                                                .put(Fields.USER_CIN, body.getString(Fields.USER_CIN ,null))
                                                 .put(Fields.USER_PERMISSIONS, permissions));
 
                                 vertx.eventBus().request(Services.DB_UPDATE, payload2, reply2 -> {

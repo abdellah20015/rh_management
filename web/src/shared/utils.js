@@ -94,7 +94,7 @@ const notification = (message) => {
         toast: true,
         position: "bottom-end",
         showConfirmButton: false,
-        timer: 5000,
+        timer: 6000,
         timerProgressBar: true,
         icon: 'info',
         didOpen: (toast) => {
@@ -102,7 +102,7 @@ const notification = (message) => {
             toast.onmouseleave = Swal.resumeTimer;
         },
         didRender: (toast) => {
-            toast.style.backgroundColor = '#caf0f8'; 
+            toast.style.backgroundColor = '#ffffff'; 
             toast.style.width = '1000px';
         }
     });
