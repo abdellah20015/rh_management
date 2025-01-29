@@ -64,11 +64,7 @@ export default {
         if (response.ok) {
           utils.successAlert("Login successful");
            authStore.auth(data)
-          if (["admin", "manager"].includes(data.user.role)) {
-            this.$router.push({ name: "list_user" })
-          } else {
-            this.$router.push({ name: "userDemands" })
-          }
+            this.$router.push({ name: "statistics" })
         } else {
           utils.errorAlert("Username or password is incorrect");
         }

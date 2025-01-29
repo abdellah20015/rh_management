@@ -77,17 +77,23 @@ public class Db extends AbstractVerticle {
 
       mongoClient.find(collection, query, res -> {
           JsonObject response = new JsonObject();
-
           if (res.succeeded()) {
-              response.put("status", "success")
-                     .put("data", new JsonArray(res.result()));
+//              response.put("status", "success")
+//                     .put("data", new JsonArray(res.result()));
+              mongoClient.count(collection, query, countRes -> {
+                if(countRes.succeeded()) {
+                  message.reply(response.put("status", "success")
+                     .put("count", countRes.result())
+                    .put("data", new JsonArray(res.result())));
+                }
+              });
           } else {
-              response.put("status", "error")
+            message.reply(response.put("status", "error")
                      .put("message", "Échec de la recherche: " + res.cause().getMessage())
-                     .put("code", -1);
+                     .put("code", -1));
           }
 
-          message.reply(response);
+//          message.reply(response);
       });
   }
 
@@ -229,24 +235,55 @@ private void aggregate(Message<JsonObject> message) {
     JsonArray pipeline = payload.getJsonArray("pipeline");
     AggregateOptions options = new AggregateOptions(payload.getJsonObject("options"));
 
+    // Create a simple $count stage pipeline
+    JsonArray countPipeline = new JsonArray();
+    for (Object stage : pipeline) {
+      JsonObject stageObj = (JsonObject) stage;
+      // Skip $limit stage for count
+      if (!stageObj.containsKey("$limit")) {
+        countPipeline.add(stage);
+      }
+    }
+    countPipeline.add(new JsonObject().put("$count", "total"));
+
+    //get the count
     mongoClient
-        .aggregateWithOptions(collection, pipeline, options)
-        .collect(Collectors.toList())
-        .onComplete(res -> {
-            JsonObject response = new JsonObject();
+      .aggregateWithOptions(collection, countPipeline, options)
+      .collect(Collectors.toList())
+      .onComplete(countRes -> {
+        if (countRes.succeeded()) {
+          //get the data
+          mongoClient
+            .aggregateWithOptions(collection, pipeline, options)
+            .collect(Collectors.toList())
+            .onComplete(dataRes -> {
+              JsonObject response = new JsonObject();
 
-            if (res.succeeded()) {
+              if (dataRes.succeeded()) {
+                long count = countRes.result().isEmpty() ? 0 : countRes.result().get(0).getLong("total");
+
                 response.put("status", "success")
-                       .put("data", new JsonArray(res.result()));
-            } else {
-                response.put("status", "error")
-                       .put("message", res.cause().getMessage())
-                       .put("code", 500);
-            }
+                  .put("count", count)
+                  .put("data", new JsonArray(dataRes.result()));
 
-            message.reply(response);
-        });
-}
+              } else {
+                response.put("status", "error")
+                  .put("message", dataRes.cause().getMessage())
+                  .put("code", 500);
+              }
+
+              message.reply(response);
+            });
+        } else {
+          JsonObject response = new JsonObject()
+            .put("status", "error")
+            .put("message", countRes.cause().getMessage())
+            .put("code", 500);
+
+          message.reply(response);
+        }
+      });
+  }
 
 private void removeDocuments(Message<JsonObject> message) {
   JsonObject payload = message.body();

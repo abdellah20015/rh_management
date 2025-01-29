@@ -1,7 +1,7 @@
 <template>
   <div class="py-5">
     <!-- Table -->
-    <div class="overflow-x-auto rounded-lg shadow-lg border border-[#99C4FF]">
+    <div class="overflow-x-auto rounded-[8px] shadow-lg border border-[#99C4FF]">
       <table class="w-full">
         <!-- Table Header -->
         <thead class="bg-[#006AFF]">
@@ -21,7 +21,7 @@
           <tr v-for="(row, rowIndex) in tableInfo.data" :key="rowIndex"
             class="hover:bg-[#99C4FF]/10 transition-all duration-200">
             <td v-for="(header, colIndex) in tableInfo.headers" :key="colIndex"
-              class="px-6 py-4 text-base text-[#060721] border-b border-[#99C4FF]/30">
+              class="px-6 py-3 text-sm text-[#060721] border-b border-[#99C4FF]/30">
               <div v-if="header.key != 'created_date'">{{ row[header.key] }}</div>
               <div v-if="header.key == 'created_date'">{{ convertDate(row[header.key]) }}</div>
               <div class="flex" v-if="header.key === 'actions'">
@@ -41,7 +41,7 @@
     <div class="flex justify-center">
       <div class="mt-6 flex justify-between items-center w-1/2">
         <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)"
-          class="px-6 py-2.5 bg-[#006AFF] text-white rounded-lg hover:bg-[#006AFF]/90 disabled:bg-[#99C4FF] disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2">
+          class="px-6 py-2.5 bg-[#006AFF] text-white rounded-[5px] hover:bg-[#006AFF]/90 disabled:bg-[#99C4FF] disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
           </svg>
@@ -53,7 +53,7 @@
         </span>
 
         <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)"
-          class="px-6 py-2.5 bg-[#006AFF] text-white rounded-lg hover:bg-[#006AFF]/90 disabled:bg-[#99C4FF] disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2">
+          class="px-6 py-2.5 bg-[#006AFF] text-white rounded-[5px] hover:bg-[#006AFF]/90 disabled:bg-[#99C4FF] disabled:cursor-not-allowed transition-all duration-200 flex items-center gap-2">
           Suivant
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />

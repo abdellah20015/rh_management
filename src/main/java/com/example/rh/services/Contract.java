@@ -345,6 +345,8 @@ private void createContractHandler(Message<JsonObject> message) {
         .put("contract_id", "$_id")
         .put("user_id", "$user_id")
         .put("username", "$user_details.username")
+        .put("firstName", "$user_details.firstName")
+        .put("lastName", "$user_details.lastName")
         .put("end_date", "$end_date")
         .put("days_until_expiration", new JsonObject()
           .put("$dateDiff", new JsonObject()

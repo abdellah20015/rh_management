@@ -18,9 +18,6 @@ const router = createRouter({
         {
           path: '/private/statistics',
           name: 'statistics',
-          meta : {
-            permission : ""
-          },
           component: ()=> import('@/views/Statistics.vue'),
         },
         {
@@ -89,8 +86,11 @@ const router = createRouter({
           component: ()=> import('@/views/Demand/UserDemandsList.vue'),
         },
         {
-          path: '/private/user/demand/list',
+          path: '/private/user/equipe/demand/list',
           name: 'TeamDemands',
+          meta : {
+            permission : "update_demand"
+          },
           component: ()=> import('@/views/Demand/TeamDemands.vue'),
         },
         {

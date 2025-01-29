@@ -168,7 +168,7 @@ public class MainVerticle extends AbstractVerticle {
               // Close handler
               ws.closeHandler(handle -> {
                 System.out.println("connection closed");
-                ctx.clearUser();
+                userWebSockets.remove(userId);
               });
 
               // Incoming message handler
@@ -907,11 +907,21 @@ public void handlePermission(RoutingContext ctx, String permission) {
         .add(new JsonObject().put("$sort", new JsonObject().put("date_creation", -1)));
 
 
-      if(search != null){
+      if (search != null && !search.isEmpty()) {
         pipeline.add(new JsonObject().put("$match", new JsonObject()
-          .put("username", new JsonObject()
-            .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
-            .put("$options", "i"))));
+          .put("$or", new JsonArray()
+            .add(new JsonObject()
+              .put("username", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i")))
+            .add(new JsonObject()
+              .put("firstname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i")))
+            .add(new JsonObject()
+              .put("lastname", new JsonObject()
+                .put("$regex", ".*" + search.replace(" ", ".*") + ".*")
+                .put("$options", "i"))))));
       }
 
       if(!filter.isEmpty()){
