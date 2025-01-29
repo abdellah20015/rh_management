@@ -314,6 +314,10 @@ private void createContractHandler(Message<JsonObject> message) {
     SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
 
+    JsonObject body = (JsonObject) message.body();
+
+    System.out.println("expiration contract body " + body);
+
     String currentDate = dateFormat.format(calendar.getTime());
 
 
@@ -336,6 +340,8 @@ private void createContractHandler(Message<JsonObject> message) {
         .put("foreignField", "_id")
         .put("as", "user_details")
       ))
+      .add(new JsonObject().put("$match" , new JsonObject()
+        .put("user_details.manager_id" , body.getString("user_id"))))
       .add(new JsonObject().put("$unwind", "$user_details"))
       .add(new JsonObject().put("$addFields", new JsonObject()
         .put("current_date", new JsonObject().put("$toDate", currentDate))
@@ -347,6 +353,7 @@ private void createContractHandler(Message<JsonObject> message) {
         .put("username", "$user_details.username")
         .put("firstName", "$user_details.firstName")
         .put("lastName", "$user_details.lastName")
+        .put("manager_id", "$user_details.manager_id")
         .put("end_date", "$end_date")
         .put("days_until_expiration", new JsonObject()
           .put("$dateDiff", new JsonObject()
@@ -358,6 +365,8 @@ private void createContractHandler(Message<JsonObject> message) {
       ))
       .add(new JsonObject().put("$sort", new JsonObject().put("days_until_expiration", 1)))
       .add(new JsonObject().put("$limit", 5));
+
+    System.out.println(pipeline);
 
     JsonObject msg = new JsonObject()
       .put("collection", Collections.CONTRACTS)
