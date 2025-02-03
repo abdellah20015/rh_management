@@ -110,7 +110,6 @@ private void processExpiredContracts(JsonArray contracts) {
 
             vertx.eventBus().request(Services.DB_UPDATE, allowNewContractMsg, allowRes -> {
               if (allowRes.succeeded()) {
-                System.out.println("User " + userId + " can now create new contracts");
               } else {
                 System.err.println("Failed to update user contract creation permissions");
               }
@@ -143,7 +142,6 @@ private void deactivateUser(String userId) {
 
   vertx.eventBus().request(Services.DB_UPDATE, updateUser, res -> {
     if (res.succeeded()) {
-      System.out.println("User " + userId + " deactivated successfully");
     } else {
       System.err.println("Failed to deactivate user: " + userId);
     }
@@ -315,8 +313,6 @@ private void createContractHandler(Message<JsonObject> message) {
 
 
     JsonObject body = (JsonObject) message.body();
-
-    System.out.println("expiration contract body " + body);
 
     String currentDate = dateFormat.format(calendar.getTime());
 
