@@ -67,7 +67,8 @@
         <!-- Upload Zone -->
         <div
           class="border-2 border-dashed border-[#3B82F6] p-6 rounded-[5px] text-center cursor-pointer hover:bg-[#99CAFF]/20 transition"
-          @click="$refs.fileInput.click()">
+          @click="$refs.fileInput.click()"
+          :class="{ 'pointer-events-none opacity-50': isUploading }">
           <input type="file" ref="fileInput" @change="handleFileChange" accept=".xlsx,.xls" class="hidden" />
           <div class="flex flex-col items-center">
             <svg class="w-12 h-12 text-[#3B82F6]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"
@@ -86,14 +87,27 @@
         <!-- Selected File Preview -->
         <div v-if="selectedFile" class="mt-4 p-3 bg-[#99CAFF]/30 rounded-[5px] flex items-center justify-between">
           <span class="text-gray-800">{{ selectedFile.name }}</span>
-          <button @click="selectedFile = null" class="text-red-500 hover:text-red-700">Supprimer</button>
+          <button @click="selectedFile = null" :disabled="isUploading" class="text-red-500 hover:text-red-700">
+            Supprimer
+          </button>
+        </div>
+
+        <!-- Loading State -->
+        <div v-if="isUploading" class="mt-4 flex items-center justify-center gap-2 text-[#3B82F6]">
+          <svg class="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span class="font-medium">En cours d'insertion...</span>
         </div>
 
         <!-- Import Button -->
         <div class="mt-4 text-center">
-          <button @click="handleFileSubmit" :disabled="!selectedFile"
+          <button
+            @click="handleFileSubmit"
+            :disabled="!selectedFile || isUploading"
             class="bg-[#3B82F6] text-white px-6 py-3 rounded-[5px] hover:bg-[#2563EB] transition disabled:opacity-50 disabled:cursor-not-allowed">
-            Importer
+            {{ isUploading ? 'En cours d\'insertion...' : 'Importer' }}
           </button>
         </div>
 
@@ -132,6 +146,7 @@ export default {
   },
   data() {
     return {
+      isUploading: false,
       activeTab: 'form',
       selectedFile: null,
       fileHistory: [],
@@ -280,6 +295,7 @@ export default {
       formData.append('file', this.selectedFile);
 
       try {
+        this.isUploading = true;
         const response = await fetch(index.server_adress + services.file.upload, {
           method: 'POST',
           body: formData,
@@ -299,6 +315,8 @@ export default {
       } catch (error) {
         console.error('Erreur:', error);
         utils.errorAlert('Erreur lors de l\'import du fichier');
+      } finally {
+        this.isUploading = false;
       }
     },
     async loadFileHistory() {
