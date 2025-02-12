@@ -447,7 +447,7 @@
                   </button>
                 </div>
               </div>
-<<<<<<< HEAD
+              
               <div class="w-36">
                 <button @click="toggleFilterDropdown"
                   class="w-full p-2.5 rounded-[5px]  bg-[#006AFF] text-white hover:bg-[#006AFF]/90 transition-all duration-200 flex items-center justify-center gap-2">
